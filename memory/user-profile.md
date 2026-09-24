@@ -10,4 +10,6 @@
 
 - Aime que l'assistant avance de manière autonome sur des demandes larges, puis rende compte.
 - Veut que le projet reste privé sur GitHub pour l'instant (décision du 2026-09-24).
+- Ne voit pas les cartes visuelles de l'application (installation de plugins, widgets). Toujours donner l'information en texte, et installer les plugins via `claude plugin` en ligne de commande.
+- Plugins installés (portée utilisateur) : `design@knowledge-work-plugins` (skill `design:accessibility-review`) et `modern-web-guidance@claude-plugins-official`.
 - Veut maximiser la jouabilité pour les joueurs aveugles : toute décision d'interface doit être évaluée sous cet angle.
