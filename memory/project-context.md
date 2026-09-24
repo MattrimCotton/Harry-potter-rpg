@@ -34,6 +34,14 @@ Corrigé le 2026-09-24 : les 11 manœuvres suivent le PDF (Créature, Jet libre 
 
 Restent absents : Quidditch, Points de Maison, Mystères, Menaces. Le jeu en solo n'a pas de Narrateur humain : les Conséquences Graves sont laissées à l'imagination du joueur, sauf dans les scénarios.
 
+## Lore (2026-09-24)
+
+- Les PDF ne contiennent **aucune campagne ni scénario** : tout le contenu narratif est à écrire.
+- **Lore propre au jeu, non canon**, construit à partir de ce qu'on sait officiellement de l'univers **après 1998** (épilogue, *L'Enfant maudit*, textes Wizarding World, interviews de J.K. Rowling).
+- Recensement des personnages connus et des postes à inventer : `docs/lore/characters.md` (chaque information avec sa source ; le fanon n'est pas repris).
+- À trancher avec l'utilisateur : l'époque de la campagne, les professeurs à inventer, les directeurs de maison.
+- Histoires originales uniquement : personnages connus possibles en arrière-plan, pas d'intrigues reprises des livres.
+
 ## Décisions de conception (2026-09-24)
 
 - **NVDA d'abord, pas de synthèse vocale intégrée.** Voir `accessibility-specs.md`.

@@ -154,6 +154,7 @@ Noms de fichiers et de dossiers **en anglais** (décision de l'utilisateur, 2026
 | `licenses/` | Textes originaux : `CC-BY-NC-SA-4.0.txt`, `CC-BY-NC-SA-4.0.fr.html` (traduction officielle), `Bootstrap-MIT.txt` |
 | `memory/` | Mémoire du projet — lire `memory/MEMORY.md` en premier |
 | `docs/terms-reference.md` | Référence des traductions françaises du lore HP |
+| `docs/lore/characters.md` | Lore du jeu : personnages et état du monde sorcier après 1998 (canon vs libre d'invention) — consulter avant de créer des PNJ ou de fixer l'époque de la campagne |
 | `docs/sources/` | PDF du jeu d'origine (redistribués sans modification, CC BY-NC-SA 4.0) |
 | `tools/build.js` | Compilation : `node tools/build.js` depuis la racine. Lit `src/`, transforme les modules ES6 en script classique, intègre CSS, JS, JSON et Bootstrap (sans sourceMappingURL) dans `dist/hogwarts-rpg.html` |
 | `tools/build.bat` | Double-clic sous Windows : se place à la racine, vérifie Node.js, compile, propose d'ouvrir le résultat |
