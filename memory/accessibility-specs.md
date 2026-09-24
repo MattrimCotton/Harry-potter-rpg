@@ -42,12 +42,15 @@ API (`narration.js`) :
 
 Règle pour les chargements JSON : **charger d'abord, narrer ensuite**.
 
-## Boutons (`actions.js`)
+## Présentation des choix (`actions.js`) — décision de l'utilisateur, 2026-09-24
 
-- Vrais `<button type="button">` dans `<ul id="liste-actions">`.
-- Action de retour : `retour: true`, ou libellé commençant par « Retour » ou « Annuler ». Le bouton porte `aria-keyshortcuts="Escape Backspace"` et le libellé « …, touche Échap ou Retour arrière ».
+- **3 choix ou plus : liste déroulante** (`<select id="liste-choix">`, libellé « Votre choix »), validée par **Entrée** ou par le bouton « Valider le choix ». Les choix indisponibles sont des `<option disabled>` (NVDA dit « indisponible »). Le focus va sur la liste.
+- **1 ou 2 choix : boutons.**
+- **Toujours en bouton** : les déplacements (`bouton: true` ; dans un scénario JSON, `"deplacement": true` sur l'action) et l'action de retour.
+- Seuil dans la constante `SEUIL_LISTE_DEROULANTE`.
+- Action de retour : `retour: true`, ou libellé commençant par « Retour » ou « Annuler ». Bouton avec `aria-keyshortcuts="Escape Backspace"` et libellé « …, touche Échap ou Retour arrière ». Retour arrière fonctionne aussi quand le focus est sur la liste déroulante.
 - Sans retour possible, Échap annonce « Aucun retour possible ici ».
-- Flèches haut/bas (en boucle), Début, Fin entre les boutons actifs.
+- Flèches haut/bas, Début, Fin : entre les boutons en mode formulaire ; dans la liste, comportement natif (changer la sélection, sans valider).
 
 ## Saisie de texte (`demanderTexte`)
 
@@ -78,10 +81,11 @@ Automatique et **silencieuse** après chaque jet et chaque changement. Une annon
 - Pas de redite : ne pas annoncer deux fois le même résultat dans un tour.
 - Libellés de boutons autonomes : ils doivent se comprendre seuls (valeur du trait, coût en Chance, ce qui est indisponible et pourquoi).
 - Listes longues : les regrouper en sous-menus (le menu de jeu a un sous-menu « Faire une manœuvre libre »).
+- Le jet de dés dit déjà « Succès complet » ou « Succès partiel » : le texte suivant ne le répète pas.
 
 ## Page (`index.html`)
 
-`<main>` : section Histoire (`#narration`), `nav#zone-actions`, `nav#zone-outils`, régions `#alerte` et `#statut`. Hors `<main>` : `section#aide` (focusable, atteinte par le bouton Aide), `aside#fiche-personnage` (visuel).
+`<main>` : section Histoire (`#narration`), `nav#zone-actions`, `nav#zone-outils`, régions `#alerte` et `#statut`. Hors `<main>` : `details#aide` (**repliée par défaut**, décision de l'utilisateur ; le bouton Aide l'ouvre et place le focus sur son `summary` ; pas de titre dans le `summary`, qui se comporte comme un bouton), `aside#fiche-personnage` (visuel).
 
 ## Vérifications
 

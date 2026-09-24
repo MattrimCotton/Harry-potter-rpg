@@ -5,7 +5,8 @@
 // - mode formulaire : NVDA garde Échap, qui sert à revenir au mode navigation.
 // D'où : touches F pour la fiche et la relecture, et deux touches de retour,
 // Échap (mode navigation) et Retour arrière (mode formulaire).
-// Les flèches parcourent les choix en mode formulaire.
+// Les flèches parcourent les boutons en mode formulaire ; dans une liste
+// déroulante, elles changent la sélection (comportement natif).
 
 import { relire } from './narration.js';
 import { declencherRetour, deplacerFocusActions } from './actions.js';
@@ -58,7 +59,7 @@ export function initClavier({ lireFiche, sauvegarder }) {
 
 function _dansUnChamp() {
   const tag = document.activeElement?.tagName;
-  return tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT';
+  return tag === 'INPUT' || tag === 'TEXTAREA';
 }
 
 // Branche les boutons de la barre d'outils permanente sur les mêmes fonctions.

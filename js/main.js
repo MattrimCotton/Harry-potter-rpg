@@ -86,12 +86,14 @@ function demarrerCreation() {
   });
 }
 
-// L'aide est une section fixe de la page : on y place le focus,
-// et F9 ramène au dernier tour.
+// L'aide est un bloc repliable de la page (fermé au chargement) :
+// on l'ouvre et on place le focus sur son titre.
 function _allerAide() {
   const $aide = document.getElementById('aide');
-  $aide.focus();
-  $aide.scrollIntoView();
+  $aide.open = true;
+  const $titre = $aide.querySelector('summary');
+  $titre.focus();
+  $titre.scrollIntoView();
 }
 
 // ---- Helpers ----

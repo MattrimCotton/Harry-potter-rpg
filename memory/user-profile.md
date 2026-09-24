@@ -13,3 +13,5 @@
 - Ne voit pas les cartes visuelles de l'application (installation de plugins, widgets). Toujours donner l'information en texte, et installer les plugins via `claude plugin` en ligne de commande.
 - Plugins installés (portée utilisateur) : `design@knowledge-work-plugins` (skill `design:accessibility-review`) et `modern-web-guidance@claude-plugins-official`.
 - Veut maximiser la jouabilité pour les joueurs aveugles : toute décision d'interface doit être évaluée sous cet angle.
+- Préférences d'interface exprimées (2026-09-24) : aide repliable et repliée par défaut ; listes déroulantes pour les choix multiples (création de personnage, menus), boutons pour les déplacements ; tout doit marcher en mode navigation ET en mode formulaire de NVDA ; pas de synthèse vocale intégrée.
+- Projets envisagés plus tard, pas maintenant : version Electron (seulement si la lecture par NVDA dans le navigateur pose problème) et jeu multilingue (commencer par sortir les textes du code vers des fichiers de langue).

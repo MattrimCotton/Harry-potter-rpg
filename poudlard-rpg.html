@@ -221,6 +221,32 @@ main {
   font-size: 0.95rem;
 }
 
+/* ---- Liste déroulante de choix ---- */
+.choix-deroulant label {
+  display: block;
+  margin-bottom: 0.4rem;
+  color: #a08060;
+}
+
+.choix-deroulant select {
+  display: block;
+  width: 100%;
+  padding: 0.6rem 0.9rem;
+  margin-bottom: 0.4rem;
+  background: #0d0500;
+  color: #f0e6d3;
+  border: 1px solid #6a4500;
+  border-radius: 4px;
+  font-family: inherit;
+  font-size: 1rem;
+}
+
+.choix-deroulant select:focus-visible {
+  outline: 3px solid #d4af37;
+  outline-offset: 2px;
+  border-color: #d4af37;
+}
+
 /* ---- Saisie de texte ---- */
 .saisie label {
   display: block;
@@ -245,9 +271,11 @@ main {
   border-top: 1px solid #4a3000;
 }
 
-#aide h2 {
+#aide summary {
+  cursor: pointer;
   color: #d4af37;
   font-size: 1.1rem;
+  font-weight: bold;
 }
 
 .raccourci {
@@ -342,9 +370,10 @@ main {
 
   </main>
 
-  <section id="aide" aria-labelledby="titre-aide" tabindex="-1">
-    <h2 id="titre-aide">Aide et raccourcis clavier</h2>
-    <p>Le jeu est prévu pour NVDA et fonctionne dans les deux modes : navigation et formulaire. Après chaque choix, NVDA lit le nouveau texte, puis place le focus sur le premier choix suivant. Appuyez sur Entrée pour activer un choix.</p>
+  <details id="aide">
+    <summary>Aide et raccourcis clavier</summary>
+    <p>Le jeu est prévu pour NVDA et fonctionne dans les deux modes : navigation et formulaire. Après chaque choix, NVDA lit le nouveau texte, puis place le focus sur le choix suivant.</p>
+    <p>Quand il y a trois possibilités ou plus, elles sont dans une liste déroulante : choisissez avec les flèches haut et bas, puis appuyez sur Entrée, ou sur le bouton « Valider le choix ». Quand il y en a une ou deux, ce sont des boutons : appuyez sur Entrée. Les déplacements (nord, est…) sont toujours des boutons.</p>
     <ul>
       <li>F9 : relire le dernier texte, sans quitter le choix en cours.</li>
       <li>Échap, en mode navigation, ou Retour arrière, dans les deux modes : revenir en arrière ou annuler, quand c'est possible.</li>
@@ -354,11 +383,11 @@ main {
       <li>F4 : vos amis et rivaux.</li>
       <li>F5 : votre chance et votre expérience.</li>
       <li>F8 : sauvegarder. La partie est aussi sauvegardée après chaque jet.</li>
-      <li>Mode formulaire : les flèches haut et bas, Début et Fin parcourent les choix.</li>
+      <li>Mode formulaire : sur un bouton, les flèches haut et bas, Début et Fin passent d'un bouton à l'autre.</li>
       <li>Mode navigation : les flèches lisent l'histoire, et les commandes B et Maj+B de NVDA passent d'un bouton à l'autre. L'historique des derniers tours est juste au-dessus des choix.</li>
     </ul>
     <p>Sur un ordinateur portable, il faut parfois maintenir la touche Fn pour les touches F. Tous ces raccourcis existent aussi en boutons, dans la zone « Fiche et outils », juste après les choix.</p>
-  </section>
+  </details>
 
   <!-- Fiche personnage visuelle. Les touches F1-F5 l'annoncent sans déplacer le focus. -->
   <aside id="fiche-personnage" aria-label="Fiche de personnage" hidden>
@@ -707,10 +736,16 @@ function aUneSauvegarde() {
 
 // ===== actions.js =====
 const { afficherActions, demanderTexte, declencherRetour, deplacerFocusActions } = (function() {
-// Zone d'actions : les choix du moment, sous forme de vrais boutons dans une liste.
+// Zone d'actions : les choix du moment.
 //
 // Format d'une action :
-// { label: string, action: () => void, desactive?: bool, retour?: bool }
+// { label: string, action: () => void, desactive?: bool, retour?: bool, bouton?: bool }
+//
+// Présentation (choix de l'utilisateur) :
+// - 3 choix ou plus : une liste déroulante, validée par Entrée ou par le bouton Valider ;
+// - 1 ou 2 choix : des boutons ;
+// - toujours en bouton : les actions `bouton: true` (déplacements : nord, est…)
+//   et l'action de retour.
 //
 // L'action de retour (Échap ou Retour arrière) est celle marquée `retour: true`,
 // ou à défaut celle dont le libellé commence par « Retour » ou « Annuler ».
@@ -724,6 +759,7 @@ const { afficherActions, demanderTexte, declencherRetour, deplacerFocusActions }
 
 
 const RETOUR_PAR_LIBELLE = /^(Retour|Annuler)\b/;
+const SEUIL_LISTE_DEROULANTE = 3;
 
 let _actionRetour = null;
 
@@ -743,35 +779,92 @@ function afficherActions(actions) {
     ?? actions.find(a => RETOUR_PAR_LIBELLE.test(a.label) && !a.desactive)
     ?? null;
 
-  actions.forEach((a) => {
-    const li  = document.createElement('li');
-    const btn = document.createElement('button');
-    btn.type = 'button';
+  const enBouton  = a => a === _actionRetour || a.bouton;
+  const aLister   = actions.filter(a => !enBouton(a));
+  const deroulant = aLister.length >= SEUIL_LISTE_DEROULANTE;
 
-    if (a === _actionRetour) {
-      btn.setAttribute('aria-keyshortcuts', 'Escape Backspace');
-      btn.setAttribute('aria-label', `${a.label}, touche Échap ou Retour arrière`);
-      const libelle = document.createElement('span');
-      libelle.textContent = a.label;
-      const touche = document.createElement('span');
-      touche.className = 'raccourci';
-      touche.textContent = 'Échap';
-      btn.append(libelle, touche);
-    } else {
-      btn.textContent = a.label;
+  let premier = null;
+
+  if (deroulant) {
+    premier = _creerListeDeroulante($liste, aLister);
+  }
+
+  for (const a of actions) {
+    if (deroulant && !enBouton(a)) continue;
+    const btn = _creerBouton($liste, a);
+    if (!premier && !btn.disabled) premier = btn;
+  }
+
+  _placerFocus(premier);
+}
+
+function _creerListeDeroulante($liste, choix) {
+  const li = document.createElement('li');
+  li.className = 'choix-deroulant';
+
+  const label = document.createElement('label');
+  label.htmlFor = 'liste-choix';
+  label.textContent = 'Votre choix';
+
+  const select = document.createElement('select');
+  select.id = 'liste-choix';
+  choix.forEach((a, i) => {
+    const option = document.createElement('option');
+    option.value = String(i);
+    option.textContent = a.label;
+    option.disabled = !!a.desactive;
+    select.appendChild(option);
+  });
+  const premierActif = choix.findIndex(a => !a.desactive);
+  select.value = String(Math.max(0, premierActif));
+
+  const valider = () => {
+    const a = choix[Number(select.value)];
+    if (!a || a.desactive) {
+      annoncer('Ce choix est indisponible.');
+      return;
     }
+    a.action();
+  };
 
-    if (a.desactive) {
-      btn.disabled = true;
-    } else {
-      btn.addEventListener('click', a.action);
-    }
-
-    li.appendChild(btn);
-    $liste.appendChild(li);
+  select.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') { e.preventDefault(); valider(); }
   });
 
-  _placerFocus($liste.querySelector('button:not([disabled])'));
+  li.append(label, select);
+  $liste.appendChild(li);
+
+  _creerBouton($liste, { label: 'Valider le choix', action: valider });
+  return select;
+}
+
+function _creerBouton($liste, a) {
+  const li  = document.createElement('li');
+  const btn = document.createElement('button');
+  btn.type = 'button';
+
+  if (a === _actionRetour) {
+    btn.setAttribute('aria-keyshortcuts', 'Escape Backspace');
+    btn.setAttribute('aria-label', `${a.label}, touche Échap ou Retour arrière`);
+    const libelle = document.createElement('span');
+    libelle.textContent = a.label;
+    const touche = document.createElement('span');
+    touche.className = 'raccourci';
+    touche.textContent = 'Échap';
+    btn.append(libelle, touche);
+  } else {
+    btn.textContent = a.label;
+  }
+
+  if (a.desactive) {
+    btn.disabled = true;
+  } else {
+    btn.addEventListener('click', a.action);
+  }
+
+  li.appendChild(btn);
+  $liste.appendChild(li);
+  return btn;
 }
 
 // Champ texte accessible : libellé explicite, erreur liée au champ,
@@ -1150,7 +1243,8 @@ const { initClavier, initOutils } = (function() {
 // - mode formulaire : NVDA garde Échap, qui sert à revenir au mode navigation.
 // D'où : touches F pour la fiche et la relecture, et deux touches de retour,
 // Échap (mode navigation) et Retour arrière (mode formulaire).
-// Les flèches parcourent les choix en mode formulaire.
+// Les flèches parcourent les boutons en mode formulaire ; dans une liste
+// déroulante, elles changent la sélection (comportement natif).
 
 
 
@@ -1203,7 +1297,7 @@ function initClavier({ lireFiche, sauvegarder }) {
 
 function _dansUnChamp() {
   const tag = document.activeElement?.tagName;
-  return tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT';
+  return tag === 'INPUT' || tag === 'TEXTAREA';
 }
 
 // Branche les boutons de la barre d'outils permanente sur les mêmes fonctions.
@@ -1539,7 +1633,7 @@ function _succes10(ctx) {
     narrer(manoeuvre.texte10 + ' En solo, répondez-y vous-même d\'après la scène.');
     _choisirQuestion(ctx, SUCCES_COMPLET);
   } else if (manoeuvre.options10) {
-    narrer('Succès complet. Choisissez ce qui se passe.');
+    narrer('Choisissez ce qui se passe.');
     _choisirOption(ctx, manoeuvre.options10, SUCCES_COMPLET, []);
   } else {
     narrer(manoeuvre.texte10);
@@ -1555,7 +1649,7 @@ function _succes79(ctx) {
     narrer(manoeuvre.texte79);
     _choisirQuestion(ctx, SUCCES_PARTIEL, chance);
   } else if (manoeuvre.options79) {
-    narrer('Succès partiel : vous y arrivez, mais avec un coût. Choisissez ce qui se passe.');
+    narrer('Vous y arrivez, mais avec un coût. Choisissez ce qui se passe.');
     _choisirOption(ctx, manoeuvre.options79, SUCCES_PARTIEL, chance);
   } else {
     narrer(manoeuvre.texte79);
@@ -2529,8 +2623,10 @@ function _allerScene(idScene) {
     return;
   }
 
+  // "deplacement": true dans le JSON (aller au nord, à l'est…) : toujours un bouton
   afficherActions(actionsDispos.map(a => ({
     label: a.label,
+    bouton: !!a.deplacement,
     action: () => _executerAction(a)
   })));
 }
@@ -3359,12 +3455,14 @@ function demarrerCreation() {
   });
 }
 
-// L'aide est une section fixe de la page : on y place le focus,
-// et F9 ramène au dernier tour.
+// L'aide est un bloc repliable de la page (fermé au chargement) :
+// on l'ouvre et on place le focus sur son titre.
 function _allerAide() {
   const $aide = document.getElementById('aide');
-  $aide.focus();
-  $aide.scrollIntoView();
+  $aide.open = true;
+  const $titre = $aide.querySelector('summary');
+  $titre.focus();
+  $titre.scrollIntoView();
 }
 
 // ---- Helpers ----

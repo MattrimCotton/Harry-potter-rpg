@@ -47,9 +47,10 @@
 
   </main>
 
-  <section id="aide" aria-labelledby="titre-aide" tabindex="-1">
-    <h2 id="titre-aide">Aide et raccourcis clavier</h2>
-    <p>Le jeu est prévu pour NVDA et fonctionne dans les deux modes : navigation et formulaire. Après chaque choix, NVDA lit le nouveau texte, puis place le focus sur le premier choix suivant. Appuyez sur Entrée pour activer un choix.</p>
+  <details id="aide">
+    <summary>Aide et raccourcis clavier</summary>
+    <p>Le jeu est prévu pour NVDA et fonctionne dans les deux modes : navigation et formulaire. Après chaque choix, NVDA lit le nouveau texte, puis place le focus sur le choix suivant.</p>
+    <p>Quand il y a trois possibilités ou plus, elles sont dans une liste déroulante : choisissez avec les flèches haut et bas, puis appuyez sur Entrée, ou sur le bouton « Valider le choix ». Quand il y en a une ou deux, ce sont des boutons : appuyez sur Entrée. Les déplacements (nord, est…) sont toujours des boutons.</p>
     <ul>
       <li>F9 : relire le dernier texte, sans quitter le choix en cours.</li>
       <li>Échap, en mode navigation, ou Retour arrière, dans les deux modes : revenir en arrière ou annuler, quand c'est possible.</li>
@@ -59,11 +60,11 @@
       <li>F4 : vos amis et rivaux.</li>
       <li>F5 : votre chance et votre expérience.</li>
       <li>F8 : sauvegarder. La partie est aussi sauvegardée après chaque jet.</li>
-      <li>Mode formulaire : les flèches haut et bas, Début et Fin parcourent les choix.</li>
+      <li>Mode formulaire : sur un bouton, les flèches haut et bas, Début et Fin passent d'un bouton à l'autre.</li>
       <li>Mode navigation : les flèches lisent l'histoire, et les commandes B et Maj+B de NVDA passent d'un bouton à l'autre. L'historique des derniers tours est juste au-dessus des choix.</li>
     </ul>
     <p>Sur un ordinateur portable, il faut parfois maintenir la touche Fn pour les touches F. Tous ces raccourcis existent aussi en boutons, dans la zone « Fiche et outils », juste après les choix.</p>
-  </section>
+  </details>
 
   <!-- Fiche personnage visuelle. Les touches F1-F5 l'annoncent sans déplacer le focus. -->
   <aside id="fiche-personnage" aria-label="Fiche de personnage" hidden>

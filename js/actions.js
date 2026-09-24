@@ -1,7 +1,13 @@
-// Zone d'actions : les choix du moment, sous forme de vrais boutons dans une liste.
+// Zone d'actions : les choix du moment.
 //
 // Format d'une action :
-// { label: string, action: () => void, desactive?: bool, retour?: bool }
+// { label: string, action: () => void, desactive?: bool, retour?: bool, bouton?: bool }
+//
+// Présentation (choix de l'utilisateur) :
+// - 3 choix ou plus : une liste déroulante, validée par Entrée ou par le bouton Valider ;
+// - 1 ou 2 choix : des boutons ;
+// - toujours en bouton : les actions `bouton: true` (déplacements : nord, est…)
+//   et l'action de retour.
 //
 // L'action de retour (Échap ou Retour arrière) est celle marquée `retour: true`,
 // ou à défaut celle dont le libellé commence par « Retour » ou « Annuler ».
@@ -15,6 +21,7 @@
 import { terminerTour, annoncer } from './narration.js';
 
 const RETOUR_PAR_LIBELLE = /^(Retour|Annuler)\b/;
+const SEUIL_LISTE_DEROULANTE = 3;
 
 let _actionRetour = null;
 
@@ -34,35 +41,92 @@ export function afficherActions(actions) {
     ?? actions.find(a => RETOUR_PAR_LIBELLE.test(a.label) && !a.desactive)
     ?? null;
 
-  actions.forEach((a) => {
-    const li  = document.createElement('li');
-    const btn = document.createElement('button');
-    btn.type = 'button';
+  const enBouton  = a => a === _actionRetour || a.bouton;
+  const aLister   = actions.filter(a => !enBouton(a));
+  const deroulant = aLister.length >= SEUIL_LISTE_DEROULANTE;
 
-    if (a === _actionRetour) {
-      btn.setAttribute('aria-keyshortcuts', 'Escape Backspace');
-      btn.setAttribute('aria-label', `${a.label}, touche Échap ou Retour arrière`);
-      const libelle = document.createElement('span');
-      libelle.textContent = a.label;
-      const touche = document.createElement('span');
-      touche.className = 'raccourci';
-      touche.textContent = 'Échap';
-      btn.append(libelle, touche);
-    } else {
-      btn.textContent = a.label;
+  let premier = null;
+
+  if (deroulant) {
+    premier = _creerListeDeroulante($liste, aLister);
+  }
+
+  for (const a of actions) {
+    if (deroulant && !enBouton(a)) continue;
+    const btn = _creerBouton($liste, a);
+    if (!premier && !btn.disabled) premier = btn;
+  }
+
+  _placerFocus(premier);
+}
+
+function _creerListeDeroulante($liste, choix) {
+  const li = document.createElement('li');
+  li.className = 'choix-deroulant';
+
+  const label = document.createElement('label');
+  label.htmlFor = 'liste-choix';
+  label.textContent = 'Votre choix';
+
+  const select = document.createElement('select');
+  select.id = 'liste-choix';
+  choix.forEach((a, i) => {
+    const option = document.createElement('option');
+    option.value = String(i);
+    option.textContent = a.label;
+    option.disabled = !!a.desactive;
+    select.appendChild(option);
+  });
+  const premierActif = choix.findIndex(a => !a.desactive);
+  select.value = String(Math.max(0, premierActif));
+
+  const valider = () => {
+    const a = choix[Number(select.value)];
+    if (!a || a.desactive) {
+      annoncer('Ce choix est indisponible.');
+      return;
     }
+    a.action();
+  };
 
-    if (a.desactive) {
-      btn.disabled = true;
-    } else {
-      btn.addEventListener('click', a.action);
-    }
-
-    li.appendChild(btn);
-    $liste.appendChild(li);
+  select.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') { e.preventDefault(); valider(); }
   });
 
-  _placerFocus($liste.querySelector('button:not([disabled])'));
+  li.append(label, select);
+  $liste.appendChild(li);
+
+  _creerBouton($liste, { label: 'Valider le choix', action: valider });
+  return select;
+}
+
+function _creerBouton($liste, a) {
+  const li  = document.createElement('li');
+  const btn = document.createElement('button');
+  btn.type = 'button';
+
+  if (a === _actionRetour) {
+    btn.setAttribute('aria-keyshortcuts', 'Escape Backspace');
+    btn.setAttribute('aria-label', `${a.label}, touche Échap ou Retour arrière`);
+    const libelle = document.createElement('span');
+    libelle.textContent = a.label;
+    const touche = document.createElement('span');
+    touche.className = 'raccourci';
+    touche.textContent = 'Échap';
+    btn.append(libelle, touche);
+  } else {
+    btn.textContent = a.label;
+  }
+
+  if (a.desactive) {
+    btn.disabled = true;
+  } else {
+    btn.addEventListener('click', a.action);
+  }
+
+  li.appendChild(btn);
+  $liste.appendChild(li);
+  return btn;
 }
 
 // Champ texte accessible : libellé explicite, erreur liée au champ,

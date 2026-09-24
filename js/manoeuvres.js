@@ -314,7 +314,7 @@ function _succes10(ctx) {
     narrer(manoeuvre.texte10 + ' En solo, répondez-y vous-même d\'après la scène.');
     _choisirQuestion(ctx, SUCCES_COMPLET);
   } else if (manoeuvre.options10) {
-    narrer('Succès complet. Choisissez ce qui se passe.');
+    narrer('Choisissez ce qui se passe.');
     _choisirOption(ctx, manoeuvre.options10, SUCCES_COMPLET, []);
   } else {
     narrer(manoeuvre.texte10);
@@ -330,7 +330,7 @@ function _succes79(ctx) {
     narrer(manoeuvre.texte79);
     _choisirQuestion(ctx, SUCCES_PARTIEL, chance);
   } else if (manoeuvre.options79) {
-    narrer('Succès partiel : vous y arrivez, mais avec un coût. Choisissez ce qui se passe.');
+    narrer('Vous y arrivez, mais avec un coût. Choisissez ce qui se passe.');
     _choisirOption(ctx, manoeuvre.options79, SUCCES_PARTIEL, chance);
   } else {
     narrer(manoeuvre.texte79);

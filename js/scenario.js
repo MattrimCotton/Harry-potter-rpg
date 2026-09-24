@@ -86,8 +86,10 @@ function _allerScene(idScene) {
     return;
   }
 
+  // "deplacement": true dans le JSON (aller au nord, à l'est…) : toujours un bouton
   afficherActions(actionsDispos.map(a => ({
     label: a.label,
+    bouton: !!a.deplacement,
     action: () => _executerAction(a)
   })));
 }

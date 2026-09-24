@@ -214,6 +214,32 @@ main {
   font-size: 0.95rem;
 }
 
+/* ---- Liste déroulante de choix ---- */
+.choix-deroulant label {
+  display: block;
+  margin-bottom: 0.4rem;
+  color: #a08060;
+}
+
+.choix-deroulant select {
+  display: block;
+  width: 100%;
+  padding: 0.6rem 0.9rem;
+  margin-bottom: 0.4rem;
+  background: #0d0500;
+  color: #f0e6d3;
+  border: 1px solid #6a4500;
+  border-radius: 4px;
+  font-family: inherit;
+  font-size: 1rem;
+}
+
+.choix-deroulant select:focus-visible {
+  outline: 3px solid #d4af37;
+  outline-offset: 2px;
+  border-color: #d4af37;
+}
+
 /* ---- Saisie de texte ---- */
 .saisie label {
   display: block;
@@ -238,9 +264,11 @@ main {
   border-top: 1px solid #4a3000;
 }
 
-#aide h2 {
+#aide summary {
+  cursor: pointer;
   color: #d4af37;
   font-size: 1.1rem;
+  font-weight: bold;
 }
 
 .raccourci {

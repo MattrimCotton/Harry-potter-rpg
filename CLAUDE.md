@@ -121,6 +121,8 @@ Ensorcelé (-1 trait au choix Narrateur), Inconscient (hors jeu)
 7. **Langage clair** — phrases courtes, pas d'abréviations, nombres et signes en toutes lettres (« plus 1 »)
 8. **Répétition** — F9 relit le dernier tour par annonce, sans déplacer le focus
 9. **Chaque raccourci existe aussi en bouton** — zone « Fiche et outils »
+11. **Choix** — 3 choix ou plus : liste déroulante (Entrée ou « Valider le choix ») ; 1 ou 2 choix : boutons ; déplacements (`"deplacement": true` dans les scénarios) et retour : toujours des boutons
+12. **Aide** — bloc `<details>` replié par défaut
 10. **Sauvegarde automatique silencieuse** — seule F8 annonce « Partie sauvegardée »
 
 ### Raccourcis clavier standard du jeu (NVDA prioritaire)
