@@ -1,0 +1,505 @@
+{
+  "id": "compartiment",
+  "titre": "Le Compartiment du Fond",
+  "accroche": "Une odeur de soufre, un sifflement mystérieux, et quelqu'un qui vous cache quelque chose.",
+  "description": "À bord du Poudlard Express, un bruit étrange vous attire vers le dernier compartiment. Quelqu'un — ou quelque chose — s'y cache. Un scénario d'investigation et de magie adapté à tous les niveaux.",
+  "annee_min": 1,
+  "annee_max": 7,
+  "duree_estimee": "30 à 45 minutes",
+
+  "scenes": {
+
+    "debut": {
+      "narration": [
+        "Le Poudlard Express filait à travers les landes écossaises dans un grondement sourd et régulier, ses fenêtres maculées de la pluie persistante d'un début septembre résolument anglais. Dans votre compartiment, l'odeur des Chocogrenouilles se mêlait à celle des caramels au poivre que votre voisin de siège avait achetés à la dame du chariot — et aussitôt regrettés, à en juger par la couleur de son visage.",
+        "Vous regardiez défiler les collines sombres quand un bruit inhabituel vous parvint du fond du couloir. Pas le vacarme joyeux des compartiments voisins — non. Quelque chose d'autre. Un sifflement tenu, presque inaudible sous le grondement du train, accompagné d'une odeur qui n'avait rien à faire dans un wagon de chemin de fer : du soufre. Légèrement âcre, légèrement sucré, comme les cendres d'un feu qu'on n'avait pas voulu allumer.",
+        "Le compartiment du fond était le seul que personne n'avait choisi depuis King's Cross. Pourtant, vous y aviez vu quelqu'un entrer précipitamment au moment du départ."
+      ],
+      "actions": [
+        {
+          "label": "Coller l'oreille à la cloison pour écouter discrètement",
+          "manoeuvre": "acquerir-connaissance",
+          "suite": {
+            "succes": "ecoute-succes",
+            "partiel": "ecoute-partiel",
+            "echec": "ouverture"
+          }
+        },
+        {
+          "label": "Frapper à la porte et demander si tout va bien",
+          "lien": "ouverture"
+        },
+        {
+          "label": "Continuer à regarder le paysage — ce n'est pas votre affaire",
+          "fin": "abandon"
+        }
+      ]
+    },
+
+    "ecoute-succes": {
+      "narration": [
+        "Vous collâtes discrètement l'oreille contre la cloison de bois. Derrière la porte du compartiment du fond, vous distinguâtes deux sons bien distincts.",
+        "Le premier était humain : la respiration saccadée de quelqu'un qui s'efforçait de ne pas faire de bruit, et n'y parvenait qu'à moitié. Une voix jeune, qui marmonnait tout bas — des supplications, semblait-il, adressées à quelque chose qui n'était clairement pas en position d'écouter.",
+        "Le second son ne l'était pas. Humain, s'entend. Un sifflement rythmé, presque mélodieux, ponctué de crépitements secs comme du bois qui brûle. Une chaleur douce, presque agréable, filtrait sous le bas de la porte. Cendre-Serpent, songea quelque chose dans votre mémoire — vous aviez lu ce nom quelque part. Une créature de feu, inoffensive jusqu'au moment où elle ne l'était plus. Et celle-là était visiblement à bout de patience."
+      ],
+      "effet_entree": { "flag": "sait-creature" },
+      "actions": [
+        {
+          "label": "Ouvrir la porte d'un geste décidé",
+          "lien": "ouverture"
+        },
+        {
+          "label": "Frapper deux coups et annoncer votre présence",
+          "effet": { "flag": "a-frappe" },
+          "lien": "ouverture"
+        }
+      ]
+    },
+
+    "ecoute-partiel": {
+      "narration": [
+        "Vous tendîtes l'oreille. Des sons filtraient sous la porte — un sifflement qui ressemblait à de la vapeur, et ce qui aurait pu être une voix humaine, ou pas. L'odeur de soufre, en revanche, ne laissait aucune place au doute : quelque chose ne tournait pas rond dans ce compartiment.",
+        "Vous ne sauriez pas ce qui se trouvait à l'intérieur sans ouvrir."
+      ],
+      "actions": [
+        {
+          "label": "Ouvrir la porte",
+          "lien": "ouverture"
+        }
+      ]
+    },
+
+    "ouverture": {
+      "narration": [
+        "Vous poussâtes la porte du compartiment.",
+        "La première chose que vous vîtes fut le coffre. Il était posé en travers des banquettes, grand, en bois sombre cerclé de cuivre, et il brillait. Pas d'une lumière magique, propre et rassurante — non. D'une lueur orangée qui filtrait par les rainures du couvercle, pulsant doucement au rythme du sifflement que vous entendiez maintenant clairement.",
+        "La deuxième chose que vous vîtes fut le garçon assis en tailleur sur l'autre banquette, les genoux remontés contre la poitrine, les yeux ronds comme des Gallions. Il avait environ votre âge, des cheveux châtains qui partaient dans tous les sens, et une tache de suie sur le front qui suggérait qu'il avait déjà tenté d'approcher le coffre — avec des résultats peu concluants.",
+        "— Oh, fit-il en vous voyant. Oh non."
+      ],
+      "actions": [
+        {
+          "label": "Lui parler calmement — demander ce qui se passe",
+          "manoeuvre": "obtenir",
+          "suite": {
+            "succes": "theodore-parle",
+            "partiel": "theodore-partiel",
+            "echec": "theodore-panique"
+          }
+        },
+        {
+          "label": "Examiner le coffre de plus près",
+          "condition": "!flag:a-examine-coffre",
+          "effet": { "flag": "a-examine-coffre" },
+          "manoeuvre": "acquerir-connaissance",
+          "suite": {
+            "succes": "examen-succes",
+            "partiel": "examen-partiel",
+            "echec": "coffre-approche"
+          }
+        },
+        {
+          "label": "Dire : \"Je sais ce qu'il y a dans ce coffre. Je peux vous aider.\"",
+          "condition": "flag:sait-creature",
+          "effet": { "flag": "connaissance-utile" },
+          "lien": "theodore-parle"
+        }
+      ]
+    },
+
+    "theodore-parle": {
+      "narration": [
+        "Quelque chose dans votre ton — ou peut-être simplement l'horreur de sa situation — eut raison de la méfiance du garçon. Il prit une grande inspiration.",
+        "— Théodore Plumcroft, dit-il. Et ce coffre appartient à mon oncle Aldric. Il m'a demandé de le surveiller pendant les vacances. Il transporte des créatures — enfin, il en transporte une. Une Cendre-Serpent. Elle était censée être somnolente, il m'avait dit. Elle était somnolente à l'aller. Mais là, depuis ce matin, elle ne dort plus du tout.",
+        "Le coffre craqua sinistrement. Théodore se ratatina un peu plus contre la paroi.",
+        "— Elle pond à peu près dans trois heures, ajouta-t-il d'une toute petite voix. Et les œufs de Cendre-Serpent brûlent tout ce qu'ils touchent. Alors j'ai pensé que si personne ne s'en apercevait..."
+      ],
+      "effet_entree": { "flag": "sait-creature" },
+      "actions": [
+        {
+          "label": "Proposer d'agir tout de suite — vous pouvez le faire",
+          "lien": "coffre-approche"
+        },
+        {
+          "label": "Aller chercher un préfet ou le contrôleur",
+          "lien": "route-controleur"
+        }
+      ]
+    },
+
+    "theodore-partiel": {
+      "narration": [
+        "— C'est le coffre de mon oncle, dit le garçon d'une voix qui cherchait à paraître naturelle et n'y parvenait pas du tout. Il transporte quelque chose. Quelque chose qui ne devrait peut-être pas être là. Enfin. Ce n'est rien de dangereux. Normalement.",
+        "Il ajouta ce dernier mot avec le genre d'hésitation qui suggère que la situation avait évolué depuis le moment où cette affirmation avait été vraie.",
+        "Le coffre émit un sifflement. Le garçon sursauta légèrement."
+      ],
+      "actions": [
+        {
+          "label": "Insister avec fermeté — que se passe-t-il vraiment ?",
+          "manoeuvre": "obtenir",
+          "suite": {
+            "succes": "theodore-parle",
+            "partiel": "coffre-approche",
+            "echec": "theodore-panique"
+          }
+        },
+        {
+          "label": "Examiner le coffre vous-même sans attendre",
+          "condition": "!flag:a-examine-coffre",
+          "effet": { "flag": "a-examine-coffre" },
+          "manoeuvre": "acquerir-connaissance",
+          "suite": {
+            "succes": "examen-succes",
+            "partiel": "examen-partiel",
+            "echec": "coffre-approche"
+          }
+        },
+        {
+          "label": "Passer à l'action sans attendre ses explications",
+          "lien": "coffre-approche"
+        }
+      ]
+    },
+
+    "theodore-panique": {
+      "narration": [
+        "Le garçon se leva d'un bond — ce qui était une erreur, car son genou heurta le coin du coffre, qui bascula.",
+        "Le couvercle s'entrouvrit.",
+        "Il n'en fallut pas plus. Dans un sifflement aigu qui fit vibrer les vitres, quelque chose de luisant, de sinueux et d'orangé jaillit du coffre comme une flamme vivante et disparut dans l'entrebâillement de la porte en un éclair."
+      ],
+      "actions": [
+        {
+          "label": "Courir après la Cendre-Serpent dans le couloir",
+          "lien": "ashwinder-libre"
+        }
+      ]
+    },
+
+    "examen-succes": {
+      "narration": [
+        "Vous vous accroupîtes devant le coffre. La chaleur qui en émanait était réelle — pas la chaleur magique tiède d'un sort de chauffage, mais quelque chose d'organique, de vivant. Les marques de brûlures sur le bois étaient récentes. Un cercle de suie noircissait les rainures du couvercle là où la fumée s'était frayé un passage.",
+        "Cendre-Serpent, dit votre mémoire avec une certaine précision. Reptile magique, classé XXX par le Ministère. Gérable pour qui sait s'y prendre. Elles répondent bien aux sorts d'immobilisation et à la chaleur contrôlée. Et surtout — il fallait agir avant qu'elle ne ponde."
+      ],
+      "effet_entree": { "flag": "sait-creature" },
+      "actions": [
+        {
+          "label": "Parler au garçon dans le coin — vous savez ce qu'il cache",
+          "lien": "theodore-parle"
+        },
+        {
+          "label": "S'occuper du coffre directement, sans perdre de temps",
+          "lien": "coffre-approche"
+        }
+      ]
+    },
+
+    "examen-partiel": {
+      "narration": [
+        "Le coffre était chaud — anormalement chaud pour un simple contenant de voyage. Les traces de brûlures sur le bois étaient récentes. La chaleur pulsait de façon régulière, rythmée par le sifflement, comme une respiration. Quelque chose de vivant. Au-delà, vous n'auriez su dire avec certitude."
+      ],
+      "actions": [
+        {
+          "label": "Interroger le garçon — qu'est-ce qu'il y a là-dedans ?",
+          "manoeuvre": "obtenir",
+          "suite": {
+            "succes": "theodore-parle",
+            "partiel": "theodore-partiel",
+            "echec": "theodore-panique"
+          }
+        },
+        {
+          "label": "Ouvrir le coffre prudemment",
+          "lien": "coffre-approche"
+        }
+      ]
+    },
+
+    "coffre-approche": {
+      "narration": [
+        "Vous vous avançâtes vers le coffre. La chaleur augmentait à mesure que vous vous approchiez — pas assez pour brûler, mais assez pour vous rappeler que ce qui se trouvait à l'intérieur était très loin d'être endormi. La lueur orangée pulsait plus vite maintenant, comme si la créature sentait votre présence et en était contrariée.",
+        "— Attendez, chuchota Théodore derrière vous. Faites attention. Elle n'est pas... elle n'est pas de bonne humeur.",
+        "Vous aviez remarqué. Il vous fallait agir — la Cendre-Serpent ne resterait pas dans ce coffre très longtemps."
+      ],
+      "actions": [
+        {
+          "label": "Lancer Immobulus pour figer la créature à travers le bois",
+          "condition": "sort:Immobulus",
+          "manoeuvre": "lancer-sort",
+          "suite": {
+            "succes": "capture-succes",
+            "partiel": "capture-partiel",
+            "echec": "theodore-panique"
+          }
+        },
+        {
+          "label": "Lancer Incarcerous pour ligoter la créature dans le coffre",
+          "condition": "sort:Incarcerous",
+          "manoeuvre": "lancer-sort",
+          "suite": {
+            "succes": "capture-succes",
+            "partiel": "capture-partiel",
+            "echec": "theodore-panique"
+          }
+        },
+        {
+          "label": "Refermer soigneusement le coffre et coincer le loquet avec force",
+          "manoeuvre": "faire-face",
+          "suite": {
+            "succes": "capture-succes",
+            "partiel": "capture-partiel",
+            "echec": "theodore-panique"
+          }
+        },
+        {
+          "label": "Attirer la créature avec votre chaleur corporelle pour la calmer, puis refermer",
+          "condition": "flag:sait-creature",
+          "manoeuvre": "faire-face",
+          "suite": {
+            "succes": "capture-succes",
+            "partiel": "capture-partiel",
+            "echec": "theodore-panique"
+          }
+        },
+        {
+          "label": "Aller chercher le contrôleur — ce n'est plus gérable seul",
+          "lien": "route-controleur"
+        }
+      ]
+    },
+
+    "capture-succes": {
+      "narration": [
+        "La créature se figea. Un instant, deux — puis elle se détendit lentement, comme si la tension qui l'animait venait d'être évacuée d'un seul coup. Le sifflement s'éteignit. La lueur orangée dans le coffre passa du rouge vif à un orange paisible, puis à un jaune presque chaleureux.",
+        "Vous refermâtes soigneusement le couvercle. Le loquet claqua.",
+        "Dans le silence revenu, Théodore Plumcroft vous regarda d'une façon qu'il n'avait encore jamais adressée à personne : avec une admiration totale, sans réserve, du genre qui ne cherche même pas à se dissimuler.",
+        "— Comment vous avez fait ça ? dit-il."
+      ],
+      "fin": "triomphe"
+    },
+
+    "capture-partiel": {
+      "narration": [
+        "La Cendre-Serpent ne fut pas exactement capturée. Elle fut contenue. Avec difficulté. Et un peu de chance. Et un bref intermède pendant lequel la banquette du fond prit feu sur environ vingt centimètres — ce qui avait l'air pire que ce n'était, parce que la magie du train absorba la plus grande partie de la chaleur.",
+        "Au final, la créature était de retour dans le coffre. Le coffre était fermé. La fumée se dissipait lentement.",
+        "Théodore ne dit rien pendant un long moment. Puis :",
+        "— Je pense que votre manteau va bien, dit-il. Enfin, la plupart."
+      ],
+      "fin": "normal"
+    },
+
+    "ashwinder-libre": {
+      "narration": [
+        "La Cendre-Serpent — car c'en était bien une, vous la reconnûtes immédiatement — filait dans le couloir du Poudlard Express comme une langue de flamme orange vif. Elle mesurait environ soixante centimètres, ses écailles luisaient comme des braises, et partout où sa queue effleurait le sol, elle laissait une légère trace de roussi sur la moquette bordeaux.",
+        "Des cris s'élevèrent de deux compartiments voisins. Quelqu'un hurla quelque chose sur un Diablotin du Feu. Un autre claqua sa porte.",
+        "Au fond du couloir, la silhouette verte et argent d'une préfète de Serpentard apparut, son badge luisant sous les appliques dorées du wagon. Elle regardait dans votre direction d'un air qui n'augurerait rien de bon dans les mois à venir.",
+        "La situation exigeait une décision immédiate."
+      ],
+      "actions": [
+        {
+          "label": "Courir après la Cendre-Serpent et tenter de la capturer à mains nues",
+          "manoeuvre": "faire-face",
+          "suite": {
+            "succes": "capture-couloir-succes",
+            "partiel": "capture-couloir-partiel",
+            "echec": "resolution-chaos"
+          }
+        },
+        {
+          "label": "Lancer un sort pour stopper la créature depuis ici",
+          "condition": "sort:Immobulus || sort:Incarcerous",
+          "manoeuvre": "lancer-sort",
+          "suite": {
+            "succes": "capture-couloir-succes",
+            "partiel": "capture-couloir-partiel",
+            "echec": "pris-par-prefet"
+          }
+        },
+        {
+          "label": "Se glisser dans un compartiment vide pour éviter le préfet",
+          "manoeuvre": "cacher-faufiler",
+          "suite": {
+            "succes": "cache-succes",
+            "partiel": "cache-partiel",
+            "echec": "pris-par-prefet"
+          }
+        }
+      ]
+    },
+
+    "cache-succes": {
+      "narration": [
+        "Vous vous glissâtes dans un compartiment vide avec la rapidité d'un Vif d'Or, tirant Théodore — qui protestait à mi-voix — derrière vous. La porte se referma sans bruit. Vous entendîtes la préfète passer dans le couloir, les semelles claquant sur le plancher, suivie de deux élèves qui discutaient à voix haute de ce qu'ils avaient soi-disant vu.",
+        "Une fois le calme revenu, vous échangeâtes un regard avec Théodore.",
+        "— Elle est toujours là-dehors, chuchota-t-il.",
+        "— Je sais, chuchotâtes-vous."
+      ],
+      "actions": [
+        {
+          "label": "Ressortir discrètement pour retrouver et capturer la créature",
+          "manoeuvre": "cacher-faufiler",
+          "suite": {
+            "succes": "capture-couloir-succes",
+            "partiel": "capture-couloir-partiel",
+            "echec": "pris-par-prefet"
+          }
+        }
+      ]
+    },
+
+    "cache-partiel": {
+      "narration": [
+        "Vous vous glissâtes dans un compartiment, mais pas assez vite. La préfète vous vit entrer. Elle s'arrêta, fronça les sourcils, puis continua son chemin — la Cendre-Serpent était manifestement une priorité plus urgente que votre présence dans un compartiment non attribué.",
+        "Pour l'instant."
+      ],
+      "actions": [
+        {
+          "label": "Profiter du délai pour capturer la créature avant que la préfète revienne",
+          "manoeuvre": "faire-face",
+          "suite": {
+            "succes": "capture-couloir-succes",
+            "partiel": "capture-couloir-partiel",
+            "echec": "pris-par-prefet"
+          }
+        }
+      ]
+    },
+
+    "capture-couloir-succes": {
+      "narration": [
+        "Vous coinçâtes la Cendre-Serpent dans un angle du couloir à l'aide d'une combinaison d'adresse et de bonne fortune. Elle siffla, se cabra — puis se calma aussi soudainement qu'elle s'était énervée. Théodore déposa le coffre ouvert à ses côtés. La créature y glissa comme si l'idée venait d'elle.",
+        "— C'est extraordinaire, dit Théodore. Vous êtes extraordinaire.",
+        "La préfète, à l'autre bout du couloir, prenait des notes sur un bout de parchemin d'un air peu enthousiaste."
+      ],
+      "fin": "triomphe"
+    },
+
+    "capture-couloir-partiel": {
+      "narration": [
+        "Vous parvîntes à repousser la Cendre-Serpent vers le compartiment du fond avant qu'elle ne causât trop de dégâts — à part un sac de voyage fondu, deux Chocogrenouilles réduites en cendres, et une marque de brûlure sur le panneau d'instructions de sécurité du wagon.",
+        "Théodore referma le coffre derrière elle. La préfète arriva au même moment et nota vos noms dans son carnet sans rien dire. Ce qui, dans l'univers des préfets, équivalait à un commentaire très élaboré."
+      ],
+      "fin": "normal"
+    },
+
+    "pris-par-prefet": {
+      "narration": [
+        "La préfète vous coinça dans le couloir avec l'efficacité sans fioriture de quelqu'un habituée à ce genre de situation. Mélisande Fairborough, indiquait son badge argent. Elle examina la trace de roussi sur la moquette, la sueur sur votre front, et Théodore qui essayait de disparaître derrière vous.",
+        "— J'attends une explication, dit-elle d'un ton qui ne laissait aucune place à la créativité."
+      ],
+      "actions": [
+        {
+          "label": "Expliquer la situation honnêtement — Cendre-Serpent, coffre, tout",
+          "manoeuvre": "obtenir",
+          "suite": {
+            "succes": "resolution-avec-prefete",
+            "partiel": "resolution-ennuis",
+            "echec": "resolution-chaos"
+          }
+        }
+      ]
+    },
+
+    "resolution-avec-prefete": {
+      "narration": [
+        "La préfète Fairborough vous écouta sans vous interrompre une seule fois, ce qui constituait en soi un exploit remarquable. Quand vous eûtes terminé, elle referma son carnet.",
+        "— Très bien, dit-elle. J'apprécie l'honnêteté. Et je note que vous avez tenté de résoudre la situation sans en référer à un adulte, ce qui est à la fois courageux et complètement irresponsable. Ces deux choses ne s'excluent pas mutuellement.",
+        "Elle alla chercher le contrôleur. La Cendre-Serpent fut capturée en huit minutes grâce au gant de protection enchanté que le Poudlard Express conservait pour précisément ce type de situation."
+      ],
+      "fin": "normal"
+    },
+
+    "resolution-ennuis": {
+      "narration": [
+        "La préfète Fairborough rédigea un rapport en trois copies. Vous eûtes droit à une convocation dans le bureau du Directeur dans les quarante-huit premières heures de l'année scolaire, ce qui constituait un record personnel que vous espériez ne jamais battre.",
+        "La bonne nouvelle : la Cendre-Serpent avait finalement été récupérée par le contrôleur. La moins bonne : votre réputation prendrait un peu plus de temps à se remettre de l'aventure.",
+        "Théodore vous trouva dans le couloir le lendemain matin.",
+        "— C'est entièrement de ma faute, dit-il. Je le dirai à qui voudra bien l'entendre.",
+        "Ce n'était pas grand-chose. Mais c'était sincère."
+      ],
+      "fin": "ennuis"
+    },
+
+    "resolution-chaos": {
+      "narration": [
+        "Le compte rendu officiel de l'incident, tel qu'il figurerait dans les archives du Poudlard Express, ferait état d'une Cendre-Serpent échappée, d'une moquette partiellement carbonisée sur quatre mètres et demi, d'un chariot à friandises dont les roues avaient fondu, et d'un nombre non précisé d'élèves qui refuseraient de reparler de l'affaire.",
+        "La préfète Fairborough nota votre nom trois fois, ce qui était apparemment sa façon d'exprimer une opinion très marquée."
+      ],
+      "fin": "chaos"
+    },
+
+    "route-controleur": {
+      "narration": [
+        "Vous trouvâtes le contrôleur du train à l'autre bout du wagon, en train de tamponner des billets avec la placidité d'un homme pour qui les créatures magiques dans ses wagons constituaient un incident ordinaire — ce qui, sur le Poudlard Express, n'était pas tout à fait faux.",
+        "Il vous écouta. Il soupira. Il rangea son tampon.",
+        "— Quatrième fois ce semestre que quelqu'un embarque quelque chose qui ne devrait pas l'être, dit-il. Venez avec moi."
+      ],
+      "fin": "controleur"
+    }
+
+  },
+
+  "fins": {
+
+    "triomphe": {
+      "narration": [
+        "Le reste du voyage jusqu'à Poudlard se passa dans une relative normalité, si l'on excepte les dix minutes que vous passâtes à expliquer la situation à la préfète Fairborough, qui nota tout avec un soin méticuleux et vous adressa, in fine, quelque chose qui ressemblait à un hochement de tête approbateur — ce qui, sur l'échelle des réactions préfectorales, constituait un éloge considérable.",
+        "Théodore Plumcroft s'assit à côté de vous pour le reste du trajet. Il parla beaucoup — de son oncle Aldric qui collectionnait les créatures magiques, de sa mère qui désapprouvait, de sa sœur qui avait peur des chouettes, de son vœu d'intégrer un jour la Protection des Êtres Magiques au Ministère.",
+        "Quand Poudlard apparut au-delà des collines, étincelant de mille lumières dans la nuit écossaise, il se tourna vers vous.",
+        "— Je ne sais pas comment vous remercier, dit-il. Vraiment.",
+        "— Commencez par apprendre quelques sorts, lui dîtes-vous.",
+        "Il rit. Vous pensâtes que peut-être, cette année, vous auriez un ami de plus."
+      ],
+      "ami": "Théodore Plumcroft"
+    },
+
+    "normal": {
+      "narration": [
+        "L'affaire de la Cendre-Serpent se conclut dans une certaine confusion mais sans catastrophe majeure — ce qui, tout bien considéré, était déjà un résultat acceptable pour un voyage en train.",
+        "Théodore Plumcroft dit merci deux fois, puis une troisième pour faire bonne mesure. La préfète nota trois noms dans son carnet avec l'air de quelqu'un qui ajoute des colonnes à un tableau déjà trop chargé. Le contrôleur nettoya les traces de roussi avec une résignation professionnelle.",
+        "Quand le Poudlard Express s'arrêta en gare de Pré-au-Lard, vous descendîtes sur le quai avec le sentiment vague d'avoir fait quelque chose d'utile — même si vous n'étiez pas tout à fait sûr de quoi.",
+        "— On se reverra peut-être, dit Théodore en ramassant son coffre."
+      ],
+      "ami": "Théodore Plumcroft"
+    },
+
+    "ennuis": {
+      "narration": [
+        "Les ennuis administratifs passèrent. Les ennuis passent toujours, à Poudlard, avec une régularité qui finit par être presque rassurante.",
+        "Théodore vous trouva dans le couloir le lendemain matin, avec l'expression d'un garçon qui a passé la nuit à préparer un discours.",
+        "— C'est entièrement de ma faute, dit-il. Je le dirai à qui voudra bien l'entendre. Y compris au Professeur Directeur.",
+        "Vous le regardâtes. Il était manifestement sincère.",
+        "— La prochaine fois que votre oncle vous confie quelque chose de vivant, dites-vous, faites-le-moi savoir avant le départ de King's Cross.",
+        "Il acquiesça avec gravité. C'était, vous le sentiez, le début d'une amitié particulière."
+      ],
+      "ami": "Théodore Plumcroft"
+    },
+
+    "chaos": {
+      "narration": [
+        "Vous n'étiez pas le héros de cette histoire. Mais vous étiez vivant, ce qui comptait pour quelque chose.",
+        "Théodore Plumcroft, croisé dans l'escalier de marbre du château deux jours plus tard, vous adressa un regard qui contenait à la fois des excuses, de la culpabilité, et une admiration maladroite pour quelqu'un qui avait au moins essayé.",
+        "— La prochaine fois, dit-il, appelez le contrôleur en premier.",
+        "Il n'avait pas tort.",
+        "Mais il y aurait une prochaine fois. Et cette pensée, étrangement, avait quelque chose de réjouissant."
+      ]
+    },
+
+    "controleur": {
+      "narration": [
+        "Le contrôleur s'avéra posséder les bons équipements — un gant de protection enchanté, un filet anti-feu et une patience à toute épreuve — et la Cendre-Serpent fut récupérée en moins de dix minutes avec une efficacité qui vous parut presque décevante.",
+        "— La prochaine fois que votre oncle vous confie une créature classée XXX, dit le contrôleur à Théodore avec un calme olympien, prévenez-nous au départ de King's Cross.",
+        "Théodore acquiesça avec toute la dignité d'un garçon qui vient d'éviter une catastrophe de justesse. Dans le compartiment, en attendant l'arrivée à Pré-au-Lard, il vous regarda de côté.",
+        "— Vous auriez pu ne pas vous mêler de ça, dit-il. Merci de l'avoir fait quand même."
+      ],
+      "ami": "Théodore Plumcroft"
+    },
+
+    "abandon": {
+      "narration": [
+        "Vous aviez décidé de ne pas vous en mêler. C'était votre droit le plus strict.",
+        "Plus tard, dans la Grande Salle, vous entendîtes quelqu'un raconter l'histoire d'un élève courageux qui avait maîtrisé une Cendre-Serpent dans le Poudlard Express. Ce n'était pas vous.",
+        "Ça aurait pu l'être."
+      ]
+    }
+
+  }
+}

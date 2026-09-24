@@ -1,0 +1,167 @@
+{
+  "annees": [1, 2, 3, 4, 5, 6, 7],
+
+  "traits_valeurs": [-1, 0, 1, 1, 2],
+
+  "origines": [
+    { "id": "ne-moldu",  "label": "Né-Moldu",  "sorts": 1, "xp": 3, "description": "Vous venez d'une famille sans magie. Vous démarrez avec 1 sort et 3 points d'Expérience." },
+    { "id": "demi-sang", "label": "Demi-sang",  "sorts": 2, "xp": 2, "description": "Un de vos parents est sorcier. Vous démarrez avec 2 sorts et 2 points d'Expérience." },
+    { "id": "sang-pur",  "label": "Sang-pur",   "sorts": 3, "xp": 1, "description": "Votre famille est entièrement sorcière. Vous démarrez avec 3 sorts et 1 point d'Expérience." }
+  ],
+
+  "maisons": [
+    { "id": "gryffondor",  "label": "Gryffondor",  "trait": "bravoure",  "description": "Courage, honneur et bravoure. Couleurs écarlate et or." },
+    { "id": "poufsouffle", "label": "Poufsouffle",  "trait": "loyaute",   "description": "Loyauté, patience et travail. Couleurs jaune et noir." },
+    { "id": "serdaigle",   "label": "Serdaigle",    "trait": "intellect", "description": "Intelligence, créativité et sagesse. Couleurs bleu et bronze." },
+    { "id": "serpentard",  "label": "Serpentard",   "trait": "ruse",      "description": "Ruse, ambition et détermination. Couleurs vert et argent." }
+  ],
+
+  "teints": {
+    "1": "Mat", "2": "Tacheté de rousseur", "3": "Olivâtre",
+    "4": "Pâle", "5": "Rougeaud", "6": "Hâlé"
+  },
+
+  "cheveux": {
+    "1": "Noirs", "2": "Blonds", "3": "Châtains",
+    "4": "Couverts", "5": "Teints", "6": "Roux"
+  },
+
+  "silhouettes": {
+    "1": "Athlétique", "2": "Corpulent", "3": "Petit",
+    "4": "Trapu", "5": "Grand", "6": "Mince"
+  },
+
+  "bois_baguette": {
+    "1": "Érable",  "2": "Noyer",  "3": "Épicéa",
+    "4": "Cèdre",  "5": "If",     "6": "Orme"
+  },
+
+  "coeurs_baguette": {
+    "1-2": "Dragon (corde de cœur)",
+    "3-4": "Phénix (plume)",
+    "5-6": "Licorne (crin)"
+  },
+
+  "aspects_baguette": {
+    "1": "Souple",    "2": "Longue",    "3": "Ornée",
+    "4": "Simple",    "5": "D'occasion","6": "Courte"
+  },
+
+  "ambitions": {
+    "1": "Accomplissement",
+    "2": "Savoir",
+    "3": "Amusement",
+    "4": "Amitié",
+    "5": "Pouvoir",
+    "6": "Prestige"
+  },
+
+  "animaux": {
+    "1-2": { "type": "Hibou",  "capacite": "Peut envoyer et recevoir du courrier" },
+    "3-4": { "type": "Rat",    "capacite": "Ne peut pas envoyer ou recevoir de courrier" },
+    "5-6": { "type": "Chat",   "capacite": "Ne daigne pas envoyer ou recevoir de courrier" }
+  },
+
+  "matieres_fondamentales": {
+    "1": "Sortilèges",
+    "2": "Défense contre les Forces du Mal",
+    "3": "Herbologie",
+    "4": "Histoire de la Magie",
+    "5": "Potions",
+    "6": "Métamorphose"
+  },
+
+  "matieres_options": {
+    "1": "Arithmancie",
+    "2": "Astronomie",
+    "3": "Soins aux Créatures Magiques",
+    "4": "Divination",
+    "5": "Études des Moldus",
+    "6": "Quidditch"
+  },
+
+  "patronus": {
+    "categories": {
+      "1": {
+        "label": "Rapaces",
+        "animaux": { "1": "Albatros", "2": "Aigle", "3": "Faucon", "4": "Buse", "5": "Héron", "6": "Balbuzard" }
+      },
+      "2": {
+        "label": "Autres Oiseaux",
+        "animaux": { "1": "Merle", "2": "Corbeau", "3": "Colibri", "4": "Faisan", "5": "Rouge-gorge", "6": "Moineau" }
+      },
+      "3": {
+        "label": "Carnivores",
+        "animaux": { "1": "Blaireau", "2": "Ours", "3": "Sanglier", "4": "Lion", "5": "Serpent", "6": "Loup" }
+      },
+      "4": {
+        "label": "Herbivores",
+        "animaux": { "1": "Oryctérope", "2": "Cerf", "3": "Hérisson", "4": "Souris", "5": "Saumon", "6": "Écureuil" }
+      },
+      "5": {
+        "label": "Animaux Domestiques",
+        "animaux": { "1": "Chat", "2": "Chien", "3": "Cheval", "4": "Lapin", "5": "Rat", "6": "Cygne" }
+      },
+      "6": {
+        "label": "Créatures Rares",
+        "animaux": { "1": "Dragon", "2": "Hippogriffe", "3": "Hibou", "4": "Phénix", "5": "Licorne", "6": "Cheval Ailé" }
+      }
+    }
+  },
+
+  "prenoms_moldus": [
+    "Ahmad", "Arthur", "Aurora", "Chiwetel", "Cormac", "Daniel", "Dev", "Dimitrios",
+    "Eleni", "Emma", "Fatima", "Gabriela", "Geneviève", "James", "Jing", "Joanne",
+    "Lorenzo", "Maggie", "Nnedi", "Pablo", "Pénélope", "Richard", "Riya", "Rupert",
+    "Scarlett", "Sean", "Susan", "Terry", "Wei", "Zoé"
+  ],
+
+  "prenoms_sorciers": [
+    "Alecto", "Andromeda", "Arabella", "Argus", "Ariana", "Arsenius", "Augusta",
+    "Cuthbert", "Dedalus", "Eldred", "Elphias", "Emeric", "Emmeline", "Filius", "Griselda",
+    "Helena", "Imelda", "Ludo", "Mafalda", "Mérope", "Newt", "Phyllida", "Rodolphus",
+    "Rolanda", "Septima", "Silvanus", "Sybill", "Thorfinn", "Wilbert", "Wilhelmina"
+  ],
+
+  "noms_de_famille": [
+    "Adebayo", "Ali", "Bagshot", "Chowdhry", "Davies", "Diaz", "Dubois", "Finnigan",
+    "Goldstein", "Grint", "Johnson", "Kazinsky", "Khan", "Leung", "Macmillan",
+    "Mwangi", "Ogden", "Okafor", "Patel", "Quinn", "Radcliffe", "Santos", "Schmidt",
+    "Spinnet", "Tarkowski", "Thomas", "Valentini", "Warren", "Watson", "Wong"
+  ],
+
+  "questions_amis_maisons": {
+    "gryffondor": [
+      { "question": "Lequel d'entre vous a pris ma défense quand des élèves plus âgés s'en prenaient à moi ?", "type": "Ami" },
+      { "question": "Lequel d'entre vous a eu une retenue avec moi après avoir parlé contre un professeur injuste ?", "type": "Ami" },
+      { "question": "Lequel d'entre vous fait partie de l'équipe de Quidditch ?", "type": "Ami" },
+      { "question": "Lequel d'entre vous est ma personne de confiance quand j'ai besoin de trouver quelque chose à la bibliothèque ?", "type": "Ami" },
+      { "question": "Lequel d'entre vous joue dans la même position que moi dans une autre équipe de Quidditch ?", "type": "Rival" },
+      { "question": "Lequel d'entre vous ai-je mis au défi en duel pour avoir insulté un ami ?", "type": "Rival" }
+    ],
+    "serdaigle": [
+      { "question": "Lequel d'entre vous est resté debout avec moi jusqu'à minuit pour réviser pour un grand examen d'Histoire de la Magie ?", "type": "Ami" },
+      { "question": "Lequel d'entre vous me laisse toujours copier ses devoirs de Sortilèges ?", "type": "Ami" },
+      { "question": "Lequel d'entre vous partage ma passion pour une créature magique rare ?", "type": "Ami" },
+      { "question": "Lequel d'entre vous est ma référence quand j'ai besoin de trouver quelque chose que je ne trouve pas à la bibliothèque ?", "type": "Ami" },
+      { "question": "Lequel d'entre vous je jalouse parce qu'il a de meilleures notes que moi dans ma matière préférée ?", "type": "Rival" },
+      { "question": "Lequel d'entre vous je soupçonne d'avoir triché sur un devoir ?", "type": "Rival" }
+    ],
+    "poufsouffle": [
+      { "question": "Lequel d'entre vous m'a aidé à retrouver mon animal de compagnie perdu ?", "type": "Ami" },
+      { "question": "Lequel d'entre vous s'est faufilé avec moi aux cuisines avant le festin de la Toussaint ?", "type": "Ami" },
+      { "question": "Lequel d'entre vous aime passer ses après-midis du week-end dans les serres avec moi ?", "type": "Ami" },
+      { "question": "Lequel d'entre vous était assis à côté de moi lors de notre premier trajet sur le Poudlard Express ?", "type": "Ami" },
+      { "question": "Lequel d'entre vous ai-je fâché en insultant son animal de compagnie ?", "type": "Rival" },
+      { "question": "Lequel d'entre vous je n'aime pas parce qu'il passe trop de temps avec mon meilleur ami ?", "type": "Rival" }
+    ],
+    "serpentard": [
+      { "question": "Lequel d'entre vous a découvert une salle cachée dans le château avec moi ?", "type": "Ami" },
+      { "question": "Lequel d'entre vous me doit un service pour ne pas avoir dit que vous étiez sortis après le couvre-feu ?", "type": "Ami" },
+      { "question": "Lequel d'entre vous est toujours assis à côté de moi aux repas ?", "type": "Ami" },
+      { "question": "Dont la famille est proche de la mienne depuis des générations ?", "type": "Ami" },
+      { "question": "Lequel d'entre vous je pense que c'est un grand fanfaron ?", "type": "Rival" },
+      { "question": "Lequel d'entre vous doute publiquement de mes capacités académiques ou sportives ?", "type": "Rival" }
+    ]
+  }
+}

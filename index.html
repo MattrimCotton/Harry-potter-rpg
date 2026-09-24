@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Poudlard — Jeu de Rôle Solo</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <a href="#zone-actions" class="lien-evitement">Aller aux actions</a>
+
+  <header role="banner">
+    <h1>Poudlard — Jeu de Rôle Solo</h1>
+  </header>
+
+  <main id="contenu-principal" tabindex="-1">
+
+    <!-- Narration principale : polite, non-interruptive, log cumulatif -->
+    <section aria-labelledby="titre-narration">
+      <h2 id="titre-narration" class="sr-seul">Histoire</h2>
+      <div
+        id="narration"
+        role="log"
+        aria-live="polite"
+        aria-atomic="false"
+        aria-relevant="additions"
+        tabindex="-1"
+      ></div>
+    </section>
+
+    <!-- Résultats de dés et alertes : assertive, interrompt immédiatement -->
+    <div
+      id="alerte"
+      role="alert"
+      aria-live="assertive"
+      aria-atomic="true"
+      class="sr-seul"
+    ></div>
+
+    <!-- Statut bref (XP, Chance…) : polite, non-interruptif -->
+    <div
+      id="statut"
+      role="status"
+      aria-live="polite"
+      aria-atomic="true"
+      class="sr-seul"
+    ></div>
+
+    <!-- Zone d'actions du moment -->
+    <nav id="zone-actions" aria-label="Actions disponibles" tabindex="-1">
+      <h2 class="sr-seul">Actions</h2>
+      <ul role="list" id="liste-actions"></ul>
+    </nav>
+
+  </main>
+
+  <!-- Fiche personnage — hors flux, lue par F1-F5 -->
+  <aside id="fiche-personnage" aria-label="Fiche de personnage" hidden>
+    <section id="section-traits" aria-labelledby="titre-traits" tabindex="-1">
+      <h2 id="titre-traits">Traits</h2>
+      <dl id="liste-traits"></dl>
+    </section>
+    <section id="section-etats" aria-labelledby="titre-etats" tabindex="-1">
+      <h2 id="titre-etats">États actifs</h2>
+      <ul id="liste-etats"></ul>
+    </section>
+    <section id="section-sorts" aria-labelledby="titre-sorts" tabindex="-1">
+      <h2 id="titre-sorts">Sorts connus</h2>
+      <ul id="liste-sorts"></ul>
+    </section>
+    <section id="section-amis" aria-labelledby="titre-amis" tabindex="-1">
+      <h2 id="titre-amis">Amis et Rivaux</h2>
+      <ul id="liste-amis"></ul>
+    </section>
+    <section id="section-chance" aria-labelledby="titre-chance" tabindex="-1">
+      <h2 id="titre-chance">Chance et Expérience</h2>
+      <dl id="liste-chance"></dl>
+    </section>
+  </aside>
+
+  <script type="module" src="js/main.js"></script>
+
+</body>
+</html>

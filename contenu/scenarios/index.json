@@ -1,0 +1,11 @@
+[
+  {
+    "id": "compartiment",
+    "titre": "Le Compartiment du Fond",
+    "accroche": "Une odeur de soufre, un sifflement mystérieux, et quelqu'un qui vous cache quelque chose.",
+    "annee_min": 1,
+    "annee_max": 7,
+    "duree_estimee": "30 à 45 minutes",
+    "manoeuvres": ["Acquérir des Connaissances", "Obtenir ce que l'on Cherche", "Faire Face au Danger", "Lancer un Sort"]
+  }
+]

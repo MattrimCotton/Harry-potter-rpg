@@ -1,0 +1,3125 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Poudlard — Jeu de Rôle Solo</title>
+  <style>
+/* =============================================
+   Poudlard RPG — Feuille de style
+   Priorité : accessibilité clavier et focus visible
+   ============================================= */
+
+/* Classe standard d'accessibilité :
+   visuellement invisible, mais lu par les lecteurs d'écran */
+.sr-seul {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* Lien d'évitement — visible uniquement au focus clavier */
+.lien-evitement {
+  position: absolute;
+  left: -9999px;
+}
+.lien-evitement:focus {
+  position: static;
+  left: auto;
+  padding: 0.5rem 1rem;
+  background: #d4af37;
+  color: #000;
+  font-weight: bold;
+  text-decoration: none;
+  display: block;
+}
+
+/* Focus visible — indispensable pour navigation clavier */
+:focus-visible {
+  outline: 3px solid #d4af37;
+  outline-offset: 3px;
+}
+
+/* Supprime le focus par clic souris, garde le focus clavier */
+:focus:not(:focus-visible) {
+  outline: none;
+}
+
+/* ---- Base ---- */
+*, *::before, *::after {
+  box-sizing: border-box;
+}
+
+html {
+  font-size: 16px;
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  background: #1a0a00;
+  color: #f0e6d3;
+  font-family: Georgia, 'Times New Roman', serif;
+  font-size: 1.1rem;
+  line-height: 1.7;
+}
+
+/* ---- En-tête ---- */
+header {
+  background: #0d0500;
+  padding: 1rem 2rem;
+  border-bottom: 2px solid #d4af37;
+}
+
+header h1 {
+  margin: 0;
+  color: #d4af37;
+  font-size: 1.6rem;
+  letter-spacing: 0.05em;
+}
+
+/* ---- Contenu principal ---- */
+main {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 1.5rem 2rem 3rem;
+}
+
+/* ---- Zone de narration ---- */
+#narration {
+  min-height: 5rem;
+  padding: 1rem 1.25rem;
+  background: #0d0500;
+  border: 1px solid #4a3000;
+  border-radius: 4px;
+  margin-bottom: 2rem;
+}
+
+#narration p {
+  margin: 0 0 0.5rem;
+}
+
+#narration p:last-child {
+  margin-bottom: 0;
+}
+
+/* ---- Zone d'actions ---- */
+#zone-actions h2 {
+  font-size: 0.9rem;
+  color: #a08060;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  margin: 0 0 0.75rem;
+}
+
+#liste-actions {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+#liste-actions button {
+  width: 100%;
+  padding: 0.7rem 1.25rem;
+  background: #2a1500;
+  color: #f0e6d3;
+  border: 1px solid #6a4500;
+  border-radius: 4px;
+  font-family: inherit;
+  font-size: 1rem;
+  text-align: left;
+  cursor: pointer;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+#liste-actions button:hover {
+  background: #3a2000;
+  border-color: #d4af37;
+}
+
+#liste-actions button:focus-visible {
+  background: #3a2000;
+  border-color: #d4af37;
+  outline: 3px solid #d4af37;
+  outline-offset: 2px;
+}
+
+#liste-actions button:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+/* ---- Champs texte (création de personnage) ---- */
+#liste-actions input[type="text"] {
+  display: block;
+  width: 100%;
+  padding: 0.6rem 0.9rem;
+  margin-bottom: 0.5rem;
+  background: #0d0500;
+  color: #f0e6d3;
+  border: 1px solid #6a4500;
+  border-radius: 4px;
+  font-family: inherit;
+  font-size: 1rem;
+}
+
+#liste-actions input[type="text"]:focus-visible {
+  outline: 3px solid #d4af37;
+  outline-offset: 2px;
+  border-color: #d4af37;
+}
+
+#liste-actions input[type="text"]::placeholder {
+  color: #666;
+}
+
+.raccourci {
+  font-size: 0.8rem;
+  color: #888;
+  font-family: monospace;
+  flex-shrink: 0;
+  margin-left: 1rem;
+}
+
+/* ---- Fiche personnage (hors flux) ---- */
+#fiche-personnage {
+  max-width: 800px;
+  margin: 2rem auto;
+  padding: 1.5rem 2rem;
+  border-top: 1px solid #4a3000;
+}
+
+#fiche-personnage h2 {
+  color: #d4af37;
+  font-size: 1rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  border-bottom: 1px solid #4a3000;
+  padding-bottom: 0.4rem;
+  margin-bottom: 0.75rem;
+}
+
+#fiche-personnage dl {
+  display: grid;
+  grid-template-columns: max-content 1fr;
+  gap: 0.25rem 1rem;
+  margin: 0 0 1rem;
+}
+
+#fiche-personnage dt {
+  color: #a08060;
+  font-weight: normal;
+}
+
+#fiche-personnage dd {
+  margin: 0;
+  font-weight: bold;
+}
+
+#fiche-personnage ul {
+  list-style: disc;
+  padding-left: 1.5rem;
+  margin: 0 0 1rem;
+}
+
+</style>
+</head>
+<body>
+
+  <a href="#zone-actions" class="lien-evitement">Aller aux actions</a>
+
+  <header role="banner">
+    <h1>Poudlard — Jeu de Rôle Solo</h1>
+  </header>
+
+  <main id="contenu-principal" tabindex="-1">
+
+    <!-- Narration principale : polite, non-interruptive, log cumulatif -->
+    <section aria-labelledby="titre-narration">
+      <h2 id="titre-narration" class="sr-seul">Histoire</h2>
+      <div
+        id="narration"
+        role="log"
+        aria-live="polite"
+        aria-atomic="false"
+        aria-relevant="additions"
+        tabindex="-1"
+      ></div>
+    </section>
+
+    <!-- Résultats de dés et alertes : assertive, interrompt immédiatement -->
+    <div
+      id="alerte"
+      role="alert"
+      aria-live="assertive"
+      aria-atomic="true"
+      class="sr-seul"
+    ></div>
+
+    <!-- Statut bref (XP, Chance…) : polite, non-interruptif -->
+    <div
+      id="statut"
+      role="status"
+      aria-live="polite"
+      aria-atomic="true"
+      class="sr-seul"
+    ></div>
+
+    <!-- Zone d'actions du moment -->
+    <nav id="zone-actions" aria-label="Actions disponibles" tabindex="-1">
+      <h2 class="sr-seul">Actions</h2>
+      <ul role="list" id="liste-actions"></ul>
+    </nav>
+
+  </main>
+
+  <!-- Fiche personnage — hors flux, lue par F1-F5 -->
+  <aside id="fiche-personnage" aria-label="Fiche de personnage" hidden>
+    <section id="section-traits" aria-labelledby="titre-traits" tabindex="-1">
+      <h2 id="titre-traits">Traits</h2>
+      <dl id="liste-traits"></dl>
+    </section>
+    <section id="section-etats" aria-labelledby="titre-etats" tabindex="-1">
+      <h2 id="titre-etats">États actifs</h2>
+      <ul id="liste-etats"></ul>
+    </section>
+    <section id="section-sorts" aria-labelledby="titre-sorts" tabindex="-1">
+      <h2 id="titre-sorts">Sorts connus</h2>
+      <ul id="liste-sorts"></ul>
+    </section>
+    <section id="section-amis" aria-labelledby="titre-amis" tabindex="-1">
+      <h2 id="titre-amis">Amis et Rivaux</h2>
+      <ul id="liste-amis"></ul>
+    </section>
+    <section id="section-chance" aria-labelledby="titre-chance" tabindex="-1">
+      <h2 id="titre-chance">Chance et Expérience</h2>
+      <dl id="liste-chance"></dl>
+    </section>
+  </aside>
+
+  <script>
+
+// ===== Ressources JSON bundlées =====
+const __RESSOURCES = {"contenu/sorts.json":{"types":{"sortilege":"Sortilège","malediction":"Malédiction","maléfice":"Maléfice","soin":"Sort de Soin","defense":"Sort de Défense","metamorphose":"Sort de Métamorphose","potion":"Potion","impardonnable":"Malédiction Impardonnable"},"annees":{"1":[{"nom":"Alohomora","description":"Sort d'Ouverture","type":"sortilege"},{"nom":"Calvario","description":"Maléfice de Calvitie","type":"maléfice"},{"nom":"Colovaria","description":"Sort de Changement de Couleur","type":"sortilege"},{"nom":"Diminuendo","description":"Sort Rétrécissant","type":"sortilege"},{"nom":"Finite Incantatem","description":"Contre-sort","type":"defense"},{"nom":"Locomotor Mortis","description":"Malédiction Enchaîne-Jambes","type":"malediction"},{"nom":"Lumos","description":"Sort de Lumière","type":"sortilege"},{"nom":"Periculum","description":"Sort d'Étincelles Rouges","type":"sortilege"},{"nom":"Petrificus Totalus","description":"Malédiction Paralysante Totale","type":"malediction"},{"nom":"Slugulus Eructo","description":"Malédiction Vomit-Limaces","type":"malediction"},{"nom":"Spongify","description":"Sort d'Assouplissement","type":"sortilege"},{"nom":"Tergeo","description":"Sort de Nettoyage","type":"sortilege"},{"nom":"Ventus","description":"Sort de Vent","type":"sortilege"},{"nom":"Wingardium Leviosa","description":"Sort de Lévitation","type":"sortilege"},{"nom":"Élixir de Babil","description":"Potion du Babil","type":"potion"},{"nom":"Élixir Tranquillisant","description":"Potion de Calme","type":"potion"},{"nom":"Potion contre la Toux","description":"Potion médicinale","type":"potion"},{"nom":"Solution Rétrécissante","description":"Potion Rétrécissante","type":"potion"}],"2":[{"nom":"Epoximise","description":"Sort de Collage","type":"sortilege"},{"nom":"Expelliarmus","description":"Sort de Désarmement","type":"defense"},{"nom":"Flagrate","description":"Sort d'Écriture de Feu","type":"sortilege"},{"nom":"Fumos","description":"Sort de Fumée","type":"sortilege"},{"nom":"Incendio","description":"Sort de Feu","type":"sortilege"},{"nom":"Mucus ad Nauseam","description":"Malédiction du Rhume","type":"malediction"},{"nom":"Obscuro","description":"Sort d'Aveuglement","type":"maléfice"},{"nom":"Protego","description":"Bouclier de Protection","type":"defense"},{"nom":"Reparo","description":"Sort de Réparation","type":"sortilege"},{"nom":"Rictusempra","description":"Maléfice du Chatouillement","type":"maléfice"},{"nom":"Serpensortia","description":"Sort d'Invocation de Serpent","type":"sortilege"},{"nom":"Steleus","description":"Maléfice de l'Éternuement","type":"maléfice"},{"nom":"Titillando","description":"Maléfice Chatouilleur","type":"maléfice"},{"nom":"Potion d'Embellissement","description":"Améliore l'apparence","type":"potion"},{"nom":"Potion Dégonflante","description":"Dégonfle les objets ou personnes","type":"potion"},{"nom":"Potion du Hoquet","description":"Provoque le hoquet","type":"potion"},{"nom":"Élixir de Mandragore","description":"Anti-Maléfice puissant","type":"potion"},{"nom":"Essence de Murtrap","description":"Soin contre les coupures","type":"potion"},{"nom":"Potion Poivrée","description":"Soigne les rhumes","type":"potion"},{"nom":"Potion de Sommeil","description":"Endort la cible","type":"potion"},{"nom":"Solution Gonflante","description":"Fait gonfler la cible","type":"potion"},{"nom":"Onguent Amical","description":"Rend la cible serviable","type":"potion"}],"3":[{"nom":"Anteoculatia","description":"Maléfice Bois de Cerf","type":"maléfice"},{"nom":"Colloshoo","description":"Maléfice Collant","type":"maléfice"},{"nom":"Engorgio","description":"Sort de Gonflement","type":"sortilege"},{"nom":"Ferula","description":"Sort d'Attelle","type":"soin"},{"nom":"Herbivicus","description":"Sort de Croissance des Plantes","type":"sortilege"},{"nom":"Illegibilus","description":"Maléfice Brouilleur de Texte","type":"maléfice"},{"nom":"Impervius","description":"Sort Imperméabilisant","type":"sortilege"},{"nom":"Mimble Wimble","description":"Sort Entrave-Langue","type":"maléfice"},{"nom":"Orchideous","description":"Sort d'Invocation d'Orchidées","type":"sortilege"},{"nom":"Prior Incantato","description":"Sort de l'Écho Magique","type":"sortilege"},{"nom":"Reparifarge","description":"Sort d'Annulation de Métamorphose","type":"metamorphose"},{"nom":"Riddikulus","description":"Contre les Épouvantards","type":"defense"},{"nom":"Tarantallegra","description":"Sort de Danse Incontrôlable","type":"maléfice"},{"nom":"Potion Dégonflante","description":"Anti-Gonflement","type":"potion"},{"nom":"Potion Poivrée","description":"Soigne rhumes et fièvres","type":"potion"},{"nom":"Potion de Sommeil","description":"Endort profondément","type":"potion"},{"nom":"Solution Gonflante","description":"Fait gonfler la cible","type":"potion"}],"4":[{"nom":"Accio","description":"Sort d'Appel","type":"sortilege"},{"nom":"Avis","description":"Sort d'Invocation d'Oiseaux","type":"sortilege"},{"nom":"Densaugeo","description":"Maléfice des Dents Allongées","type":"maléfice"},{"nom":"Depulsio","description":"Sort de Bannissement","type":"sortilege"},{"nom":"Diffindo","description":"Sort de Découpage","type":"sortilege"},{"nom":"Episkey","description":"Sort de Soin Mineur","type":"soin"},{"nom":"Furnunculus","description":"Maléfice des Boutons","type":"maléfice"},{"nom":"Impedimenta","description":"Sort de Ralentissement","type":"defense"},{"nom":"Incarcerous","description":"Sort d'Enchaînement","type":"sortilege"},{"nom":"Locomotor Wibbly","description":"Maléfice Jambes-en-Gelée","type":"maléfice"},{"nom":"Quietus","description":"Sort d'Apaisement Sonore","type":"sortilege"},{"nom":"Reducto","description":"Malédiction de Réduction","type":"malediction"},{"nom":"Sonorus","description":"Sort d'Amplification","type":"sortilege"},{"nom":"Stupefix","description":"Sort d'Étourdissement","type":"defense"},{"nom":"Potion de Protection contre le Feu","description":"Résistance au feu","type":"potion"},{"nom":"Potion Revigorante","description":"Redonne de l'énergie","type":"potion"},{"nom":"Potion Laxative","description":"Effet digestif désagréable","type":"potion"},{"nom":"Potion Anti-Acné","description":"Traitement de la peau","type":"potion"}],"5":[{"nom":"Anapneo","description":"Sort de Désobstruction","type":"soin"},{"nom":"Aperio","description":"Sort d'Ouverture des Secrets","type":"sortilege"},{"nom":"Cantis","description":"Sort Chanteur Incontrôlable","type":"maléfice"},{"nom":"Colloportus","description":"Sort de Verrouillage","type":"sortilege"},{"nom":"Evanesco","description":"Sort de Disparition","type":"metamorphose"},{"nom":"Expecto Patronum","description":"Sort du Patronus","type":"defense"},{"nom":"Oppugno","description":"Sort d'Attaque d'Objets","type":"sortilege"},{"nom":"Protego Totalum","description":"Bouclier de Zone","type":"defense"},{"nom":"Relashio","description":"Maléfice de Libération","type":"maléfice"},{"nom":"Repello Muggletum","description":"Sort Anti-Moldus","type":"defense"},{"nom":"Silencio","description":"Sort du Silence","type":"maléfice"},{"nom":"Specialis Revelio","description":"Sort de Révélation des Maléfices","type":"sortilege"},{"nom":"Vulnera Sanentur","description":"Sort de Guérison des Blessures","type":"soin"},{"nom":"Amortentia","description":"Potion d'Amour Puissante","type":"potion"},{"nom":"Potion d'Embrouillage","description":"Trouble la pensée","type":"potion"},{"nom":"Essence de Dictame","description":"Soin accéléré des blessures","type":"potion"},{"nom":"Antidote à la Potion d'Amour","description":"Annule l'Amortentia","type":"potion"},{"nom":"Potion d'Acuité Mentale","description":"Améliore la réflexion","type":"potion"}],"6":[{"nom":"Aguamenti","description":"Sort d'Invocation d'Eau","type":"sortilege"},{"nom":"Apparaître","description":"Disparition et Réapparition","type":"metamorphose"},{"nom":"Confundo","description":"Sort de Confusion","type":"maléfice"},{"nom":"Deprimo","description":"Sort de Perforation du Sol","type":"sortilege"},{"nom":"Ebublio","description":"Maléfice des Bulles","type":"maléfice"},{"nom":"Emendo","description":"Sort de Soin des Os","type":"soin"},{"nom":"Flipendo","description":"Sort de Repoussement","type":"sortilege"},{"nom":"Gemino","description":"Sort de Duplication","type":"sortilege"},{"nom":"Langlock","description":"Sort Bloque-Langue","type":"maléfice"},{"nom":"Melofors","description":"Maléfice Tête-de-Citrouille","type":"maléfice"},{"nom":"Muffliato","description":"Sort de Bourdonnement","type":"sortilege"},{"nom":"Pullus","description":"Maléfice de Transformation en Poulet","type":"metamorphose"},{"nom":"Revelio","description":"Sort de Révélation","type":"sortilege"},{"nom":"Potion de Mort Vivante","description":"Suspend animation","type":"potion"},{"nom":"Gaz Étrangleur","description":"Gaz paralysant","type":"potion"},{"nom":"Solution Fortifiante","description":"Renforce la cible","type":"potion"},{"nom":"Veritaserum","description":"Sérum de Vérité","type":"potion"},{"nom":"Antidote au Veritaserum","description":"Annule le Sérum de Vérité","type":"potion"}],"7":[{"nom":"Baubillious","description":"Sort d'Éclair","type":"sortilege"},{"nom":"Confringo","description":"Malédiction Explosive","type":"malediction"},{"nom":"Duro","description":"Sort de Pétrification d'Objet","type":"sortilege"},{"nom":"Fianto Duri","description":"Sort de Renforcement du Bouclier","type":"defense"},{"nom":"Homenum Revelio","description":"Sort de Détection Humaine","type":"sortilege"},{"nom":"Legilimens","description":"Lecture des Pensées","type":"sortilege"},{"nom":"Levicorpus","description":"Sort de Suspension","type":"maléfice"},{"nom":"Mutatio","description":"Sort de Mutation","type":"metamorphose"},{"nom":"Obliviate","description":"Sortilège d'Oubli","type":"sortilege"},{"nom":"Portus","description":"Création de Portoloin","type":"sortilege"},{"nom":"Redactum","description":"Sort de Rétrécissement","type":"sortilege"},{"nom":"Vermiculus","description":"Maléfice des Vers","type":"maléfice"},{"nom":"Potion de Reconstitution Sanguine","description":"Restaure le sang","type":"potion"},{"nom":"Élixir d'Euphorie","description":"Provoque une joie intense","type":"potion"},{"nom":"Félix Felicis","description":"Potion de Chance (rare)","type":"potion"},{"nom":"Potion d'Oubli","description":"Efface les souvenirs récents","type":"potion"},{"nom":"Polynectar","description":"Transformation temporaire","type":"potion"},{"nom":"Skele-Gro","description":"Repousse les os perdus","type":"potion"}],"impardonnables":[{"nom":"Avada Kedavra","description":"Malédiction Meurtrière","type":"impardonnable"},{"nom":"Cruciatus","description":"Malédiction de Torture","type":"impardonnable"},{"nom":"Imperius","description":"Malédiction de Contrôle Mental","type":"impardonnable"}]}},"contenu/tables.json":{"annees":[1,2,3,4,5,6,7],"traits_valeurs":[-1,0,1,1,2],"origines":[{"id":"ne-moldu","label":"Né-Moldu","sorts":1,"xp":3,"description":"Vous venez d'une famille sans magie. Vous démarrez avec 1 sort et 3 points d'Expérience."},{"id":"demi-sang","label":"Demi-sang","sorts":2,"xp":2,"description":"Un de vos parents est sorcier. Vous démarrez avec 2 sorts et 2 points d'Expérience."},{"id":"sang-pur","label":"Sang-pur","sorts":3,"xp":1,"description":"Votre famille est entièrement sorcière. Vous démarrez avec 3 sorts et 1 point d'Expérience."}],"maisons":[{"id":"gryffondor","label":"Gryffondor","trait":"bravoure","description":"Courage, honneur et bravoure. Couleurs écarlate et or."},{"id":"poufsouffle","label":"Poufsouffle","trait":"loyaute","description":"Loyauté, patience et travail. Couleurs jaune et noir."},{"id":"serdaigle","label":"Serdaigle","trait":"intellect","description":"Intelligence, créativité et sagesse. Couleurs bleu et bronze."},{"id":"serpentard","label":"Serpentard","trait":"ruse","description":"Ruse, ambition et détermination. Couleurs vert et argent."}],"teints":{"1":"Mat","2":"Tacheté de rousseur","3":"Olivâtre","4":"Pâle","5":"Rougeaud","6":"Hâlé"},"cheveux":{"1":"Noirs","2":"Blonds","3":"Châtains","4":"Couverts","5":"Teints","6":"Roux"},"silhouettes":{"1":"Athlétique","2":"Corpulent","3":"Petit","4":"Trapu","5":"Grand","6":"Mince"},"bois_baguette":{"1":"Érable","2":"Noyer","3":"Épicéa","4":"Cèdre","5":"If","6":"Orme"},"coeurs_baguette":{"1-2":"Dragon (corde de cœur)","3-4":"Phénix (plume)","5-6":"Licorne (crin)"},"aspects_baguette":{"1":"Souple","2":"Longue","3":"Ornée","4":"Simple","5":"D'occasion","6":"Courte"},"ambitions":{"1":"Accomplissement","2":"Savoir","3":"Amusement","4":"Amitié","5":"Pouvoir","6":"Prestige"},"animaux":{"1-2":{"type":"Hibou","capacite":"Peut envoyer et recevoir du courrier"},"3-4":{"type":"Rat","capacite":"Ne peut pas envoyer ou recevoir de courrier"},"5-6":{"type":"Chat","capacite":"Ne daigne pas envoyer ou recevoir de courrier"}},"matieres_fondamentales":{"1":"Sortilèges","2":"Défense contre les Forces du Mal","3":"Herbologie","4":"Histoire de la Magie","5":"Potions","6":"Métamorphose"},"matieres_options":{"1":"Arithmancie","2":"Astronomie","3":"Soins aux Créatures Magiques","4":"Divination","5":"Études des Moldus","6":"Quidditch"},"patronus":{"categories":{"1":{"label":"Rapaces","animaux":{"1":"Albatros","2":"Aigle","3":"Faucon","4":"Buse","5":"Héron","6":"Balbuzard"}},"2":{"label":"Autres Oiseaux","animaux":{"1":"Merle","2":"Corbeau","3":"Colibri","4":"Faisan","5":"Rouge-gorge","6":"Moineau"}},"3":{"label":"Carnivores","animaux":{"1":"Blaireau","2":"Ours","3":"Sanglier","4":"Lion","5":"Serpent","6":"Loup"}},"4":{"label":"Herbivores","animaux":{"1":"Oryctérope","2":"Cerf","3":"Hérisson","4":"Souris","5":"Saumon","6":"Écureuil"}},"5":{"label":"Animaux Domestiques","animaux":{"1":"Chat","2":"Chien","3":"Cheval","4":"Lapin","5":"Rat","6":"Cygne"}},"6":{"label":"Créatures Rares","animaux":{"1":"Dragon","2":"Hippogriffe","3":"Hibou","4":"Phénix","5":"Licorne","6":"Cheval Ailé"}}}},"prenoms_moldus":["Ahmad","Arthur","Aurora","Chiwetel","Cormac","Daniel","Dev","Dimitrios","Eleni","Emma","Fatima","Gabriela","Geneviève","James","Jing","Joanne","Lorenzo","Maggie","Nnedi","Pablo","Pénélope","Richard","Riya","Rupert","Scarlett","Sean","Susan","Terry","Wei","Zoé"],"prenoms_sorciers":["Alecto","Andromeda","Arabella","Argus","Ariana","Arsenius","Augusta","Cuthbert","Dedalus","Eldred","Elphias","Emeric","Emmeline","Filius","Griselda","Helena","Imelda","Ludo","Mafalda","Mérope","Newt","Phyllida","Rodolphus","Rolanda","Septima","Silvanus","Sybill","Thorfinn","Wilbert","Wilhelmina"],"noms_de_famille":["Adebayo","Ali","Bagshot","Chowdhry","Davies","Diaz","Dubois","Finnigan","Goldstein","Grint","Johnson","Kazinsky","Khan","Leung","Macmillan","Mwangi","Ogden","Okafor","Patel","Quinn","Radcliffe","Santos","Schmidt","Spinnet","Tarkowski","Thomas","Valentini","Warren","Watson","Wong"],"questions_amis_maisons":{"gryffondor":[{"question":"Lequel d'entre vous a pris ma défense quand des élèves plus âgés s'en prenaient à moi ?","type":"Ami"},{"question":"Lequel d'entre vous a eu une retenue avec moi après avoir parlé contre un professeur injuste ?","type":"Ami"},{"question":"Lequel d'entre vous fait partie de l'équipe de Quidditch ?","type":"Ami"},{"question":"Lequel d'entre vous est ma personne de confiance quand j'ai besoin de trouver quelque chose à la bibliothèque ?","type":"Ami"},{"question":"Lequel d'entre vous joue dans la même position que moi dans une autre équipe de Quidditch ?","type":"Rival"},{"question":"Lequel d'entre vous ai-je mis au défi en duel pour avoir insulté un ami ?","type":"Rival"}],"serdaigle":[{"question":"Lequel d'entre vous est resté debout avec moi jusqu'à minuit pour réviser pour un grand examen d'Histoire de la Magie ?","type":"Ami"},{"question":"Lequel d'entre vous me laisse toujours copier ses devoirs de Sortilèges ?","type":"Ami"},{"question":"Lequel d'entre vous partage ma passion pour une créature magique rare ?","type":"Ami"},{"question":"Lequel d'entre vous est ma référence quand j'ai besoin de trouver quelque chose que je ne trouve pas à la bibliothèque ?","type":"Ami"},{"question":"Lequel d'entre vous je jalouse parce qu'il a de meilleures notes que moi dans ma matière préférée ?","type":"Rival"},{"question":"Lequel d'entre vous je soupçonne d'avoir triché sur un devoir ?","type":"Rival"}],"poufsouffle":[{"question":"Lequel d'entre vous m'a aidé à retrouver mon animal de compagnie perdu ?","type":"Ami"},{"question":"Lequel d'entre vous s'est faufilé avec moi aux cuisines avant le festin de la Toussaint ?","type":"Ami"},{"question":"Lequel d'entre vous aime passer ses après-midis du week-end dans les serres avec moi ?","type":"Ami"},{"question":"Lequel d'entre vous était assis à côté de moi lors de notre premier trajet sur le Poudlard Express ?","type":"Ami"},{"question":"Lequel d'entre vous ai-je fâché en insultant son animal de compagnie ?","type":"Rival"},{"question":"Lequel d'entre vous je n'aime pas parce qu'il passe trop de temps avec mon meilleur ami ?","type":"Rival"}],"serpentard":[{"question":"Lequel d'entre vous a découvert une salle cachée dans le château avec moi ?","type":"Ami"},{"question":"Lequel d'entre vous me doit un service pour ne pas avoir dit que vous étiez sortis après le couvre-feu ?","type":"Ami"},{"question":"Lequel d'entre vous est toujours assis à côté de moi aux repas ?","type":"Ami"},{"question":"Dont la famille est proche de la mienne depuis des générations ?","type":"Ami"},{"question":"Lequel d'entre vous je pense que c'est un grand fanfaron ?","type":"Rival"},{"question":"Lequel d'entre vous doute publiquement de mes capacités académiques ou sportives ?","type":"Rival"}]}},"contenu/scenarios/index.json":[{"id":"compartiment","titre":"Le Compartiment du Fond","accroche":"Une odeur de soufre, un sifflement mystérieux, et quelqu'un qui vous cache quelque chose.","annee_min":1,"annee_max":7,"duree_estimee":"30 à 45 minutes","manoeuvres":["Acquérir des Connaissances","Obtenir ce que l'on Cherche","Faire Face au Danger","Lancer un Sort"]}],"contenu/scenarios/compartiment.json":{"id":"compartiment","titre":"Le Compartiment du Fond","accroche":"Une odeur de soufre, un sifflement mystérieux, et quelqu'un qui vous cache quelque chose.","description":"À bord du Poudlard Express, un bruit étrange vous attire vers le dernier compartiment. Quelqu'un — ou quelque chose — s'y cache. Un scénario d'investigation et de magie adapté à tous les niveaux.","annee_min":1,"annee_max":7,"duree_estimee":"30 à 45 minutes","scenes":{"debut":{"narration":["Le Poudlard Express filait à travers les landes écossaises dans un grondement sourd et régulier, ses fenêtres maculées de la pluie persistante d'un début septembre résolument anglais. Dans votre compartiment, l'odeur des Chocogrenouilles se mêlait à celle des caramels au poivre que votre voisin de siège avait achetés à la dame du chariot — et aussitôt regrettés, à en juger par la couleur de son visage.","Vous regardiez défiler les collines sombres quand un bruit inhabituel vous parvint du fond du couloir. Pas le vacarme joyeux des compartiments voisins — non. Quelque chose d'autre. Un sifflement tenu, presque inaudible sous le grondement du train, accompagné d'une odeur qui n'avait rien à faire dans un wagon de chemin de fer : du soufre. Légèrement âcre, légèrement sucré, comme les cendres d'un feu qu'on n'avait pas voulu allumer.","Le compartiment du fond était le seul que personne n'avait choisi depuis King's Cross. Pourtant, vous y aviez vu quelqu'un entrer précipitamment au moment du départ."],"actions":[{"label":"Coller l'oreille à la cloison pour écouter discrètement","manoeuvre":"acquerir-connaissance","suite":{"succes":"ecoute-succes","partiel":"ecoute-partiel","echec":"ouverture"}},{"label":"Frapper à la porte et demander si tout va bien","lien":"ouverture"},{"label":"Continuer à regarder le paysage — ce n'est pas votre affaire","fin":"abandon"}]},"ecoute-succes":{"narration":["Vous collâtes discrètement l'oreille contre la cloison de bois. Derrière la porte du compartiment du fond, vous distinguâtes deux sons bien distincts.","Le premier était humain : la respiration saccadée de quelqu'un qui s'efforçait de ne pas faire de bruit, et n'y parvenait qu'à moitié. Une voix jeune, qui marmonnait tout bas — des supplications, semblait-il, adressées à quelque chose qui n'était clairement pas en position d'écouter.","Le second son ne l'était pas. Humain, s'entend. Un sifflement rythmé, presque mélodieux, ponctué de crépitements secs comme du bois qui brûle. Une chaleur douce, presque agréable, filtrait sous le bas de la porte. Cendre-Serpent, songea quelque chose dans votre mémoire — vous aviez lu ce nom quelque part. Une créature de feu, inoffensive jusqu'au moment où elle ne l'était plus. Et celle-là était visiblement à bout de patience."],"effet_entree":{"flag":"sait-creature"},"actions":[{"label":"Ouvrir la porte d'un geste décidé","lien":"ouverture"},{"label":"Frapper deux coups et annoncer votre présence","effet":{"flag":"a-frappe"},"lien":"ouverture"}]},"ecoute-partiel":{"narration":["Vous tendîtes l'oreille. Des sons filtraient sous la porte — un sifflement qui ressemblait à de la vapeur, et ce qui aurait pu être une voix humaine, ou pas. L'odeur de soufre, en revanche, ne laissait aucune place au doute : quelque chose ne tournait pas rond dans ce compartiment.","Vous ne sauriez pas ce qui se trouvait à l'intérieur sans ouvrir."],"actions":[{"label":"Ouvrir la porte","lien":"ouverture"}]},"ouverture":{"narration":["Vous poussâtes la porte du compartiment.","La première chose que vous vîtes fut le coffre. Il était posé en travers des banquettes, grand, en bois sombre cerclé de cuivre, et il brillait. Pas d'une lumière magique, propre et rassurante — non. D'une lueur orangée qui filtrait par les rainures du couvercle, pulsant doucement au rythme du sifflement que vous entendiez maintenant clairement.","La deuxième chose que vous vîtes fut le garçon assis en tailleur sur l'autre banquette, les genoux remontés contre la poitrine, les yeux ronds comme des Gallions. Il avait environ votre âge, des cheveux châtains qui partaient dans tous les sens, et une tache de suie sur le front qui suggérait qu'il avait déjà tenté d'approcher le coffre — avec des résultats peu concluants.","— Oh, fit-il en vous voyant. Oh non."],"actions":[{"label":"Lui parler calmement — demander ce qui se passe","manoeuvre":"obtenir","suite":{"succes":"theodore-parle","partiel":"theodore-partiel","echec":"theodore-panique"}},{"label":"Examiner le coffre de plus près","condition":"!flag:a-examine-coffre","effet":{"flag":"a-examine-coffre"},"manoeuvre":"acquerir-connaissance","suite":{"succes":"examen-succes","partiel":"examen-partiel","echec":"coffre-approche"}},{"label":"Dire : \"Je sais ce qu'il y a dans ce coffre. Je peux vous aider.\"","condition":"flag:sait-creature","effet":{"flag":"connaissance-utile"},"lien":"theodore-parle"}]},"theodore-parle":{"narration":["Quelque chose dans votre ton — ou peut-être simplement l'horreur de sa situation — eut raison de la méfiance du garçon. Il prit une grande inspiration.","— Théodore Plumcroft, dit-il. Et ce coffre appartient à mon oncle Aldric. Il m'a demandé de le surveiller pendant les vacances. Il transporte des créatures — enfin, il en transporte une. Une Cendre-Serpent. Elle était censée être somnolente, il m'avait dit. Elle était somnolente à l'aller. Mais là, depuis ce matin, elle ne dort plus du tout.","Le coffre craqua sinistrement. Théodore se ratatina un peu plus contre la paroi.","— Elle pond à peu près dans trois heures, ajouta-t-il d'une toute petite voix. Et les œufs de Cendre-Serpent brûlent tout ce qu'ils touchent. Alors j'ai pensé que si personne ne s'en apercevait..."],"effet_entree":{"flag":"sait-creature"},"actions":[{"label":"Proposer d'agir tout de suite — vous pouvez le faire","lien":"coffre-approche"},{"label":"Aller chercher un préfet ou le contrôleur","lien":"route-controleur"}]},"theodore-partiel":{"narration":["— C'est le coffre de mon oncle, dit le garçon d'une voix qui cherchait à paraître naturelle et n'y parvenait pas du tout. Il transporte quelque chose. Quelque chose qui ne devrait peut-être pas être là. Enfin. Ce n'est rien de dangereux. Normalement.","Il ajouta ce dernier mot avec le genre d'hésitation qui suggère que la situation avait évolué depuis le moment où cette affirmation avait été vraie.","Le coffre émit un sifflement. Le garçon sursauta légèrement."],"actions":[{"label":"Insister avec fermeté — que se passe-t-il vraiment ?","manoeuvre":"obtenir","suite":{"succes":"theodore-parle","partiel":"coffre-approche","echec":"theodore-panique"}},{"label":"Examiner le coffre vous-même sans attendre","condition":"!flag:a-examine-coffre","effet":{"flag":"a-examine-coffre"},"manoeuvre":"acquerir-connaissance","suite":{"succes":"examen-succes","partiel":"examen-partiel","echec":"coffre-approche"}},{"label":"Passer à l'action sans attendre ses explications","lien":"coffre-approche"}]},"theodore-panique":{"narration":["Le garçon se leva d'un bond — ce qui était une erreur, car son genou heurta le coin du coffre, qui bascula.","Le couvercle s'entrouvrit.","Il n'en fallut pas plus. Dans un sifflement aigu qui fit vibrer les vitres, quelque chose de luisant, de sinueux et d'orangé jaillit du coffre comme une flamme vivante et disparut dans l'entrebâillement de la porte en un éclair."],"actions":[{"label":"Courir après la Cendre-Serpent dans le couloir","lien":"ashwinder-libre"}]},"examen-succes":{"narration":["Vous vous accroupîtes devant le coffre. La chaleur qui en émanait était réelle — pas la chaleur magique tiède d'un sort de chauffage, mais quelque chose d'organique, de vivant. Les marques de brûlures sur le bois étaient récentes. Un cercle de suie noircissait les rainures du couvercle là où la fumée s'était frayé un passage.","Cendre-Serpent, dit votre mémoire avec une certaine précision. Reptile magique, classé XXX par le Ministère. Gérable pour qui sait s'y prendre. Elles répondent bien aux sorts d'immobilisation et à la chaleur contrôlée. Et surtout — il fallait agir avant qu'elle ne ponde."],"effet_entree":{"flag":"sait-creature"},"actions":[{"label":"Parler au garçon dans le coin — vous savez ce qu'il cache","lien":"theodore-parle"},{"label":"S'occuper du coffre directement, sans perdre de temps","lien":"coffre-approche"}]},"examen-partiel":{"narration":["Le coffre était chaud — anormalement chaud pour un simple contenant de voyage. Les traces de brûlures sur le bois étaient récentes. La chaleur pulsait de façon régulière, rythmée par le sifflement, comme une respiration. Quelque chose de vivant. Au-delà, vous n'auriez su dire avec certitude."],"actions":[{"label":"Interroger le garçon — qu'est-ce qu'il y a là-dedans ?","manoeuvre":"obtenir","suite":{"succes":"theodore-parle","partiel":"theodore-partiel","echec":"theodore-panique"}},{"label":"Ouvrir le coffre prudemment","lien":"coffre-approche"}]},"coffre-approche":{"narration":["Vous vous avançâtes vers le coffre. La chaleur augmentait à mesure que vous vous approchiez — pas assez pour brûler, mais assez pour vous rappeler que ce qui se trouvait à l'intérieur était très loin d'être endormi. La lueur orangée pulsait plus vite maintenant, comme si la créature sentait votre présence et en était contrariée.","— Attendez, chuchota Théodore derrière vous. Faites attention. Elle n'est pas... elle n'est pas de bonne humeur.","Vous aviez remarqué. Il vous fallait agir — la Cendre-Serpent ne resterait pas dans ce coffre très longtemps."],"actions":[{"label":"Lancer Immobulus pour figer la créature à travers le bois","condition":"sort:Immobulus","manoeuvre":"lancer-sort","suite":{"succes":"capture-succes","partiel":"capture-partiel","echec":"theodore-panique"}},{"label":"Lancer Incarcerous pour ligoter la créature dans le coffre","condition":"sort:Incarcerous","manoeuvre":"lancer-sort","suite":{"succes":"capture-succes","partiel":"capture-partiel","echec":"theodore-panique"}},{"label":"Refermer soigneusement le coffre et coincer le loquet avec force","manoeuvre":"faire-face","suite":{"succes":"capture-succes","partiel":"capture-partiel","echec":"theodore-panique"}},{"label":"Attirer la créature avec votre chaleur corporelle pour la calmer, puis refermer","condition":"flag:sait-creature","manoeuvre":"faire-face","suite":{"succes":"capture-succes","partiel":"capture-partiel","echec":"theodore-panique"}},{"label":"Aller chercher le contrôleur — ce n'est plus gérable seul","lien":"route-controleur"}]},"capture-succes":{"narration":["La créature se figea. Un instant, deux — puis elle se détendit lentement, comme si la tension qui l'animait venait d'être évacuée d'un seul coup. Le sifflement s'éteignit. La lueur orangée dans le coffre passa du rouge vif à un orange paisible, puis à un jaune presque chaleureux.","Vous refermâtes soigneusement le couvercle. Le loquet claqua.","Dans le silence revenu, Théodore Plumcroft vous regarda d'une façon qu'il n'avait encore jamais adressée à personne : avec une admiration totale, sans réserve, du genre qui ne cherche même pas à se dissimuler.","— Comment vous avez fait ça ? dit-il."],"fin":"triomphe"},"capture-partiel":{"narration":["La Cendre-Serpent ne fut pas exactement capturée. Elle fut contenue. Avec difficulté. Et un peu de chance. Et un bref intermède pendant lequel la banquette du fond prit feu sur environ vingt centimètres — ce qui avait l'air pire que ce n'était, parce que la magie du train absorba la plus grande partie de la chaleur.","Au final, la créature était de retour dans le coffre. Le coffre était fermé. La fumée se dissipait lentement.","Théodore ne dit rien pendant un long moment. Puis :","— Je pense que votre manteau va bien, dit-il. Enfin, la plupart."],"fin":"normal"},"ashwinder-libre":{"narration":["La Cendre-Serpent — car c'en était bien une, vous la reconnûtes immédiatement — filait dans le couloir du Poudlard Express comme une langue de flamme orange vif. Elle mesurait environ soixante centimètres, ses écailles luisaient comme des braises, et partout où sa queue effleurait le sol, elle laissait une légère trace de roussi sur la moquette bordeaux.","Des cris s'élevèrent de deux compartiments voisins. Quelqu'un hurla quelque chose sur un Diablotin du Feu. Un autre claqua sa porte.","Au fond du couloir, la silhouette verte et argent d'une préfète de Serpentard apparut, son badge luisant sous les appliques dorées du wagon. Elle regardait dans votre direction d'un air qui n'augurerait rien de bon dans les mois à venir.","La situation exigeait une décision immédiate."],"actions":[{"label":"Courir après la Cendre-Serpent et tenter de la capturer à mains nues","manoeuvre":"faire-face","suite":{"succes":"capture-couloir-succes","partiel":"capture-couloir-partiel","echec":"resolution-chaos"}},{"label":"Lancer un sort pour stopper la créature depuis ici","condition":"sort:Immobulus || sort:Incarcerous","manoeuvre":"lancer-sort","suite":{"succes":"capture-couloir-succes","partiel":"capture-couloir-partiel","echec":"pris-par-prefet"}},{"label":"Se glisser dans un compartiment vide pour éviter le préfet","manoeuvre":"cacher-faufiler","suite":{"succes":"cache-succes","partiel":"cache-partiel","echec":"pris-par-prefet"}}]},"cache-succes":{"narration":["Vous vous glissâtes dans un compartiment vide avec la rapidité d'un Vif d'Or, tirant Théodore — qui protestait à mi-voix — derrière vous. La porte se referma sans bruit. Vous entendîtes la préfète passer dans le couloir, les semelles claquant sur le plancher, suivie de deux élèves qui discutaient à voix haute de ce qu'ils avaient soi-disant vu.","Une fois le calme revenu, vous échangeâtes un regard avec Théodore.","— Elle est toujours là-dehors, chuchota-t-il.","— Je sais, chuchotâtes-vous."],"actions":[{"label":"Ressortir discrètement pour retrouver et capturer la créature","manoeuvre":"cacher-faufiler","suite":{"succes":"capture-couloir-succes","partiel":"capture-couloir-partiel","echec":"pris-par-prefet"}}]},"cache-partiel":{"narration":["Vous vous glissâtes dans un compartiment, mais pas assez vite. La préfète vous vit entrer. Elle s'arrêta, fronça les sourcils, puis continua son chemin — la Cendre-Serpent était manifestement une priorité plus urgente que votre présence dans un compartiment non attribué.","Pour l'instant."],"actions":[{"label":"Profiter du délai pour capturer la créature avant que la préfète revienne","manoeuvre":"faire-face","suite":{"succes":"capture-couloir-succes","partiel":"capture-couloir-partiel","echec":"pris-par-prefet"}}]},"capture-couloir-succes":{"narration":["Vous coinçâtes la Cendre-Serpent dans un angle du couloir à l'aide d'une combinaison d'adresse et de bonne fortune. Elle siffla, se cabra — puis se calma aussi soudainement qu'elle s'était énervée. Théodore déposa le coffre ouvert à ses côtés. La créature y glissa comme si l'idée venait d'elle.","— C'est extraordinaire, dit Théodore. Vous êtes extraordinaire.","La préfète, à l'autre bout du couloir, prenait des notes sur un bout de parchemin d'un air peu enthousiaste."],"fin":"triomphe"},"capture-couloir-partiel":{"narration":["Vous parvîntes à repousser la Cendre-Serpent vers le compartiment du fond avant qu'elle ne causât trop de dégâts — à part un sac de voyage fondu, deux Chocogrenouilles réduites en cendres, et une marque de brûlure sur le panneau d'instructions de sécurité du wagon.","Théodore referma le coffre derrière elle. La préfète arriva au même moment et nota vos noms dans son carnet sans rien dire. Ce qui, dans l'univers des préfets, équivalait à un commentaire très élaboré."],"fin":"normal"},"pris-par-prefet":{"narration":["La préfète vous coinça dans le couloir avec l'efficacité sans fioriture de quelqu'un habituée à ce genre de situation. Mélisande Fairborough, indiquait son badge argent. Elle examina la trace de roussi sur la moquette, la sueur sur votre front, et Théodore qui essayait de disparaître derrière vous.","— J'attends une explication, dit-elle d'un ton qui ne laissait aucune place à la créativité."],"actions":[{"label":"Expliquer la situation honnêtement — Cendre-Serpent, coffre, tout","manoeuvre":"obtenir","suite":{"succes":"resolution-avec-prefete","partiel":"resolution-ennuis","echec":"resolution-chaos"}}]},"resolution-avec-prefete":{"narration":["La préfète Fairborough vous écouta sans vous interrompre une seule fois, ce qui constituait en soi un exploit remarquable. Quand vous eûtes terminé, elle referma son carnet.","— Très bien, dit-elle. J'apprécie l'honnêteté. Et je note que vous avez tenté de résoudre la situation sans en référer à un adulte, ce qui est à la fois courageux et complètement irresponsable. Ces deux choses ne s'excluent pas mutuellement.","Elle alla chercher le contrôleur. La Cendre-Serpent fut capturée en huit minutes grâce au gant de protection enchanté que le Poudlard Express conservait pour précisément ce type de situation."],"fin":"normal"},"resolution-ennuis":{"narration":["La préfète Fairborough rédigea un rapport en trois copies. Vous eûtes droit à une convocation dans le bureau du Directeur dans les quarante-huit premières heures de l'année scolaire, ce qui constituait un record personnel que vous espériez ne jamais battre.","La bonne nouvelle : la Cendre-Serpent avait finalement été récupérée par le contrôleur. La moins bonne : votre réputation prendrait un peu plus de temps à se remettre de l'aventure.","Théodore vous trouva dans le couloir le lendemain matin.","— C'est entièrement de ma faute, dit-il. Je le dirai à qui voudra bien l'entendre.","Ce n'était pas grand-chose. Mais c'était sincère."],"fin":"ennuis"},"resolution-chaos":{"narration":["Le compte rendu officiel de l'incident, tel qu'il figurerait dans les archives du Poudlard Express, ferait état d'une Cendre-Serpent échappée, d'une moquette partiellement carbonisée sur quatre mètres et demi, d'un chariot à friandises dont les roues avaient fondu, et d'un nombre non précisé d'élèves qui refuseraient de reparler de l'affaire.","La préfète Fairborough nota votre nom trois fois, ce qui était apparemment sa façon d'exprimer une opinion très marquée."],"fin":"chaos"},"route-controleur":{"narration":["Vous trouvâtes le contrôleur du train à l'autre bout du wagon, en train de tamponner des billets avec la placidité d'un homme pour qui les créatures magiques dans ses wagons constituaient un incident ordinaire — ce qui, sur le Poudlard Express, n'était pas tout à fait faux.","Il vous écouta. Il soupira. Il rangea son tampon.","— Quatrième fois ce semestre que quelqu'un embarque quelque chose qui ne devrait pas l'être, dit-il. Venez avec moi."],"fin":"controleur"}},"fins":{"triomphe":{"narration":["Le reste du voyage jusqu'à Poudlard se passa dans une relative normalité, si l'on excepte les dix minutes que vous passâtes à expliquer la situation à la préfète Fairborough, qui nota tout avec un soin méticuleux et vous adressa, in fine, quelque chose qui ressemblait à un hochement de tête approbateur — ce qui, sur l'échelle des réactions préfectorales, constituait un éloge considérable.","Théodore Plumcroft s'assit à côté de vous pour le reste du trajet. Il parla beaucoup — de son oncle Aldric qui collectionnait les créatures magiques, de sa mère qui désapprouvait, de sa sœur qui avait peur des chouettes, de son vœu d'intégrer un jour la Protection des Êtres Magiques au Ministère.","Quand Poudlard apparut au-delà des collines, étincelant de mille lumières dans la nuit écossaise, il se tourna vers vous.","— Je ne sais pas comment vous remercier, dit-il. Vraiment.","— Commencez par apprendre quelques sorts, lui dîtes-vous.","Il rit. Vous pensâtes que peut-être, cette année, vous auriez un ami de plus."],"ami":"Théodore Plumcroft"},"normal":{"narration":["L'affaire de la Cendre-Serpent se conclut dans une certaine confusion mais sans catastrophe majeure — ce qui, tout bien considéré, était déjà un résultat acceptable pour un voyage en train.","Théodore Plumcroft dit merci deux fois, puis une troisième pour faire bonne mesure. La préfète nota trois noms dans son carnet avec l'air de quelqu'un qui ajoute des colonnes à un tableau déjà trop chargé. Le contrôleur nettoya les traces de roussi avec une résignation professionnelle.","Quand le Poudlard Express s'arrêta en gare de Pré-au-Lard, vous descendîtes sur le quai avec le sentiment vague d'avoir fait quelque chose d'utile — même si vous n'étiez pas tout à fait sûr de quoi.","— On se reverra peut-être, dit Théodore en ramassant son coffre."],"ami":"Théodore Plumcroft"},"ennuis":{"narration":["Les ennuis administratifs passèrent. Les ennuis passent toujours, à Poudlard, avec une régularité qui finit par être presque rassurante.","Théodore vous trouva dans le couloir le lendemain matin, avec l'expression d'un garçon qui a passé la nuit à préparer un discours.","— C'est entièrement de ma faute, dit-il. Je le dirai à qui voudra bien l'entendre. Y compris au Professeur Directeur.","Vous le regardâtes. Il était manifestement sincère.","— La prochaine fois que votre oncle vous confie quelque chose de vivant, dites-vous, faites-le-moi savoir avant le départ de King's Cross.","Il acquiesça avec gravité. C'était, vous le sentiez, le début d'une amitié particulière."],"ami":"Théodore Plumcroft"},"chaos":{"narration":["Vous n'étiez pas le héros de cette histoire. Mais vous étiez vivant, ce qui comptait pour quelque chose.","Théodore Plumcroft, croisé dans l'escalier de marbre du château deux jours plus tard, vous adressa un regard qui contenait à la fois des excuses, de la culpabilité, et une admiration maladroite pour quelqu'un qui avait au moins essayé.","— La prochaine fois, dit-il, appelez le contrôleur en premier.","Il n'avait pas tort.","Mais il y aurait une prochaine fois. Et cette pensée, étrangement, avait quelque chose de réjouissant."]},"controleur":{"narration":["Le contrôleur s'avéra posséder les bons équipements — un gant de protection enchanté, un filet anti-feu et une patience à toute épreuve — et la Cendre-Serpent fut récupérée en moins de dix minutes avec une efficacité qui vous parut presque décevante.","— La prochaine fois que votre oncle vous confie une créature classée XXX, dit le contrôleur à Théodore avec un calme olympien, prévenez-nous au départ de King's Cross.","Théodore acquiesça avec toute la dignité d'un garçon qui vient d'éviter une catastrophe de justesse. Dans le compartiment, en attendant l'arrivée à Pré-au-Lard, il vous regarda de côté.","— Vous auriez pu ne pas vous mêler de ça, dit-il. Merci de l'avoir fait quand même."],"ami":"Théodore Plumcroft"},"abandon":{"narration":["Vous aviez décidé de ne pas vous en mêler. C'était votre droit le plus strict.","Plus tard, dans la Grande Salle, vous entendîtes quelqu'un raconter l'histoire d'un élève courageux qui avait maîtrisé une Cendre-Serpent dans le Poudlard Express. Ce n'était pas vous.","Ça aurait pu l'être."]}}}};
+
+;(function() {
+  const _fetchNatif = typeof fetch !== 'undefined' ? fetch.bind(window) : null;
+  window.fetch = function(url, options) {
+    const cle = String(url).replace(/^\.?\//, '');
+    if (Object.prototype.hasOwnProperty.call(__RESSOURCES, cle)) {
+      return Promise.resolve({
+        ok: true,
+        status: 200,
+        json: function() {
+          return Promise.resolve(JSON.parse(JSON.stringify(__RESSOURCES[cle])));
+        }
+      });
+    }
+    if (_fetchNatif) return _fetchNatif(url, options);
+    return Promise.reject(new Error('fetch non disponible pour : ' + url));
+  };
+})();
+
+// ===== narration.js =====
+const { configurerTTS, ttsEstActif, narrer, narrerFrais, alerter, statuer, relire } = (function() {
+// Module central d'annonces — ARIA live regions + TTS optionnel.
+// TOUT le texte du jeu passe par ce module.
+// Par défaut, le lecteur d'écran (NVDA, VoiceOver…) gère les annonces via ARIA.
+// Le TTS du navigateur est un complément optionnel configurable.
+
+const $narration = document.getElementById('narration');
+const $alerte    = document.getElementById('alerte');
+const $statut    = document.getElementById('statut');
+
+let dernierMessage = '';
+let ttsActif  = false;
+let vitesseTTS = 1.0;
+let volumeTTS  = 1.0;
+
+// ---- Configuration ----
+
+function configurerTTS({ actif, vitesse, volume } = {}) {
+  if (actif   !== undefined) ttsActif   = actif;
+  if (vitesse !== undefined) vitesseTTS = vitesse;
+  if (volume  !== undefined) volumeTTS  = volume;
+}
+
+function ttsEstActif() {
+  return ttsActif;
+}
+
+// ---- Fonctions publiques ----
+
+// Ajoute un paragraphe au log narratif (aria-live="polite").
+// Le lecteur d'écran le lit dès qu'il est disponible.
+function narrer(texte) {
+  if (!texte) return;
+  dernierMessage = texte;
+
+  const p = document.createElement('p');
+  p.textContent = texte;
+  $narration.appendChild(p);
+  $narration.scrollTop = $narration.scrollHeight;
+
+  if (ttsActif) _dire(texte);
+}
+
+// Efface le log narratif puis pose un nouveau texte.
+// Utile pour les transitions d'écran.
+function narrerFrais(texte) {
+  if (!texte) return;
+  dernierMessage = texte;
+
+  $narration.textContent = '';
+  const p = document.createElement('p');
+  p.textContent = texte;
+  $narration.appendChild(p);
+
+  if (ttsActif) _dire(texte, true);
+}
+
+// Annonce immédiate via aria-live="assertive".
+// Interrompt le lecteur d'écran. Réservé aux résultats de dés et alertes importantes.
+function alerter(texte) {
+  if (!texte) return;
+  dernierMessage = texte;
+
+  // Vider avant de remplir force la ré-annonce même si le texte est identique
+  $alerte.textContent = '';
+  requestAnimationFrame(() => {
+    $alerte.textContent = texte;
+    if (ttsActif) _dire(texte, true);
+  });
+}
+
+// Statut bref, non-interruptif (rôle="status").
+function statuer(texte) {
+  $statut.textContent = '';
+  requestAnimationFrame(() => {
+    $statut.textContent = texte;
+  });
+}
+
+// Relit le dernier message annoncé (touche Espace).
+function relire() {
+  if (!dernierMessage) return;
+
+  if (ttsActif) {
+    _dire(dernierMessage, true);
+  } else {
+    // Sans TTS : forcer NVDA/VoiceOver à relire via la région assertive
+    $alerte.textContent = '';
+    requestAnimationFrame(() => {
+      $alerte.textContent = 'Répétition : ' + dernierMessage;
+    });
+  }
+}
+
+// ---- Fonction TTS interne ----
+
+function _dire(texte, interrompre = false) {
+  if (!('speechSynthesis' in window)) return;
+  if (interrompre) speechSynthesis.cancel();
+
+  const u = new SpeechSynthesisUtterance(texte);
+  u.lang   = 'fr-FR';
+  u.rate   = vitesseTTS;
+  u.volume = volumeTTS;
+  speechSynthesis.speak(u);
+}
+
+  return { configurerTTS, ttsEstActif, narrer, narrerFrais, alerter, statuer, relire };
+})();
+
+// ===== personnage.js =====
+const { creerPersonnageVide, traitEffectif, traitLePlusEleve, tousEtatsActifs, appliquerOrigine, appliquerMaison, NOMS_TRAITS } = (function() {
+// État du personnage joueur — structure de données et helpers.
+
+function creerPersonnageVide() {
+  return {
+    // Identité
+    prenom:  '',
+    nom:     '',
+    annee:   1,
+    maison:  '',
+    origine: '', // 'ne-moldu' | 'demi-sang' | 'sang-pur'
+
+    // Apparence (cosmétique, pas d'impact mécanique)
+    teint:      '',
+    cheveux:    '',
+    silhouette: '',
+
+    // Baguette
+    baguette: { bois: '', coeur: '', aspect: '' },
+    ambition: '',
+
+    // Patronus
+    patronus: '',
+
+    // Animal de compagnie
+    animal: { type: '', nom: '' },
+
+    // Traits (valeurs : -1, 0, +1, +1, +2 répartis)
+    traits: {
+      bravoure:  0,
+      ruse:      0,
+      intellect: 0,
+      loyaute:   0,
+      magie:     0
+    },
+
+    // Matières préférées (max 2 après progression)
+    matieresPreferees: [],
+
+    // Sorts connus — [{ nom, description, annee, type }]
+    sorts: [],
+
+    // Objets magiques
+    objetsMagiques: [],
+
+    // Relations
+    amis:   [], // max 2
+    rivaux: [], // max 1
+
+    // Ressources
+    chance:     3,
+    experience: 0,
+
+    // États (Conditions) — tous désactivés par défaut
+    etats: [
+      { id: 'apeure',      nom: 'Apeuré',      trait: 'bravoure',  malus: -2, actif: false },
+      { id: 'furieux',     nom: 'Furieux',      trait: 'ruse',      malus: -2, actif: false },
+      { id: 'stresse',     nom: 'Stressé',      trait: 'intellect', malus: -2, actif: false },
+      { id: 'jaloux',      nom: 'Jaloux',       trait: 'loyaute',   malus: -2, actif: false },
+      { id: 'gene',        nom: 'Gêné',         trait: 'magie',     malus: -2, actif: false },
+      { id: 'blesse',      nom: 'Blessé',       trait: 'tous',      malus: -1, actif: false },
+      { id: 'ensorcele',   nom: 'Ensorcelé',    trait: 'choix',     malus: -1, actif: false },
+      { id: 'inconscient', nom: 'Inconscient',  trait: 'tous',      malus: -99, actif: false }
+    ],
+
+    // Cicatrices (séquelles après retour d'inconscience)
+    cicatrices: [],
+
+    // Compteurs de progressions limitées
+    progressions: {
+      traitsAmeliores:     0, // max 2 fois (jamais plus de +3)
+      deuxiemeMatiere:     false
+    }
+  };
+}
+
+// Retourne la valeur effective d'un trait, malus d'états inclus.
+function traitEffectif(personnage, nomTrait) {
+  const etat = personnage.etats;
+
+  if (etat.find(e => e.id === 'inconscient' && e.actif)) return -99;
+
+  const base = personnage.traits[nomTrait] ?? 0;
+
+  // Malus spécifique au trait
+  const etatDuTrait = etat.find(e => e.trait === nomTrait && e.actif);
+  const malusTrait  = etatDuTrait ? etatDuTrait.malus : 0;
+
+  // Malus "Blessé" (-1 à tous les traits)
+  const malusBlesse = etat.find(e => e.id === 'blesse' && e.actif) ? -1 : 0;
+
+  return base + malusTrait + malusBlesse;
+}
+
+// Retourne le trait le plus élevé (pour le jet de survie quand tous les états sont cochés).
+function traitLePlusEleve(personnage) {
+  const traits = personnage.traits;
+  return Math.max(traits.bravoure, traits.ruse, traits.intellect, traits.loyaute, traits.magie);
+}
+
+// Vérifie si les 8 états sont actifs.
+function tousEtatsActifs(personnage) {
+  return personnage.etats.every(e => e.actif);
+}
+
+// Applique l'expérience d'origine au personnage.
+function appliquerOrigine(personnage) {
+  const xpParOrigine = {
+    'ne-moldu':  3,
+    'demi-sang': 2,
+    'sang-pur':  1
+  };
+  personnage.experience = xpParOrigine[personnage.origine] ?? 0;
+}
+
+// Applique le bonus de maison (+1 au trait correspondant).
+function appliquerMaison(personnage) {
+  const bonusMaison = {
+    'Gryffondor':  'bravoure',
+    'Poufsouffle': 'loyaute',
+    'Serdaigle':   'intellect',
+    'Serpentard':  'ruse'
+  };
+  const trait = bonusMaison[personnage.maison];
+  if (trait) personnage.traits[trait] = Math.min(3, personnage.traits[trait] + 1);
+}
+
+// Noms lisibles des traits.
+const NOMS_TRAITS = {
+  bravoure:  'Bravoure',
+  ruse:      'Ruse',
+  intellect: 'Intellect',
+  loyaute:   'Loyauté',
+  magie:     'Magie'
+};
+
+  return { creerPersonnageVide, traitEffectif, traitLePlusEleve, tousEtatsActifs, appliquerOrigine, appliquerMaison, NOMS_TRAITS };
+})();
+
+// ===== sauvegarde.js =====
+const { sauvegarder, charger, effacer, aUneSauvegarde } = (function() {
+// Sauvegarde et chargement via localStorage.
+
+
+
+const CLE = 'poudlard_rpg_v1';
+
+function sauvegarder(etat) {
+  try {
+    localStorage.setItem(CLE, JSON.stringify(etat));
+    statuer('Partie sauvegardée.');
+    return true;
+  } catch {
+    statuer('Erreur lors de la sauvegarde.');
+    return false;
+  }
+}
+
+function charger() {
+  try {
+    const data = localStorage.getItem(CLE);
+    return data ? JSON.parse(data) : null;
+  } catch {
+    return null;
+  }
+}
+
+function effacer() {
+  localStorage.removeItem(CLE);
+}
+
+function aUneSauvegarde() {
+  return localStorage.getItem(CLE) !== null;
+}
+
+  return { sauvegarder, charger, effacer, aUneSauvegarde };
+})();
+
+// ===== actions.js =====
+const { afficherActions } = (function() {
+// Gestion de la zone d'actions clavier.
+// Chaque action est un <button> dans une <ul> accessible.
+
+// Format d'une action :
+// { label: string, action: () => void, raccourci?: string, desactive?: bool }
+
+function afficherActions(actions) {
+  const $liste = document.getElementById('liste-actions');
+  $liste.innerHTML = '';
+
+  if (!actions || actions.length === 0) {
+    const li = document.createElement('li');
+    li.textContent = 'Aucune action disponible.';
+    $liste.appendChild(li);
+    return;
+  }
+
+  actions.forEach(({ label, action, raccourci, desactive }) => {
+    const li  = document.createElement('li');
+    const btn = document.createElement('button');
+
+    if (raccourci) {
+      // Label accessible complet sans le span visuel
+      btn.setAttribute('aria-label', `${label}, raccourci ${raccourci}`);
+
+      const spanLabel    = document.createElement('span');
+      spanLabel.textContent = label;
+      spanLabel.setAttribute('aria-hidden', 'true');
+
+      const spanRaccourci = document.createElement('span');
+      spanRaccourci.className   = 'raccourci';
+      spanRaccourci.textContent = raccourci;
+      spanRaccourci.setAttribute('aria-hidden', 'true');
+
+      btn.appendChild(spanLabel);
+      btn.appendChild(spanRaccourci);
+    } else {
+      btn.textContent = label;
+    }
+
+    if (desactive) {
+      btn.disabled = true;
+    } else {
+      btn.addEventListener('click', action);
+    }
+
+    li.appendChild(btn);
+    $liste.appendChild(li);
+  });
+
+  // Focus automatique sur le premier bouton actif
+  const premier = $liste.querySelector('button:not([disabled])');
+  if (premier) premier.focus();
+}
+
+  return { afficherActions };
+})();
+
+// ===== des.js =====
+const { lancerDes, d6, deuxD6Independants, SUCCES_COMPLET, SUCCES_PARTIEL, ECHEC } = (function() {
+// Moteur de dés — jets 2d6 selon les règles PbtA.
+// Toujours annoncer le résultat via alerter() pour les non-voyants.
+
+
+
+// Résultats possibles
+const SUCCES_COMPLET = 'succes';
+const SUCCES_PARTIEL = 'partiel';
+const ECHEC          = 'echec';
+
+// Lance 2d6 + valeur de trait. Annonce le résultat et le retourne.
+function lancerDes(valeurTrait, nomTrait) {
+  const d1 = _d6();
+  const d2 = _d6();
+  const sousTotal = d1 + d2;
+  const total     = sousTotal + valeurTrait;
+
+  const signeTrait = _signeParle(valeurTrait);
+
+  let texteOutcome;
+  let niveau;
+
+  if (total >= 10) {
+    texteOutcome = 'Succès complet.';
+    niveau = SUCCES_COMPLET;
+  } else if (total >= 7) {
+    texteOutcome = 'Succès partiel.';
+    niveau = SUCCES_PARTIEL;
+  } else {
+    texteOutcome = 'Échec. Marquez un point d\'Expérience.';
+    niveau = ECHEC;
+  }
+
+  const annonce = [
+    `Jet de ${nomTrait}.`,
+    `Dé 1 : ${d1}. Dé 2 : ${d2}. Sous-total : ${sousTotal}.`,
+    `${nomTrait} à ${signeTrait}. Total final : ${total}.`,
+    texteOutcome
+  ].join(' ');
+
+  alerter(annonce);
+
+  return { d1, d2, sousTotal, total, niveau, texteOutcome };
+}
+
+// Lance 1d6 simple (pour tables de création).
+function d6() {
+  return _d6();
+}
+
+// Lance 2d6 indépendants (pour tables à deux entrées : ex. Patronus).
+function deuxD6Independants() {
+  return [_d6(), _d6()];
+}
+
+// ---- Interne ----
+
+function _d6() {
+  return Math.ceil(Math.random() * 6);
+}
+
+function _signeParle(valeur) {
+  if (valeur === 0)  return 'zéro';
+  if (valeur > 0)    return `plus ${valeur}`;
+  return `moins ${Math.abs(valeur)}`;
+}
+
+  return { lancerDes, d6, deuxD6Independants, SUCCES_COMPLET, SUCCES_PARTIEL, ECHEC };
+})();
+
+// ===== fiche.js =====
+const { lireFiche, mettreAJourFiche } = (function() {
+// Lecture et affichage de la fiche de personnage.
+// Appelé par les touches F1-F5.
+
+
+
+
+// Lit une section de la fiche à voix haute via alerter().
+function lireFiche(section, personnage) {
+  if (!personnage || !personnage.prenom) {
+    alerter('Aucun personnage créé pour l\'instant.');
+    return;
+  }
+
+  let texte = '';
+
+  switch (section) {
+    case 'traits': {
+      const lignes = Object.entries(NOMS_TRAITS).map(([cle, nom]) => {
+        const effectif = traitEffectif(personnage, cle);
+        const base     = personnage.traits[cle];
+        const diff     = effectif - base;
+        let str = `${nom} : ${_signeParle(base)}`;
+        if (diff !== 0) str += ` (effectif : ${_signeParle(effectif)} à cause des états)`;
+        return str;
+      });
+      texte = 'Vos traits. ' + lignes.join('. ') + '.';
+      _focusSection('section-traits');
+      break;
+    }
+
+    case 'etats': {
+      const actifs = personnage.etats.filter(e => e.actif);
+      if (actifs.length === 0) {
+        texte = 'Aucun état actif. Vous êtes en pleine forme.';
+      } else {
+        const noms = actifs.map(e => {
+          const malus = e.malus === -99 ? 'hors jeu' : `malus ${_signeParle(e.malus)}`;
+          return `${e.nom}, ${malus} en ${e.trait === 'tous' ? 'tous les traits' : NOMS_TRAITS[e.trait] ?? e.trait}`;
+        });
+        texte = `${actifs.length} état${actifs.length > 1 ? 's' : ''} actif${actifs.length > 1 ? 's' : ''} : ` + noms.join('. ') + '.';
+      }
+      _focusSection('section-etats');
+      break;
+    }
+
+    case 'sorts': {
+      if (!personnage.sorts || personnage.sorts.length === 0) {
+        texte = 'Vous ne connaissez aucun sort pour l\'instant.';
+      } else {
+        const liste = personnage.sorts.map(s => `${s.nom} : ${s.description}`).join('. ');
+        texte = `Sorts connus, ${personnage.sorts.length} au total. ${liste}.`;
+      }
+      _focusSection('section-sorts');
+      break;
+    }
+
+    case 'amis': {
+      const amis   = personnage.amis.length > 0
+        ? `Amis : ${personnage.amis.join(', ')}.`
+        : 'Aucun ami.';
+      const rivaux = personnage.rivaux.length > 0
+        ? `Rivaux : ${personnage.rivaux.join(', ')}.`
+        : 'Aucun rival.';
+      texte = amis + ' ' + rivaux + ' Rappel : un ami ou un rival vous donne plus un au jet pour l\'aider ou l\'entraver.';
+      _focusSection('section-amis');
+      break;
+    }
+
+    case 'chance': {
+      const xpManquant = 4 - personnage.experience;
+      texte = [
+        `Chance : ${personnage.chance} point${personnage.chance !== 1 ? 's' : ''} sur 3.`,
+        `Expérience : ${personnage.experience} point${personnage.experience !== 1 ? 's' : ''} sur 4.`,
+        xpManquant > 0
+          ? `Il vous faut encore ${xpManquant} point${xpManquant > 1 ? 's' : ''} pour une Progression.`
+          : 'Vous pouvez prendre une Progression.',
+        personnage.cicatrices.length > 0
+          ? `Cicatrices : ${personnage.cicatrices.join(', ')}.`
+          : ''
+      ].filter(Boolean).join(' ');
+      _focusSection('section-chance');
+      break;
+    }
+  }
+
+  if (texte) alerter(texte);
+}
+
+// Met à jour le DOM de la fiche (appelé après chaque changement d'état).
+function mettreAJourFiche(personnage) {
+  if (!personnage) return;
+
+  // Traits
+  const $traits = document.getElementById('liste-traits');
+  $traits.innerHTML = '';
+  Object.entries(NOMS_TRAITS).forEach(([cle, nom]) => {
+    const val = personnage.traits[cle];
+    _ajouterDL($traits, nom, val >= 0 ? `+${val}` : `${val}`);
+  });
+
+  // États
+  const $etats = document.getElementById('liste-etats');
+  $etats.innerHTML = '';
+  const actifs = personnage.etats.filter(e => e.actif);
+  if (actifs.length === 0) {
+    _ajouterLI($etats, 'Aucun état actif.');
+  } else {
+    actifs.forEach(e => _ajouterLI($etats, `${e.nom} (${_signeParle(e.malus)})`));
+  }
+
+  // Sorts
+  const $sorts = document.getElementById('liste-sorts');
+  $sorts.innerHTML = '';
+  if (!personnage.sorts?.length) {
+    _ajouterLI($sorts, 'Aucun sort connu.');
+  } else {
+    personnage.sorts.forEach(s => _ajouterLI($sorts, `${s.nom} — ${s.description}`));
+  }
+
+  // Amis & Rivaux
+  const $amis = document.getElementById('liste-amis');
+  $amis.innerHTML = '';
+  personnage.amis.forEach(n   => _ajouterLI($amis, `Ami : ${n}`));
+  personnage.rivaux.forEach(n => _ajouterLI($amis, `Rival : ${n}`));
+  if (!personnage.amis.length && !personnage.rivaux.length) _ajouterLI($amis, 'Aucune relation.');
+
+  // Chance & Expérience
+  const $chance = document.getElementById('liste-chance');
+  $chance.innerHTML = '';
+  _ajouterDL($chance, 'Chance',      `${personnage.chance} / 3`);
+  _ajouterDL($chance, 'Expérience',  `${personnage.experience} / 4`);
+  _ajouterDL($chance, 'Maison',      personnage.maison      || '—');
+  _ajouterDL($chance, 'Origine',     _labelOrigine(personnage.origine));
+  _ajouterDL($chance, 'Année',       personnage.annee ? `${personnage.annee}e année` : '—');
+  _ajouterDL($chance, 'Patronus',    personnage.patronus    || 'Non découvert');
+  if (personnage.cicatrices?.length) {
+    _ajouterDL($chance, 'Cicatrices', personnage.cicatrices.join(', '));
+  }
+
+  // Rendre la fiche visible
+  document.getElementById('fiche-personnage').hidden = false;
+}
+
+// ---- Helpers DOM ----
+
+function _ajouterDL($parent, terme, valeur) {
+  const dt = document.createElement('dt');
+  dt.textContent = terme;
+  const dd = document.createElement('dd');
+  dd.textContent = valeur;
+  $parent.appendChild(dt);
+  $parent.appendChild(dd);
+}
+
+function _ajouterLI($parent, texte) {
+  const li = document.createElement('li');
+  li.textContent = texte;
+  $parent.appendChild(li);
+}
+
+function _focusSection(id) {
+  const el = document.getElementById(id);
+  if (el) el.focus();
+}
+
+function _signeParle(val) {
+  if (val === -99) return 'hors jeu';
+  if (val >= 0)    return `plus ${val}`;
+  return `moins ${Math.abs(val)}`;
+}
+
+function _labelOrigine(origine) {
+  const labels = { 'ne-moldu': 'Né-Moldu', 'demi-sang': 'Demi-sang', 'sang-pur': 'Sang-pur' };
+  return labels[origine] || '—';
+}
+
+  return { lireFiche, mettreAJourFiche };
+})();
+
+// ===== clavier.js =====
+const { initClavier } = (function() {
+// Raccourcis clavier globaux.
+// Enregistrer une seule fois au démarrage.
+
+
+
+// cbLireFiche(section) : 'traits' | 'etats' | 'sorts' | 'amis' | 'chance'
+// cbSauvegarder()
+// cbRelancerDes()
+function initClavier({ lireFiche, sauvegarder, relancerDes }) {
+  document.addEventListener('keydown', (e) => {
+    // Ne pas capturer les touches dans un champ de texte
+    const tag = document.activeElement?.tagName;
+    if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT') return;
+
+    switch (e.key) {
+      case ' ':
+        // Espace sur un bouton = clic navigateur — ne capturer que hors bouton
+        if (document.activeElement?.tagName === 'BUTTON') return;
+        e.preventDefault();
+        relire();
+        break;
+
+      case 'F1':
+        e.preventDefault();
+        lireFiche('traits');
+        break;
+
+      case 'F2':
+        e.preventDefault();
+        lireFiche('etats');
+        break;
+
+      case 'F3':
+        e.preventDefault();
+        lireFiche('sorts');
+        break;
+
+      case 'F4':
+        e.preventDefault();
+        lireFiche('amis');
+        break;
+
+      case 'F5':
+        e.preventDefault();
+        lireFiche('chance');
+        break;
+
+      case 'r':
+      case 'R':
+        if (relancerDes) relancerDes();
+        break;
+
+      case 's':
+      case 'S':
+        if (sauvegarder) sauvegarder();
+        break;
+    }
+  });
+}
+
+  return { initClavier };
+})();
+
+// ===== manoeuvres.js =====
+const { resoudreManoeuvre, MANOEUVRES } = (function() {
+// Les 8 manœuvres de base — définition et résolution complète.
+
+
+
+
+
+
+// ================================================================
+// Catalogue des manœuvres
+// ================================================================
+
+const MANOEUVRES = [
+  {
+    id: 'faire-face',
+    nom: 'Faire Face au Danger',
+    trait: 'bravoure',
+    description: 'Affronter un danger physique ou autre. Tenir bon face à une menace.',
+    options10: [
+      'Vous tenez bon et personne n\'est blessé.',
+      'Vous repoussez la menace sans vous faire toucher.'
+    ],
+    options79: [
+      'Vous blessez la menace, mais elle vous touche aussi.',
+      'Vous ne pouvez pas agir, mais la menace recule.',
+      'Vous évitez les Conséquences Graves, mais quelqu\'un d\'autre en subit.',
+      'Vous évitez les Conséquences Graves, mais vous laissez une trace ou des preuves.'
+    ],
+    mode10: 'choisir-un',
+    mode79: 'choisir-un'
+  },
+  {
+    id: 'acquerir-connaissance',
+    nom: 'Acquérir des Connaissances',
+    trait: 'intellect',
+    description: 'Apprendre quelque chose sur une personne, un objet, une situation ou un lieu.',
+    questions10: [
+      'Qu\'est-ce qui ne va pas ici ?',
+      'Où est ce que je cherche ?',
+      'Quelle est l\'histoire de cet objet ou lieu ?',
+      'Comment puis-je utiliser ceci à mon avantage ?',
+      'Cette personne dit-elle la vérité ?',
+      'Que veut vraiment cette personne ?',
+      'Que puis-je me rappeler à ce sujet ?'
+    ],
+    options10: null,
+    options79: null,
+    mode10: 'question',
+    mode79: 'question-partielle'
+  },
+  {
+    id: 'cacher-faufiler',
+    nom: 'Se Cacher et se Faufiler',
+    trait: 'ruse',
+    description: 'Se déplacer sans être vu, dissimuler quelque chose ou quelqu\'un.',
+    options10: null,
+    options79: [
+      'Quelqu\'un vous cherche activement.',
+      'Quelqu\'un sait que vous êtes là, mais pas où exactement.',
+      'Vous laissez une trace ou une preuve de votre passage.'
+    ],
+    mode10: 'succes-total',
+    mode79: 'choisir-un'
+  },
+  {
+    id: 'obtenir',
+    nom: 'Obtenir ce que l\'on Cherche',
+    trait: null,
+    traitHonnete: 'bravoure',
+    traitRuse: 'ruse',
+    description: 'Obtenir un objet ou convaincre quelqu\'un. Par l\'honnêteté : Bravoure. Par la tromperie : Ruse.',
+    options10: null,
+    options79: [
+      'La personne devient méfiante envers vous.',
+      'Vous devez donner quelque chose en retour.',
+      'La personne change d\'attitude à votre égard.'
+    ],
+    mode10: 'succes-total',
+    mode79: 'choisir-un'
+  },
+  {
+    id: 'aider-entraver',
+    nom: 'Aider ou Entraver quelqu\'un',
+    trait: 'loyaute',
+    description: 'Aider ou gêner un autre personnage. Un Ami ou un Rival donne plus 1 au jet.',
+    options10: [
+      'Donnez plus 1 ou moins 1 à leur prochain jet.',
+      'Empêchez-les de prendre un État.',
+      'Offrez-leur 1 point d\'Expérience pour qu\'ils arrêtent ce qu\'ils font.'
+    ],
+    options79: [
+      'Vous aidez ou entravez, mais vous prenez un État.',
+      'Vous aidez ou entravez, mais vous les blessez accidentellement.',
+      'Vous aidez ou entravez, mais ils vous en veulent.',
+      'Vous aidez ou entravez, mais ils se méfient de vos intentions.'
+    ],
+    mode10: 'choisir-un',
+    mode79: 'choisir-un'
+  },
+  {
+    id: 'lancer-sort',
+    nom: 'Lancer un Sort ou Dueller',
+    trait: 'magie',
+    description: 'Utiliser la magie offensive, défensive ou utilitaire. Vous devez connaître le sort.',
+    options10: null,
+    options79: [
+      'Le sort fonctionne, mais vous prenez l\'État Ensorcelé.',
+      'Le sort fonctionne, mais quelqu\'un d\'autre est touché accidentellement.',
+      'Le sort fonctionne de façon imparfaite — effet réduit ou inattendu.',
+      'Le sort fonctionne, mais votre baguette est endommagée ou épuisée.'
+    ],
+    mode10: 'succes-total',
+    mode79: 'choisir-un',
+    necessite_sort: true
+  },
+  {
+    id: 'preparer-potion',
+    nom: 'Préparer une Potion',
+    trait: 'magie',
+    description: 'Préparer une potion. Vous devez connaître la recette et avoir les ingrédients.',
+    options10: null,
+    options79: [
+      'La potion est prête mais moins puissante qu\'attendu.',
+      'La potion est prête mais elle a un effet secondaire inattendu.',
+      'La potion prend plus de temps que prévu.',
+      'Vous gaspillez des ingrédients rares dans le processus.'
+    ],
+    mode10: 'succes-total',
+    mode79: 'choisir-un',
+    necessite_sort: true
+  },
+  {
+    id: 'objet-magique',
+    nom: 'Utiliser un Objet Magique',
+    trait: 'magie',
+    description: 'Activer ou manier un objet à propriétés magiques.',
+    options10: null,
+    options79: [
+      'L\'objet fonctionne, mais il perd une charge ou se détériore.',
+      'L\'objet fonctionne, mais produit un effet secondaire étrange.',
+      'L\'objet fonctionne, mais attire l\'attention indésirable.',
+      'L\'objet fonctionne partiellement — vous devez réessayer.'
+    ],
+    mode10: 'succes-total',
+    mode79: 'choisir-un'
+  }
+];
+
+// ================================================================
+// Résolution d'une manœuvre
+// ================================================================
+
+// onFin({ niveau, personnage }) est appelé une fois les choix faits.
+function resoudreManoeuvre(manoeuvre, personnage, onFin) {
+  // Cas spécial : Obtenir — choisir d'abord honnête ou ruse
+  if (manoeuvre.id === 'obtenir') {
+    _choisirApproche(manoeuvre, personnage, onFin);
+    return;
+  }
+
+  const nomTrait  = manoeuvre.trait;
+  const valTrait  = traitEffectif(personnage, nomTrait);
+  const labelTrait = NOMS_TRAITS[nomTrait];
+
+  // Vérifier l'inconscience
+  if (valTrait === -99) {
+    alerter('Vous êtes Inconscient. Vous ne pouvez pas agir.');
+    onFin({ niveau: ECHEC, personnage });
+    return;
+  }
+
+  narrer(`${manoeuvre.nom}. Jet de ${labelTrait}. Valeur : ${_signeParle(valTrait)}.`);
+
+  // Option : dépenser la Chance avant de lancer
+  const actionsDAvant = [
+    {
+      label: `Lancer ${labelTrait} (${_signeParle(valTrait)})`,
+      action: () => _effectuerJet(manoeuvre, personnage, nomTrait, valTrait, onFin)
+    }
+  ];
+
+  if (personnage.chance > 0) {
+    actionsDAvant.push({
+      label: `Dépenser 1 point de Chance pour un succès complet automatique (Chance restante : ${personnage.chance})`,
+      action: () => {
+        personnage.chance--;
+        alerter(`Chance dépensée. Reste : ${personnage.chance} sur 3. Succès complet automatique.`);
+        _presenterResultat(manoeuvre, { niveau: SUCCES_COMPLET, total: 10 }, personnage, onFin);
+      }
+    });
+  }
+
+  afficherActions(actionsDAvant);
+}
+
+// ================================================================
+// Interne
+// ================================================================
+
+function _choisirApproche(manoeuvre, personnage, onFin) {
+  narrer('Obtenir ce que l\'on Cherche. Par quel moyen ?');
+  afficherActions([
+    {
+      label: `Par l'honnêteté ou le charisme (Bravoure : ${_signeParle(traitEffectif(personnage, 'bravoure'))})`,
+      action: () => {
+        const val = traitEffectif(personnage, 'bravoure');
+        _effectuerJet({ ...manoeuvre, trait: 'bravoure' }, personnage, 'bravoure', val, onFin);
+      }
+    },
+    {
+      label: `Par la tromperie ou le vol (Ruse : ${_signeParle(traitEffectif(personnage, 'ruse'))})`,
+      action: () => {
+        const val = traitEffectif(personnage, 'ruse');
+        _effectuerJet({ ...manoeuvre, trait: 'ruse' }, personnage, 'ruse', val, onFin);
+      }
+    }
+  ]);
+}
+
+function _effectuerJet(manoeuvre, personnage, nomTrait, valTrait, onFin) {
+  const resultat = lancerDes(valTrait, NOMS_TRAITS[nomTrait]);
+  _presenterResultat(manoeuvre, resultat, personnage, onFin);
+}
+
+function _presenterResultat(manoeuvre, resultat, personnage, onFin) {
+  const { niveau, total } = resultat;
+
+  if (niveau === SUCCES_COMPLET) {
+    _succes10(manoeuvre, personnage, onFin);
+  } else if (niveau === SUCCES_PARTIEL) {
+    _succes79(manoeuvre, personnage, onFin);
+  } else {
+    _echec6(manoeuvre, personnage, onFin);
+  }
+}
+
+function _succes10(manoeuvre, personnage, onFin) {
+  switch (manoeuvre.mode10) {
+    case 'succes-total':
+      narrer('Succès complet. Vous obtenez exactement ce que vous vouliez, sans compromis.');
+      _proposeRelancerOuContinuer(onFin, SUCCES_COMPLET, personnage);
+      break;
+
+    case 'choisir-un':
+      narrer('Succès complet. Choisissez un avantage :');
+      afficherActions(manoeuvre.options10.map(opt => ({
+        label: opt,
+        action: () => {
+          alerter(`Vous choisissez : ${opt}`);
+          _proposeRelancerOuContinuer(onFin, SUCCES_COMPLET, personnage);
+        }
+      })));
+      break;
+
+    case 'question':
+    case 'question-partielle':
+      narrer(
+        'Succès complet. Vous obtenez l\'information. ' +
+        'Choisissez une question à poser. En mode solo, vous y répondez vous-même ' +
+        'en vous basant sur le contexte de la scène.'
+      );
+      afficherActions(manoeuvre.questions10.map(q => ({
+        label: q,
+        action: () => {
+          alerter(`Question posée : "${q}" La réponse doit être vraie et utile.`);
+          _proposeRelancerOuContinuer(onFin, SUCCES_COMPLET, personnage);
+        }
+      })));
+      break;
+  }
+}
+
+function _succes79(manoeuvre, personnage, onFin) {
+  switch (manoeuvre.mode79) {
+    case 'choisir-un':
+      narrer('Succès partiel. Vous y arrivez, mais avec un coût. Choisissez ce qui se passe :');
+      afficherActions([
+        ...manoeuvre.options79.map(opt => ({
+          label: opt,
+          action: () => {
+            alerter(`Coût choisi : ${opt}`);
+            _proposeRelancerOuContinuer(onFin, SUCCES_PARTIEL, personnage);
+          }
+        })),
+        ...(personnage.chance > 0 ? [{
+          label: `Dépenser 1 point de Chance pour éviter tout coût (Chance : ${personnage.chance})`,
+          action: () => {
+            personnage.chance--;
+            alerter(`Chance dépensée. Reste : ${personnage.chance}. Succès complet, pas de coût.`);
+            _proposeRelancerOuContinuer(onFin, SUCCES_COMPLET, personnage);
+          }
+        }] : [])
+      ]);
+      break;
+
+    case 'question-partielle':
+      narrer(
+        'Succès partiel. Vous obtenez une information partielle. ' +
+        'Choisissez une question. En mode solo, la réponse est vraie mais incomplète.'
+      );
+      afficherActions(manoeuvre.questions10.map(q => ({
+        label: q,
+        action: () => {
+          alerter(`Question posée : "${q}" La réponse est vraie mais le Narrateur n'a pas à tout révéler.`);
+          _proposeRelancerOuContinuer(onFin, SUCCES_PARTIEL, personnage);
+        }
+      })));
+      break;
+  }
+}
+
+function _echec6(manoeuvre, personnage, onFin) {
+  personnage.experience++;
+  const versProgression = 4 - personnage.experience;
+
+  let msg = `Échec. Vous marquez 1 point d'Expérience. Total : ${personnage.experience} sur 4. `;
+  if (personnage.experience >= 4) {
+    msg += 'Vous pouvez prendre une Progression !';
+  } else {
+    msg += `Encore ${versProgression} point${versProgression > 1 ? 's' : ''} pour une Progression.`;
+  }
+  msg += ' Le Narrateur peut annoncer une Conséquence Grave.';
+
+  alerter(msg);
+
+  const actions = [];
+
+  if (personnage.chance > 0) {
+    actions.push({
+      label: `Dépenser 1 point de Chance pour transformer l'échec en succès complet (Chance : ${personnage.chance})`,
+      action: () => {
+        personnage.experience = Math.max(0, personnage.experience - 1); // annuler le XP gagné
+        personnage.chance--;
+        alerter(`Chance dépensée. Reste : ${personnage.chance}. L'échec devient un succès complet. Expérience annulée.`);
+        _presenterResultat(manoeuvre, { niveau: SUCCES_COMPLET, total: 10 }, personnage, onFin);
+      }
+    });
+  }
+
+  actions.push({
+    label: 'Continuer — subir la Conséquence Grave et avancer',
+    action: () => onFin({ niveau: ECHEC, personnage })
+  });
+
+  afficherActions(actions);
+}
+
+function _proposeRelancerOuContinuer(onFin, niveau, personnage) {
+  onFin({ niveau, personnage });
+}
+
+// ---- Helpers ----
+
+function _signeParle(val) {
+  if (val === -99) return 'Inconscient';
+  if (val === 0)   return 'zéro';
+  if (val > 0)     return `plus ${val}`;
+  return `moins ${Math.abs(val)}`;
+}
+
+  return { resoudreManoeuvre, MANOEUVRES };
+})();
+
+// ===== creation.js =====
+const { lancerCreation } = (function() {
+// Les 12 étapes de création de personnage.
+// Chaque étape annonce ce qu'elle fait et propose des choix accessibles.
+
+
+
+
+
+
+
+let _p       = null; // personnage en cours de création
+let _tables  = null;
+let _sorts   = null;
+let _onFin   = null;
+
+// ---- Lancement ----
+
+async function lancerCreation(personnage, onFin) {
+  _p     = personnage;
+  _onFin = onFin;
+
+  const [tRes, sRes] = await Promise.all([
+    fetch('contenu/tables.json'),
+    fetch('contenu/sorts.json')
+  ]);
+  _tables = await tRes.json();
+  _sorts  = await sRes.json();
+
+  _etape1_Annee();
+}
+
+// ================================================================
+// Étape 1 — Quelle est votre année ?
+// ================================================================
+function _etape1_Annee() {
+  narrerFrais(
+    'Étape 1 sur 12 : Quelle est votre année à Poudlard ? ' +
+    'Choisissez entre la 1ère et la 7ème Année, ou Diplômé pour jouer un personnage adulte.'
+  );
+
+  const annees = [1, 2, 3, 4, 5, 6, 7];
+  const actions = annees.map(an => ({
+    label: `${an}${an === 1 ? 'ère' : 'ème'} Année`,
+    action: () => {
+      _p.annee = an;
+      alerter(`Vous êtes en ${an}${an === 1 ? 'ère' : 'ème'} Année.`);
+      _etape2_Apparence_Teint();
+    }
+  }));
+
+  actions.push({
+    label: 'Diplômé',
+    action: () => {
+      _p.annee = 8;
+      alerter('Vous êtes un sorcier diplômé. Vous connaissez tous les sorts.');
+      _etape2_Apparence_Teint();
+    }
+  });
+
+  afficherActions(actions);
+}
+
+// ================================================================
+// Étape 2 — Apparence : Teint, Cheveux, Silhouette
+// ================================================================
+function _etape2_Apparence_Teint() {
+  narrerFrais(
+    'Étape 2 sur 12 : Votre apparence. D\'abord votre teint. ' +
+    'Vous pouvez lancer le dé pour un résultat aléatoire, ou choisir vous-même.'
+  );
+
+  _choisirOuLancer(
+    'Choisir un teint',
+    _tables.teints,
+    (val) => {
+      _p.teint = val;
+      narrer(`Teint : ${val}.`);
+      _etape2b_Cheveux();
+    }
+  );
+}
+
+function _etape2b_Cheveux() {
+  narrer('Vos cheveux. Lancer le dé ou choisir.');
+  _choisirOuLancer(
+    'Choisir une couleur de cheveux',
+    _tables.cheveux,
+    (val) => {
+      _p.cheveux = val;
+      narrer(`Cheveux : ${val}.`);
+      _etape2c_Silhouette();
+    }
+  );
+}
+
+function _etape2c_Silhouette() {
+  narrer('Votre silhouette. Lancer le dé ou choisir.');
+  _choisirOuLancer(
+    'Choisir une silhouette',
+    _tables.silhouettes,
+    (val) => {
+      _p.silhouette = val;
+      narrer(`Silhouette : ${val}.`);
+      _etape3_Baguette();
+    }
+  );
+}
+
+// ================================================================
+// Étape 3 — Baguette et Ambition
+// ================================================================
+function _etape3_Baguette() {
+  narrerFrais(
+    'Étape 3 sur 12 : Votre baguette et votre ambition. ' +
+    'Votre baguette révèle votre personnalité. Commençons par le bois.'
+  );
+  _choisirOuLancer(
+    'Choisir un bois de baguette',
+    _tables.bois_baguette,
+    (val) => {
+      _p.baguette.bois = val;
+      narrer(`Bois : ${val}.`);
+      _etape3b_Coeur();
+    }
+  );
+}
+
+function _etape3b_Coeur() {
+  narrer('Le cœur de votre baguette. Lancez le dé : 1-2 pour Dragon, 3-4 pour Phénix, 5-6 pour Licorne.');
+  afficherActions([
+    {
+      label: 'Lancer le dé pour le cœur',
+      action: () => {
+        const roll = d6();
+        let coeur;
+        if (roll <= 2)      coeur = 'Dragon (corde de cœur)';
+        else if (roll <= 4) coeur = 'Phénix (plume)';
+        else                coeur = 'Licorne (crin)';
+        _p.baguette.coeur = coeur;
+        alerter(`Dé : ${roll}. Cœur de baguette : ${coeur}.`);
+        _etape3c_Aspect();
+      }
+    },
+    { label: 'Dragon (corde de cœur)',  action: () => { _p.baguette.coeur = 'Dragon (corde de cœur)';  alerter('Cœur : Dragon.'); _etape3c_Aspect(); } },
+    { label: 'Phénix (plume)',          action: () => { _p.baguette.coeur = 'Phénix (plume)';          alerter('Cœur : Phénix.'); _etape3c_Aspect(); } },
+    { label: 'Licorne (crin)',          action: () => { _p.baguette.coeur = 'Licorne (crin)';          alerter('Cœur : Licorne.'); _etape3c_Aspect(); } }
+  ]);
+}
+
+function _etape3c_Aspect() {
+  narrer('L\'aspect de votre baguette. Lancer le dé ou choisir.');
+  _choisirOuLancer(
+    'Choisir l\'aspect de la baguette',
+    _tables.aspects_baguette,
+    (val) => {
+      _p.baguette.aspect = val;
+      narrer(`Aspect : ${val}.`);
+      _etape3d_Ambition();
+    }
+  );
+}
+
+function _etape3d_Ambition() {
+  narrer(
+    'Votre ambition. C\'est ce que vous cherchez à accomplir pendant vos années à Poudlard. ' +
+    'Lancer le dé ou choisir.'
+  );
+  _choisirOuLancer(
+    'Choisir une ambition',
+    _tables.ambitions,
+    (val) => {
+      _p.ambition = val;
+      alerter(
+        `Votre baguette : bois d'${_p.baguette.bois}, cœur de ${_p.baguette.coeur}, aspect ${_p.baguette.aspect}. ` +
+        `Ambition : ${val}.`
+      );
+      _etape4_Origine();
+    }
+  );
+}
+
+// ================================================================
+// Étape 4 — Origines
+// ================================================================
+function _etape4_Origine() {
+  narrerFrais(
+    'Étape 4 sur 12 : Vos origines. Elles déterminent combien de sorts vous connaissez au départ ' +
+    'et combien de points d\'Expérience vous avez. ' +
+    'Lancez le dé : 1-2 pour Né-Moldu, 3-4 pour Demi-sang, 5-6 pour Sang-pur. Ou choisissez.'
+  );
+
+  afficherActions([
+    {
+      label: 'Lancer le dé',
+      action: () => {
+        const roll = d6();
+        let id;
+        if (roll <= 2)      id = 'ne-moldu';
+        else if (roll <= 4) id = 'demi-sang';
+        else                id = 'sang-pur';
+        _appliquerOrigineEtContinuer(id, roll);
+      }
+    },
+    ..._tables.origines.map(o => ({
+      label: `${o.label} — ${o.sorts} sort${o.sorts > 1 ? 's' : ''}, ${o.xp} XP`,
+      action: () => _appliquerOrigineEtContinuer(o.id, null)
+    }))
+  ]);
+}
+
+function _appliquerOrigineEtContinuer(id, roll) {
+  _p.origine = id;
+  appliquerOrigine(_p);
+  const o = _tables.origines.find(x => x.id === id);
+  const prefixe = roll !== null ? `Dé : ${roll}. ` : '';
+  alerter(`${prefixe}Origines : ${o.label}. ${o.description}`);
+  _etape5_Matiere();
+}
+
+// ================================================================
+// Étape 5 — Matière préférée
+// ================================================================
+function _etape5_Matiere() {
+  const estJeune = _p.annee <= 2;
+  narrerFrais(
+    'Étape 5 sur 12 : Votre matière préférée. ' +
+    (estJeune
+      ? 'En 1ère ou 2ème Année, vous choisissez parmi les Matières Fondamentales.'
+      : 'En 3ème Année ou plus, vous pouvez choisir une matière fondamentale ou optionnelle. ' +
+        'Lancez deux dés : le premier indique Fondamentale (1-3) ou Option (4-6), le second la matière.') +
+    ' Ou choisissez directement.'
+  );
+
+  if (!estJeune) {
+    afficherActions([
+      {
+        label: 'Lancer deux dés',
+        action: () => {
+          const [d1, d2] = deuxD6Independants();
+          const table    = d1 <= 3 ? _tables.matieres_fondamentales : _tables.matieres_options;
+          const matiere  = table[String(d2)];
+          _p.matieresPreferees = [matiere];
+          alerter(`Dé 1 : ${d1} (${d1 <= 3 ? 'Fondamentale' : 'Option'}). Dé 2 : ${d2}. Matière préférée : ${matiere}.`);
+          _etape6_Sorts();
+        }
+      },
+      ..._choixMatieres()
+    ]);
+  } else {
+    afficherActions([
+      {
+        label: 'Lancer le dé',
+        action: () => {
+          const roll    = d6();
+          const matiere = _tables.matieres_fondamentales[String(roll)];
+          _p.matieresPreferees = [matiere];
+          alerter(`Dé : ${roll}. Matière préférée : ${matiere}.`);
+          _etape6_Sorts();
+        }
+      },
+      ..._choixMatieres(true)
+    ]);
+  }
+}
+
+function _choixMatieres(fondamentalesUniquement = false) {
+  const listes = fondamentalesUniquement
+    ? [_tables.matieres_fondamentales]
+    : [_tables.matieres_fondamentales, _tables.matieres_options];
+
+  return listes.flatMap(table =>
+    Object.values(table).map(m => ({
+      label: m,
+      action: () => {
+        _p.matieresPreferees = [m];
+        alerter(`Matière préférée : ${m}.`);
+        _etape6_Sorts();
+      }
+    }))
+  );
+}
+
+// ================================================================
+// Étape 6 — Sorts de départ
+// ================================================================
+function _etape6_Sorts() {
+  const o        = _tables.origines.find(x => x.id === _p.origine);
+  const nbSorts  = o?.sorts ?? 1;
+  const annee    = Math.min(_p.annee, 7);
+  const disponibles = _sorts.annees[String(annee)] ?? _sorts.annees['1'];
+
+  // Les sorts des années précédentes sont connus automatiquement
+  const acquis = [];
+  for (let a = 1; a < annee; a++) {
+    const sortsAnnee = _sorts.annees[String(a)] ?? [];
+    acquis.push(...sortsAnnee);
+  }
+  _p.sorts = [...acquis];
+
+  narrerFrais(
+    `Étape 6 sur 12 : Vos sorts de départ. ` +
+    (acquis.length > 0
+      ? `En tant que sorcier de ${annee}ème Année, vous connaissez automatiquement tous les sorts des années précédentes, soit ${acquis.length} sort${acquis.length > 1 ? 's' : ''}. `
+      : '') +
+    `En tant que ${o?.label ?? 'sorcier'}, vous choisissez ${nbSorts} sort${nbSorts > 1 ? 's' : ''} supplémentaire${nbSorts > 1 ? 's' : ''} dans votre Année actuelle.`
+  );
+
+  _choisirSorts(disponibles, nbSorts, 0);
+}
+
+function _choisirSorts(disponibles, total, déjaChoisis) {
+  const restants  = total - déjaChoisis;
+  const sortsNoms = _p.sorts.map(s => s.nom);
+  const dispo     = disponibles.filter(s => !sortsNoms.includes(s.nom));
+
+  if (restants <= 0 || dispo.length === 0) {
+    alerter(`Sorts retenus : ${_p.sorts.filter(s => !s._acquis).map(s => s.nom).join(', ')}.`);
+    _etape7_Traits();
+    return;
+  }
+
+  narrer(`Choisissez un sort (${déjaChoisis + 1} sur ${total}) :`);
+
+  afficherActions(dispo.map(s => ({
+    label: `${s.nom} — ${s.description} (${_sorts.types[s.type] ?? s.type})`,
+    action: () => {
+      _p.sorts.push(s);
+      alerter(`Sort choisi : ${s.nom}.`);
+      _choisirSorts(disponibles, total, déjaChoisis + 1);
+    }
+  })));
+}
+
+// ================================================================
+// Étape 7 — Traits
+// ================================================================
+function _etape7_Traits() {
+  narrerFrais(
+    'Étape 7 sur 12 : Vos traits. ' +
+    'Vous devez répartir ces 5 valeurs entre vos 5 traits : moins 1, zéro, plus 1, plus 1, plus 2. ' +
+    'Le trait le plus élevé définit votre personnage. ' +
+    'Vous pouvez lancer aléatoirement ou choisir vous-même.'
+  );
+
+  afficherActions([
+    {
+      label: 'Répartition aléatoire',
+      action: () => {
+        const valeurs = [-1, 0, 1, 1, 2];
+        _melangerTableau(valeurs);
+        const noms = ['bravoure', 'ruse', 'intellect', 'loyaute', 'magie'];
+        noms.forEach((n, i) => { _p.traits[n] = valeurs[i]; });
+        const annonce = Object.entries(NOMS_TRAITS)
+          .map(([c, nom]) => `${nom} : ${_signeParle(_p.traits[c])}`)
+          .join('. ');
+        alerter('Traits assignés aléatoirement. ' + annonce);
+        _etape8_Nom();
+      }
+    },
+    {
+      label: 'Choisir moi-même',
+      action: () => _assignerTraitManuellement(['bravoure', 'ruse', 'intellect', 'loyaute', 'magie'], [-1, 0, 1, 1, 2])
+    }
+  ]);
+}
+
+function _assignerTraitManuellement(traitsDispo, valeursDispo) {
+  if (traitsDispo.length === 0) {
+    const annonce = Object.entries(NOMS_TRAITS)
+      .map(([c, nom]) => `${nom} : ${_signeParle(_p.traits[c])}`)
+      .join('. ');
+    alerter('Traits finaux. ' + annonce);
+    _etape8_Nom();
+    return;
+  }
+
+  const traitActuel = traitsDispo[0];
+  const nomTrait    = NOMS_TRAITS[traitActuel];
+
+  narrer(
+    `Assignez une valeur à ${nomTrait}. ` +
+    `Valeurs restantes : ${valeursDispo.map(_signeParle).join(', ')}.`
+  );
+
+  afficherActions(valeursDispo.map(v => ({
+    label: `${nomTrait} : ${_signeParle(v)}`,
+    action: () => {
+      _p.traits[traitActuel] = v;
+      alerter(`${nomTrait} : ${_signeParle(v)}.`);
+      const nouvellesValeurs = [...valeursDispo];
+      nouvellesValeurs.splice(nouvellesValeurs.indexOf(v), 1);
+      _assignerTraitManuellement(traitsDispo.slice(1), nouvellesValeurs);
+    }
+  })));
+}
+
+// ================================================================
+// Étape 8 — Nom
+// ================================================================
+function _etape8_Nom() {
+  narrerFrais(
+    'Étape 8 sur 12 : Votre nom. Choisissez un prénom et un nom de famille. ' +
+    'Vous pouvez tirer un nom aléatoire ou écrire le vôtre.'
+  );
+
+  afficherActions([
+    {
+      label: 'Tirer un prénom et un nom aléatoires',
+      action: () => {
+        _p.prenom = _tirerAuHasard(_tables.prenoms_moldus.concat(_tables.prenoms_sorciers));
+        _p.nom    = _tirerAuHasard(_tables.noms_de_famille);
+        alerter(`Votre nom : ${_p.prenom} ${_p.nom}.`);
+        _etape9_Animal();
+      }
+    },
+    {
+      label: 'Écrire mon prénom',
+      action: () => {
+        _demanderTexte(
+          'Entrez votre prénom',
+          'ex: Hermione',
+          (prenom) => {
+            _p.prenom = prenom;
+            narrer(`Prénom : ${prenom}. Maintenant le nom de famille.`);
+            _demanderTexte(
+              'Entrez votre nom de famille',
+              'ex: Granger',
+              (nom) => {
+                _p.nom = nom;
+                alerter(`Votre nom : ${_p.prenom} ${_p.nom}.`);
+                _etape9_Animal();
+              }
+            );
+          }
+        );
+      }
+    }
+  ]);
+}
+
+// ================================================================
+// Étape 9 — Animal de compagnie (optionnel)
+// ================================================================
+function _etape9_Animal() {
+  narrerFrais(
+    'Étape 9 sur 12 : Avez-vous un animal de compagnie ? ' +
+    'C\'est facultatif. Un hibou peut porter du courrier. ' +
+    'Un rat ne peut pas. Un chat ne daigne pas.'
+  );
+
+  afficherActions([
+    {
+      label: 'Lancer le dé pour un animal',
+      action: () => {
+        const roll = d6();
+        let type, capacite;
+        if (roll <= 2)      { type = 'Hibou';  capacite = 'peut envoyer et recevoir du courrier'; }
+        else if (roll <= 4) { type = 'Rat';    capacite = 'ne peut pas envoyer ou recevoir de courrier'; }
+        else                { type = 'Chat';   capacite = 'ne daigne pas envoyer ou recevoir de courrier'; }
+        alerter(`Dé : ${roll}. Vous avez un ${type} qui ${capacite}.`);
+        _p.animal.type = type;
+        _nommerAnimal();
+      }
+    },
+    { label: 'Un hibou', action: () => { _p.animal.type = 'Hibou'; alerter('Vous avez un hibou.'); _nommerAnimal(); } },
+    { label: 'Un rat',   action: () => { _p.animal.type = 'Rat';   alerter('Vous avez un rat.');   _nommerAnimal(); } },
+    { label: 'Un chat',  action: () => { _p.animal.type = 'Chat';  alerter('Vous avez un chat.');  _nommerAnimal(); } },
+    { label: 'Pas d\'animal',
+      action: () => {
+        _p.animal = { type: '', nom: '' };
+        narrer('Pas d\'animal de compagnie.');
+        _etape10_Maison();
+      }
+    }
+  ]);
+}
+
+function _nommerAnimal() {
+  _demanderTexte(
+    `Comment s'appelle votre ${_p.animal.type} ?`,
+    'ex: Hedwige',
+    (nom) => {
+      _p.animal.nom = nom;
+      alerter(`Votre ${_p.animal.type} s'appelle ${nom}.`);
+      _etape10_Maison();
+    }
+  );
+}
+
+// ================================================================
+// Étape 10 — Maison
+// ================================================================
+function _etape10_Maison() {
+  narrerFrais(
+    'Étape 10 sur 12 : Votre maison. ' +
+    'Lancez un dé. Si vous obtenez 5 ou 6, relancez. ' +
+    'Vous pouvez aussi choisir la maison associée à votre meilleur trait, ' +
+    'ou simplement choisir vous-même.'
+  );
+
+  // Trouver le meilleur trait et sa maison
+  const bonusMaison = { bravoure: 'Gryffondor', loyaute: 'Poufsouffle', intellect: 'Serdaigle', ruse: 'Serpentard' };
+  let meilleurTrait = 'bravoure';
+  let meilleurVal   = -99;
+  for (const [t, v] of Object.entries(_p.traits)) {
+    if (t !== 'magie' && v > meilleurVal) { meilleurTrait = t; meilleurVal = v; }
+  }
+  const maisonMeilleurTrait = bonusMaison[meilleurTrait];
+
+  afficherActions([
+    {
+      label: 'Lancer le dé',
+      action: () => {
+        let roll;
+        do { roll = d6(); } while (roll > 4);
+        const maison = _tables.maisons[roll - 1];
+        _p.maison = maison.label;
+        appliquerMaison(_p);
+        alerter(`Dé : ${roll}. Maison : ${maison.label}. ${maison.description} Bonus : plus 1 en ${NOMS_TRAITS[maison.trait]}.`);
+        _etape11_Amis();
+      }
+    },
+    {
+      label: `Rejoindre ${maisonMeilleurTrait} (votre meilleur trait : ${NOMS_TRAITS[meilleurTrait]})`,
+      action: () => {
+        _p.maison = maisonMeilleurTrait;
+        appliquerMaison(_p);
+        const maison = _tables.maisons.find(m => m.label === maisonMeilleurTrait);
+        alerter(`Maison : ${maisonMeilleurTrait}. ${maison?.description ?? ''} Bonus : plus 1 en ${NOMS_TRAITS[maison?.trait]}.`);
+        _etape11_Amis();
+      }
+    },
+    ..._tables.maisons.map(m => ({
+      label: `${m.label} — ${m.description}`,
+      action: () => {
+        _p.maison = m.label;
+        appliquerMaison(_p);
+        alerter(`Maison choisie : ${m.label}. Bonus : plus 1 en ${NOMS_TRAITS[m.trait]}.`);
+        _etape11_Amis();
+      }
+    }))
+  ]);
+}
+
+// ================================================================
+// Étape 11 — Amis et Rivaux (adapté solo)
+// ================================================================
+function _etape11_Amis() {
+  narrerFrais(
+    'Étape 11 sur 12 : Vos amis et rivaux. ' +
+    'En solo, vos relations sont avec des personnages non-joueurs. ' +
+    'Deux questions de votre maison vont définir un ami et un rival. ' +
+    'Choisissez les deux questions qui vous inspirent le plus.'
+  );
+
+  const maisonId  = _p.maison.toLowerCase().replace('ô', 'o').replace('é', 'e').replace('è', 'e');
+  const questions = _tables.questions_amis_maisons[maisonId]
+    ?? _tables.questions_amis_maisons['gryffondor'];
+
+  _choisirQuestion(questions, 'Ami', () => {
+    _choisirQuestion(questions, 'Rival', () => {
+      alerter(
+        `Relations établies. Ami : ${_p.amis.join(', ')}. Rival : ${_p.rivaux.join(', ')}.`
+      );
+      _etape12_Patronus();
+    });
+  });
+}
+
+function _choisirQuestion(questions, type, onFin) {
+  const dispo = questions.filter(q => q.type === type);
+
+  narrer(
+    `Choisissez la question qui définit votre ${type.toLowerCase()}. ` +
+    `Votre ${type.toLowerCase()} sera un personnage non-joueur nommé aléatoirement.`
+  );
+
+  afficherActions(dispo.map(q => ({
+    label: q.question,
+    action: () => {
+      const prenom = _tirerAuHasard(_tables.prenoms_moldus.concat(_tables.prenoms_sorciers));
+      const nom    = _tirerAuHasard(_tables.noms_de_famille);
+      const nomComplet = `${prenom} ${nom}`;
+      if (type === 'Ami')    _p.amis.push(nomComplet);
+      if (type === 'Rival')  _p.rivaux.push(nomComplet);
+      alerter(`${type} : ${nomComplet}. Relation basée sur : ${q.question}`);
+      onFin();
+    }
+  })));
+}
+
+// ================================================================
+// Étape 12 — Patronus
+// ================================================================
+function _etape12_Patronus() {
+  narrerFrais(
+    'Étape 12 sur 12 : Votre Patronus. ' +
+    'Vous pouvez découvrir votre Patronus maintenant, mais vous ne pourrez le lancer ' +
+    'qu\'après avoir appris le sort Expecto Patronum, généralement en 5ème Année. ' +
+    'Lancez deux dés : le premier donne la catégorie, le second l\'animal.'
+  );
+
+  afficherActions([
+    {
+      label: 'Lancer deux dés pour mon Patronus',
+      action: () => {
+        const [d1, d2] = deuxD6Independants();
+        const cat      = _sorts.annees ? null : null; // on utilise _tables
+        const categorie = _tables.patronus.categories[String(d1)];
+        const animal    = categorie?.animaux[String(d2)] ?? 'inconnu';
+        _p.patronus = animal;
+        alerter(
+          `Dé 1 : ${d1}, catégorie : ${categorie?.label ?? ''}. ` +
+          `Dé 2 : ${d2}, animal : ${animal}. ` +
+          `Votre Patronus est un ${animal}.`
+        );
+        _finirCreation();
+      }
+    },
+    {
+      label: 'Choisir ma catégorie de Patronus',
+      action: () => _choisirCategoriePatronus()
+    },
+    {
+      label: 'Découvrir mon Patronus plus tard',
+      action: () => {
+        _p.patronus = '';
+        narrer('Vous découvrirez votre Patronus plus tard.');
+        _finirCreation();
+      }
+    }
+  ]);
+}
+
+function _choisirCategoriePatronus() {
+  const categories = Object.entries(_tables.patronus.categories);
+  afficherActions(categories.map(([num, cat]) => ({
+    label: cat.label,
+    action: () => {
+      narrer(`Catégorie : ${cat.label}. Choisissez un animal.`);
+      afficherActions(Object.values(cat.animaux).map(animal => ({
+        label: animal,
+        action: () => {
+          _p.patronus = animal;
+          alerter(`Votre Patronus est un ${animal}.`);
+          _finirCreation();
+        }
+      })));
+    }
+  })));
+}
+
+// ================================================================
+// Fin de création
+// ================================================================
+function _finirCreation() {
+  mettreAJourFiche(_p);
+
+  const origine = _p.origine === 'ne-moldu' ? 'Né-Moldu' : _p.origine === 'demi-sang' ? 'Demi-sang' : 'Sang-pur';
+  const animal  = _p.animal.type ? `${_p.animal.type} ${_p.animal.nom}` : 'aucun animal';
+
+  narrerFrais(
+    `Création terminée. Voici votre sorcière ou sorcier. ` +
+    `${_p.prenom} ${_p.nom}, ${_p.annee <= 7 ? `${_p.annee}ème Année` : 'Diplômé'}, ` +
+    `maison ${_p.maison}, origines ${origine}. ` +
+    `Traits : Bravoure ${_signeParle(_p.traits.bravoure)}, ` +
+    `Ruse ${_signeParle(_p.traits.ruse)}, ` +
+    `Intellect ${_signeParle(_p.traits.intellect)}, ` +
+    `Loyauté ${_signeParle(_p.traits.loyaute)}, ` +
+    `Magie ${_signeParle(_p.traits.magie)}. ` +
+    `Sorts connus : ${_p.sorts.length}. ` +
+    `Chance : 3. Expérience : ${_p.experience}. ` +
+    `Animal : ${animal}. ` +
+    (_p.patronus ? `Patronus : ${_p.patronus}.` : 'Patronus à découvrir.')
+  );
+
+  afficherActions([
+    { label: 'Commencer l\'aventure', action: () => _onFin?.(_p) },
+    { label: 'Recommencer la création', action: () => {
+      Object.assign(_p, { prenom: '', nom: '', maison: '', origine: '', sorts: [], traits: { bravoure: 0, ruse: 0, intellect: 0, loyaute: 0, magie: 0 }, chance: 3, experience: 0, amis: [], rivaux: [] });
+      _etape1_Annee();
+    }}
+  ]);
+}
+
+// ================================================================
+// Helpers internes
+// ================================================================
+
+// Table d6 → choix : affiche "lancer le dé" + toutes les options
+function _choisirOuLancer(titreChoix, table, onChoix) {
+  afficherActions([
+    {
+      label: 'Lancer le dé',
+      action: () => {
+        const roll = d6();
+        const val  = table[String(roll)];
+        alerter(`Dé : ${roll}. Résultat : ${val}.`);
+        onChoix(val);
+      }
+    },
+    ...Object.values(table).map(val => ({
+      label: val,
+      action: () => {
+        alerter(`Choix : ${val}.`);
+        onChoix(val);
+      }
+    }))
+  ]);
+}
+
+// Champ texte temporaire dans la zone d'actions
+function _demanderTexte(question, placeholder, onValide) {
+  narrer(question + ' Tapez votre réponse et appuyez sur Entrée.');
+
+  const $liste = document.getElementById('liste-actions');
+  $liste.innerHTML = '';
+
+  const li    = document.createElement('li');
+  const input = document.createElement('input');
+  input.type        = 'text';
+  input.placeholder = placeholder;
+  input.setAttribute('aria-label', question);
+
+  const btn = document.createElement('button');
+  btn.textContent = 'Confirmer';
+
+  const valider = () => {
+    const val = input.value.trim();
+    if (!val) { alerter('Veuillez entrer une valeur.'); input.focus(); return; }
+    onValide(val);
+  };
+
+  btn.addEventListener('click', valider);
+  input.addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); valider(); } });
+
+  li.appendChild(input);
+  li.appendChild(btn);
+  $liste.appendChild(li);
+  input.focus();
+}
+
+function _tirerAuHasard(tableau) {
+  return tableau[Math.floor(Math.random() * tableau.length)];
+}
+
+function _melangerTableau(tab) {
+  for (let i = tab.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [tab[i], tab[j]] = [tab[j], tab[i]];
+  }
+}
+
+function _signeParle(val) {
+  if (val === 0)  return 'zéro';
+  if (val > 0)    return `plus ${val}`;
+  return `moins ${Math.abs(val)}`;
+}
+
+  return { lancerCreation };
+})();
+
+// ===== scenario.js =====
+const { lancerScenario } = (function() {
+// Moteur de scénario — charge, affiche et orchestre les scènes JSON.
+
+
+
+
+
+
+
+
+let _personnage = null;
+let _onFin      = null;
+let _scenario   = null;
+let _etat       = null; // état interne du scénario en cours
+
+// ================================================================
+// API publique
+// ================================================================
+
+async function lancerScenario(idScenario, personnage, onFin) {
+  _personnage = personnage;
+  _onFin      = onFin;
+  _etat       = { flags: {}, objets: [], sceneActuelle: null };
+
+  try {
+    const rep = await fetch(`contenu/scenarios/${idScenario}.json`);
+    if (!rep.ok) throw new Error(`Scénario introuvable : ${idScenario}`);
+    _scenario = await rep.json();
+  } catch (err) {
+    alerter(`Impossible de charger le scénario. Erreur : ${err.message}`);
+    onFin(personnage);
+    return;
+  }
+
+  narrerFrais(
+    `Scénario : ${_scenario.titre}. ` +
+    `${_scenario.description} ` +
+    `Durée estimée : ${_scenario.duree_estimee}.`
+  );
+
+  afficherActions([
+    {
+      label: 'Commencer le scénario',
+      action: () => _allerScene('debut')
+    },
+    {
+      label: 'Retour au menu de jeu',
+      action: () => _onFin(_personnage)
+    }
+  ]);
+}
+
+// ================================================================
+// Navigation
+// ================================================================
+
+function _allerScene(idScene) {
+  const scene = _scenario.scenes[idScene];
+  if (!scene) {
+    alerter(`Erreur : scène "${idScene}" introuvable.`);
+    return;
+  }
+  _etat.sceneActuelle = idScene;
+
+  // Appliquer les effets automatiques de la scène
+  if (scene.effet_entree) _appliquerEffet(scene.effet_entree);
+
+  // Construire et afficher la narration
+  const paragraphes = Array.isArray(scene.narration)
+    ? scene.narration
+    : [scene.narration];
+  const texte = paragraphes.map(_remplacerVariables).join(' ');
+  narrerFrais(texte);
+
+  // Scène terminale ?
+  if (scene.fin) {
+    _terminerScenario(scene.fin);
+    return;
+  }
+
+  // Filtrer les actions disponibles selon les conditions
+  const actionsDispos = (scene.actions ?? []).filter(a => _verifierCondition(a.condition));
+
+  if (actionsDispos.length === 0) {
+    narrer('Il n\'y a rien de plus à faire ici. Le scénario se termine.');
+    _terminerScenario('normal');
+    return;
+  }
+
+  afficherActions(actionsDispos.map(a => ({
+    label: a.label,
+    action: () => _executerAction(a)
+  })));
+}
+
+// ================================================================
+// Actions
+// ================================================================
+
+function _executerAction(action) {
+  // Appliquer un effet immédiat si défini
+  if (action.effet) _appliquerEffet(action.effet);
+
+  if (action.manoeuvre) {
+    const manoeuvre = MANOEUVRES.find(m => m.id === action.manoeuvre);
+    if (!manoeuvre) {
+      alerter(`Manœuvre inconnue : ${action.manoeuvre}`);
+      return;
+    }
+    resoudreManoeuvre(manoeuvre, _personnage, ({ niveau }) => {
+      mettreAJourFiche(_personnage);
+      sauvegarder({ personnage: _personnage });
+      const suite = action.suite ?? {};
+      let prochaine;
+      if      (niveau === SUCCES_COMPLET) prochaine = suite.succes;
+      else if (niveau === SUCCES_PARTIEL) prochaine = suite.partiel;
+      else                                prochaine = suite.echec;
+
+      if (!prochaine) prochaine = suite.defaut ?? _etat.sceneActuelle;
+      if (action.effet_apres) _appliquerEffet(action.effet_apres[niveau] ?? action.effet_apres.defaut);
+
+      _allerScene(prochaine);
+    });
+
+  } else if (action.lien) {
+    _allerScene(action.lien);
+
+  } else if (action.fin !== undefined) {
+    _terminerScenario(action.fin);
+  }
+}
+
+// ================================================================
+// Fin de scénario
+// ================================================================
+
+function _terminerScenario(typeFin) {
+  const fins = _scenario.fins ?? {};
+  const config = fins[typeFin] ?? fins['normal'] ?? {};
+
+  const texte = config.narration
+    ? config.narration.map(_remplacerVariables).join(' ')
+    : 'Le scénario est terminé.';
+
+  // Append à la scène actuelle (ne pas effacer la narration du dernier événement)
+  narrer(texte);
+
+  // Récompenses
+  if (config.ami    && !_personnage.amis.includes(config.ami))    _personnage.amis.push(config.ami);
+  if (config.rival  && !_personnage.rivaux.includes(config.rival)) _personnage.rivaux.push(config.rival);
+  if (config.objet  && !_personnage.objetsMagiques.includes(config.objet)) _personnage.objetsMagiques.push(config.objet);
+
+  mettreAJourFiche(_personnage);
+  sauvegarder({ personnage: _personnage });
+
+  afficherActions([
+    { label: 'Retour au menu de jeu', action: () => _onFin(_personnage) }
+  ]);
+}
+
+// ================================================================
+// Effets
+// ================================================================
+
+function _appliquerEffet(effet) {
+  if (!effet) return;
+  if (effet.flag)  _etat.flags[effet.flag] = true;
+  if (effet.objet) { if (!_etat.objets.includes(effet.objet)) _etat.objets.push(effet.objet); }
+  // Effets permanents sur le personnage (ami/rival ajoutés en fin de scénario, pas ici)
+}
+
+// ================================================================
+// Conditions
+// ================================================================
+
+function _verifierCondition(condition) {
+  if (!condition) return true;
+  if (condition === 'toujours') return true;
+
+  // Support des conditions composées avec && et ||
+  if (condition.includes('&&')) {
+    return condition.split('&&').map(c => c.trim()).every(_evalCondition);
+  }
+  if (condition.includes('||')) {
+    return condition.split('||').map(c => c.trim()).some(_evalCondition);
+  }
+  return _evalCondition(condition);
+}
+
+function _evalCondition(condition) {
+  const c = condition.trim();
+  if (c.startsWith('!')) return !_evalCondition(c.slice(1));
+  if (c.startsWith('flag:'))  return !!_etat.flags[c.slice(5)];
+  if (c.startsWith('objet:')) return _etat.objets.includes(c.slice(6));
+  if (c.startsWith('sort:')) {
+    const nom = c.slice(5).toLowerCase();
+    return _personnage.sorts.some(s => s.nom.toLowerCase().includes(nom));
+  }
+  if (c.startsWith('trait:')) {
+    // ex: trait:intellect>=1
+    const m = c.slice(6).match(/^(\w+)(>=|<=|>|<|=)(-?\d+)$/);
+    if (!m) return false;
+    const [, nomTrait, op, valStr] = m;
+    const val  = _personnage.traits[nomTrait] ?? 0;
+    const cible = parseInt(valStr, 10);
+    switch (op) {
+      case '>=': return val >= cible;
+      case '<=': return val <= cible;
+      case '>':  return val > cible;
+      case '<':  return val < cible;
+      case '=':  return val === cible;
+      default:   return false;
+    }
+  }
+  if (c.startsWith('annee:')) {
+    const m = c.slice(6).match(/^(>=|<=|>|<|=)?(\d+)$/);
+    if (!m) return false;
+    const [, op, valStr] = m;
+    const annee = _personnage.annee;
+    const cible  = parseInt(valStr, 10);
+    switch (op || '=') {
+      case '>=': return annee >= cible;
+      case '<=': return annee <= cible;
+      case '>':  return annee > cible;
+      case '<':  return annee < cible;
+      case '=':  return annee === cible;
+      default:   return false;
+    }
+  }
+  return true;
+}
+
+// ================================================================
+// Remplacement des variables dans le texte
+// ================================================================
+
+function _remplacerVariables(texte) {
+  if (!texte) return '';
+  return texte
+    .replace(/\{\{prenom\}\}/g, _personnage.prenom ?? '')
+    .replace(/\{\{nom\}\}/g, _personnage.nom ?? '')
+    .replace(/\{\{maison\}\}/g, _personnage.maison ?? '')
+    .replace(/\{\{annee\}\}/g, String(_personnage.annee ?? 1))
+    .replace(/\{\{patronus\}\}/g, _personnage.patronus ?? 'inconnu');
+}
+
+  return { lancerScenario };
+})();
+
+// ===== jeu.js =====
+const { lancerJeu } = (function() {
+// Écran de jeu principal — boucle narrative et sélection des manœuvres.
+
+
+
+
+
+
+
+
+
+
+let _personnage = null;
+let _onRetourMenu = null;
+
+// ================================================================
+// Lancer l'écran de jeu
+// ================================================================
+
+function lancerJeu(personnage, onRetourMenu) {
+  _personnage = personnage;
+  _onRetourMenu = onRetourMenu;
+  _afficherEcranJeu();
+}
+
+// ================================================================
+// Écran principal
+// ================================================================
+
+function _afficherEcranJeu() {
+  const nom = `${_personnage.prenom} ${_personnage.nom}`;
+  const etats = _personnage.etats.filter(e => e.actif).map(e => e.nom);
+
+  narrerFrais(
+    `Jeu en cours. Personnage : ${nom}, ${_personnage.maison}, ` +
+    `${_personnage.annee <= 7 ? `${_personnage.annee}ème Année` : 'Diplômé'}. ` +
+    (etats.length > 0
+      ? `États actifs : ${etats.join(', ')}.`
+      : 'Aucun état actif.') +
+    ` Chance : ${_personnage.chance} sur 3. Expérience : ${_personnage.experience} sur 4. ` +
+    'Appuyez sur F1 à F5 pour consulter votre fiche. Choisissez une manœuvre ou une action.'
+  );
+
+  // Vérifier si tous les états sont cochés
+  if (tousEtatsActifs(_personnage)) {
+    _jetDeSurvie();
+    return;
+  }
+
+  _afficherMenuJeu();
+}
+
+function _afficherMenuJeu() {
+  const actions = [
+    // Manœuvres de base
+    ...MANOEUVRES.map(m => {
+      const nomTrait = m.trait ?? m.traitHonnete;
+      const val = nomTrait ? traitEffectif(_personnage, nomTrait) : null;
+      const label = val !== null
+        ? `${m.nom} (${NOMS_TRAITS[nomTrait]} : ${_signeParle(val)})`
+        : m.nom;
+      return {
+        label,
+        action: () => _lancerManoeuvre(m)
+      };
+    }),
+
+    // Scénarios
+    { label: 'Jouer un scénario', action: _afficherScenarios },
+
+    // Actions de gestion
+    { label: 'Gérer les États', action: _gererEtats },
+    { label: 'Gérer les Amis et Rivaux', action: _gererRelations },
+    { label: 'Prendre une Progression (si 4 XP)', action: _prendreProgression, desactive: _personnage.experience < 4 },
+    { label: 'Fin de session', action: _finSession },
+    { label: 'Menu principal', action: () => _onRetourMenu?.() }
+  ];
+
+  afficherActions(actions);
+}
+
+// ================================================================
+// Manœuvres
+// ================================================================
+
+function _lancerManoeuvre(manoeuvre) {
+  narrerFrais(
+    `${manoeuvre.nom}. ${manoeuvre.description} ` +
+    (manoeuvre.necessite_sort ? 'Attention : vous devez connaître le sort ou la recette.' : '')
+  );
+
+  resoudreManoeuvre(manoeuvre, _personnage, ({ niveau, personnage }) => {
+    _personnage = personnage;
+    mettreAJourFiche(_personnage);
+    sauvegarder({ personnage: _personnage });
+
+    if (niveau === ECHEC) {
+      narrer('Réfléchissez aux conséquences de cet échec sur l\'histoire. Puis choisissez votre prochaine action.');
+    } else if (niveau === SUCCES_PARTIEL) {
+      narrer('Réfléchissez aux implications de ce succès partiel. Puis choisissez votre prochaine action.');
+    } else {
+      narrer('Succès complet. Que se passe-t-il ensuite dans l\'histoire ?');
+    }
+
+    _afficherMenuJeu();
+  });
+}
+
+// ================================================================
+// Jet de survie (tous les états cochés)
+// ================================================================
+
+function _jetDeSurvie() {
+  const meilleur = Math.max(...Object.values(_personnage.traits));
+  const nomMeilleur = Object.entries(NOMS_TRAITS).find(([c]) => _personnage.traits[c] === meilleur)?.[1] ?? 'trait';
+
+  alerter(
+    'Tous vos états sont cochés ! Vous devez faire un jet de survie. ' +
+    `Lancez votre meilleur trait : ${nomMeilleur} à ${_signeParle(meilleur)}. ` +
+    '10 ou plus : vous revenez, tous les états effacés. ' +
+    '7 à 9 : vous revenez avec seulement Inconscient effacé. ' +
+    '6 ou moins : votre personnage quitte l\'histoire.'
+  );
+
+  afficherActions([{
+    label: `Lancer le jet de survie (${nomMeilleur} : ${_signeParle(meilleur)})`,
+    action: () => {
+      const resultat = lancerDes(meilleur, nomMeilleur);
+
+      if (resultat.niveau === SUCCES_COMPLET) {
+        _personnage.etats.forEach(e => { e.actif = false; });
+        alerter('10 ou plus. Vous revenez sain et sauf. Tous les états sont effacés.');
+        if (resultat.total >= 10) {
+          narrer('Décrivez comment votre personnage reprend conscience ou revient dans la scène.');
+        }
+        _refusCicatrice();
+
+      } else if (resultat.niveau === SUCCES_PARTIEL) {
+        _personnage.etats.forEach(e => { if (e.id !== 'inconscient') e.actif = false; });
+        alerter('7 à 9. Vous revenez, mais seulement l\'état Inconscient est effacé. Les autres états persistent.');
+        _refusCicatrice();
+
+      } else {
+        alerter(
+          '6 ou moins. Votre personnage quitte l\'histoire. ' +
+          'Vous devrez créer un nouveau sorcier ou sorcière. ' +
+          'Décrivez comment ce personnage disparaît de l\'histoire.'
+        );
+        afficherActions([
+          { label: 'Retour au menu principal', action: () => _onRetourMenu?.() }
+        ]);
+      }
+    }
+  }]);
+}
+
+function _refusCicatrice() {
+  narrer('Avez-vous une cicatrice physique ou mentale suite à cet épisode ?');
+  afficherActions([
+    {
+      label: 'Oui — noter une cicatrice',
+      action: () => _noterCicatrice()
+    },
+    {
+      label: 'Non — reprendre l\'aventure',
+      action: () => {
+        mettreAJourFiche(_personnage);
+        sauvegarder({ personnage: _personnage });
+        _afficherEcranJeu();
+      }
+    }
+  ]);
+}
+
+function _noterCicatrice() {
+  narrer('Décrivez votre cicatrice physique ou mentale. Tapez une courte description.');
+  const $liste = document.getElementById('liste-actions');
+  $liste.innerHTML = '';
+  const li = document.createElement('li');
+  const input = document.createElement('input');
+  input.type = 'text';
+  input.placeholder = 'ex: Brûlure sur la main gauche';
+  input.setAttribute('aria-label', 'Description de la cicatrice');
+  const btn = document.createElement('button');
+  btn.textContent = 'Confirmer';
+  const valider = () => {
+    const val = input.value.trim();
+    if (!val) { alerter('Entrez une description.'); input.focus(); return; }
+    _personnage.cicatrices.push(val);
+    alerter(`Cicatrice notée : ${val}.`);
+    mettreAJourFiche(_personnage);
+    sauvegarder({ personnage: _personnage });
+    _afficherEcranJeu();
+  };
+  btn.addEventListener('click', valider);
+  input.addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); valider(); } });
+  li.appendChild(input);
+  li.appendChild(btn);
+  $liste.appendChild(li);
+  input.focus();
+}
+
+// ================================================================
+// Sélection de scénario
+// ================================================================
+
+async function _afficherScenarios() {
+  let index;
+  try {
+    const rep = await fetch('contenu/scenarios/index.json');
+    index = await rep.json();
+  } catch {
+    alerter('Impossible de charger la liste des scénarios.');
+    _afficherMenuJeu();
+    return;
+  }
+
+  const disponibles = index.filter(s =>
+    _personnage.annee >= (s.annee_min ?? 1) &&
+    _personnage.annee <= (s.annee_max ?? 7)
+  );
+
+  if (disponibles.length === 0) {
+    alerter('Aucun scénario disponible pour votre Année. Revenez l\'an prochain.');
+    _afficherMenuJeu();
+    return;
+  }
+
+  narrerFrais(
+    'Scénarios disponibles. Chaque scénario est une histoire complète avec ses propres ' +
+    'enjeux et ses propres personnages. Vos choix et vos jets de dés en déterminent l\'issue.'
+  );
+
+  afficherActions([
+    ...disponibles.map(s => ({
+      label: `${s.titre} — ${s.accroche} Durée estimée : ${s.duree_estimee}.`,
+      action: () => lancerScenario(s.id, _personnage, (personnageMisAJour) => {
+        _personnage = personnageMisAJour;
+        _afficherEcranJeu();
+      })
+    })),
+    { label: 'Retour au menu de jeu', action: _afficherMenuJeu }
+  ]);
+}
+
+// ================================================================
+// Gestion des États
+// ================================================================
+
+function _gererEtats() {
+  const actifs   = _personnage.etats.filter(e => e.actif);
+  const inactifs = _personnage.etats.filter(e => !e.actif);
+
+  narrerFrais(
+    actifs.length === 0
+      ? 'Aucun état actif. Vous êtes en pleine forme.'
+      : `États actifs : ${actifs.map(e => e.nom).join(', ')}. Vous pouvez en effacer un si la condition est remplie.`
+  );
+
+  const actions = [];
+
+  if (actifs.length > 0) {
+    actions.push({
+      label: 'Effacer un état (condition remplie)',
+      action: () => _effacerEtat(actifs)
+    });
+  }
+
+  if (inactifs.length > 0) {
+    actions.push({
+      label: 'Cocher un état (vous venez d\'en subir un)',
+      action: () => _cocherEtat(inactifs)
+    });
+  }
+
+  actions.push({ label: 'Retour au jeu', action: _afficherMenuJeu });
+  afficherActions(actions);
+}
+
+function _effacerEtat(actifs) {
+  narrer('Quel état voulez-vous effacer ?');
+  afficherActions([
+    ...actifs.map(e => ({
+      label: `${e.nom} — ${e.malus < 0 ? `malus ${e.malus}` : ''}`,
+      action: () => {
+        e.actif = false;
+        alerter(`État ${e.nom} effacé.`);
+        mettreAJourFiche(_personnage);
+        sauvegarder({ personnage: _personnage });
+        _gererEtats();
+      }
+    })),
+    { label: 'Annuler', action: _gererEtats }
+  ]);
+}
+
+function _cocherEtat(inactifs) {
+  narrer('Quel état venez-vous de subir ?');
+  afficherActions([
+    ...inactifs.map(e => ({
+      label: e.nom,
+      action: () => {
+        e.actif = true;
+        alerter(`État ${e.nom} coché. ${e.malus !== -99 ? `Malus de ${e.malus} en ${e.trait === 'tous' ? 'tous les traits' : NOMS_TRAITS[e.trait] ?? e.trait}.` : 'Vous êtes hors jeu.'}`);
+        mettreAJourFiche(_personnage);
+        sauvegarder({ personnage: _personnage });
+        if (tousEtatsActifs(_personnage)) {
+          _jetDeSurvie();
+        } else {
+          _gererEtats();
+        }
+      }
+    })),
+    { label: 'Annuler', action: _gererEtats }
+  ]);
+}
+
+// ================================================================
+// Gestion des Relations
+// ================================================================
+
+function _gererRelations() {
+  const amis   = _personnage.amis;
+  const rivaux = _personnage.rivaux;
+
+  narrerFrais(
+    `Relations actuelles. ` +
+    (amis.length > 0 ? `Amis : ${amis.join(', ')}.` : 'Aucun ami.') + ' ' +
+    (rivaux.length > 0 ? `Rivaux : ${rivaux.join(', ')}.` : 'Aucun rival.') + ' ' +
+    'Maximum : 2 amis et 1 rival. Les relations ne changent qu\'en fin de session.'
+  );
+
+  afficherActions([
+    { label: 'Retour au jeu', action: _afficherMenuJeu }
+  ]);
+}
+
+// ================================================================
+// Progression
+// ================================================================
+
+function _prendreProgression() {
+  if (_personnage.experience < 4) {
+    alerter('Vous n\'avez pas encore 4 points d\'Expérience.');
+    _afficherMenuJeu();
+    return;
+  }
+
+  narrerFrais('Vous prenez une Progression. Choisissez :');
+
+  const peuAmeliorerTrait = _personnage.progressions.traitsAmeliores < 2;
+  const peutPrendreDeuxiemeMatiere = !_personnage.progressions.deuxiemeMatiere;
+
+  afficherActions([
+    ...(peuAmeliorerTrait ? [{
+      label: 'Améliorer un trait de plus 1 (maximum plus 3, au plus 2 fois au total)',
+      action: _choisirTraitAAmeliorer
+    }] : []),
+    ...(peutPrendreDeuxiemeMatiere ? [{
+      label: 'Obtenir une deuxième Matière Préférée (une seule fois)',
+      action: _choisirDeuxiemeMatiere
+    }] : []),
+    {
+      label: 'Apprendre un nouveau sort de votre Année',
+      action: _apprendreSortProgression
+    },
+    {
+      label: 'Acquérir un objet magique',
+      action: () => {
+        _personnage.experience -= 4;
+        narrer('Vous acquérez un objet magique. Décrivez-le ou notez son nom.');
+        // Champ texte pour nommer l'objet
+        const $liste = document.getElementById('liste-actions');
+        $liste.innerHTML = '';
+        const li = document.createElement('li');
+        const input = document.createElement('input');
+        input.type = 'text';
+        input.placeholder = 'ex: Cape d\'invisibilité';
+        input.setAttribute('aria-label', 'Nom de l\'objet magique');
+        const btn = document.createElement('button');
+        btn.textContent = 'Confirmer';
+        const valider = () => {
+          const val = input.value.trim();
+          if (!val) { alerter('Entrez un nom.'); input.focus(); return; }
+          _personnage.objetsMagiques.push(val);
+          alerter(`Objet acquis : ${val}. Expérience remise à zéro.`);
+          mettreAJourFiche(_personnage);
+          sauvegarder({ personnage: _personnage });
+          _afficherMenuJeu();
+        };
+        btn.addEventListener('click', valider);
+        input.addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); valider(); } });
+        li.appendChild(input);
+        li.appendChild(btn);
+        $liste.appendChild(li);
+        input.focus();
+      }
+    },
+    {
+      label: `Récupérer 1 point de Chance (actuellement : ${_personnage.chance} sur 3)`,
+      action: () => {
+        _personnage.experience -= 4;
+        _personnage.chance = Math.min(3, _personnage.chance + 1);
+        alerter(`Chance récupérée. Chance : ${_personnage.chance} sur 3. Expérience remise à zéro.`);
+        mettreAJourFiche(_personnage);
+        sauvegarder({ personnage: _personnage });
+        _afficherMenuJeu();
+      }
+    }
+  ]);
+}
+
+function _choisirTraitAAmeliorer() {
+  narrer('Quel trait voulez-vous améliorer ? (Maximum plus 3)');
+  const traitsMeliorables = Object.entries(NOMS_TRAITS)
+    .filter(([cle]) => _personnage.traits[cle] < 3);
+
+  afficherActions([
+    ...traitsMeliorables.map(([cle, nom]) => ({
+      label: `${nom} : ${_signeParle(_personnage.traits[cle])} → ${_signeParle(_personnage.traits[cle] + 1)}`,
+      action: () => {
+        _personnage.traits[cle]++;
+        _personnage.progressions.traitsAmeliores++;
+        _personnage.experience -= 4;
+        alerter(`${nom} amélioré à ${_signeParle(_personnage.traits[cle])}. Expérience remise à zéro.`);
+        mettreAJourFiche(_personnage);
+        sauvegarder({ personnage: _personnage });
+        _afficherMenuJeu();
+      }
+    })),
+    { label: 'Annuler', action: _prendreProgression }
+  ]);
+}
+
+function _choisirDeuxiemeMatiere() {
+  narrer('Choisissez votre deuxième Matière Préférée parmi celles que vous n\'avez pas déjà.');
+  // Import dynamique pour éviter la circularité avec tables.json
+  fetch('contenu/tables.json')
+    .then(r => r.json())
+    .then(tables => {
+      const toutesLesMatières = [
+        ...Object.values(tables.matieres_fondamentales),
+        ...Object.values(tables.matieres_options)
+      ].filter(m => !_personnage.matieresPreferees.includes(m));
+
+      afficherActions([
+        ...toutesLesMatières.map(m => ({
+          label: m,
+          action: () => {
+            _personnage.matieresPreferees.push(m);
+            _personnage.progressions.deuxiemeMatiere = true;
+            _personnage.experience -= 4;
+            alerter(`Deuxième Matière Préférée : ${m}. Expérience remise à zéro.`);
+            mettreAJourFiche(_personnage);
+            sauvegarder({ personnage: _personnage });
+            _afficherMenuJeu();
+          }
+        })),
+        { label: 'Annuler', action: _prendreProgression }
+      ]);
+    });
+}
+
+function _apprendreSortProgression() {
+  const annee = Math.min(_personnage.annee, 7);
+  fetch('contenu/sorts.json')
+    .then(r => r.json())
+    .then(sorts => {
+      const connusNoms = _personnage.sorts.map(s => s.nom);
+      const disponibles = (sorts.annees[String(annee)] ?? [])
+        .filter(s => !connusNoms.includes(s.nom));
+
+      if (disponibles.length === 0) {
+        alerter('Vous connaissez déjà tous les sorts de votre Année.');
+        _prendreProgression();
+        return;
+      }
+
+      narrer('Choisissez un sort à apprendre :');
+      afficherActions([
+        ...disponibles.map(s => ({
+          label: `${s.nom} — ${s.description}`,
+          action: () => {
+            _personnage.sorts.push(s);
+            _personnage.experience -= 4;
+            alerter(`Sort appris : ${s.nom}. Expérience remise à zéro.`);
+            mettreAJourFiche(_personnage);
+            sauvegarder({ personnage: _personnage });
+            _afficherMenuJeu();
+          }
+        })),
+        { label: 'Annuler', action: _prendreProgression }
+      ]);
+    });
+}
+
+// ================================================================
+// Fin de session
+// ================================================================
+
+function _finSession() {
+  narrerFrais(
+    'Fin de session. ' +
+    'C\'est le moment de mettre à jour vos Amis et Rivaux : vous pouvez en ajouter ou en retirer un. ' +
+    'Si vous avez 4 points d\'Expérience, vous pouvez prendre une Progression. ' +
+    'Avez-vous complété une année scolaire ? Si oui, vous gagnez automatiquement une Progression.'
+  );
+
+  afficherActions([
+    {
+      label: 'Mettre à jour un Ami',
+      action: () => _mettreAJourRelation('ami')
+    },
+    {
+      label: 'Mettre à jour un Rival',
+      action: () => _mettreAJourRelation('rival')
+    },
+    ..._personnage.experience >= 4 ? [{
+      label: 'Prendre une Progression (4 XP disponibles)',
+      action: _prendreProgression
+    }] : [],
+    {
+      label: 'Sauvegarder et continuer plus tard',
+      action: () => {
+        sauvegarder({ personnage: _personnage });
+        alerter('Partie sauvegardée. À bientôt à Poudlard.');
+        _onRetourMenu?.();
+      }
+    },
+    { label: 'Retour au jeu', action: _afficherMenuJeu }
+  ]);
+}
+
+function _mettreAJourRelation(type) {
+  const liste = type === 'ami' ? _personnage.amis : _personnage.rivaux;
+  const max   = type === 'ami' ? 2 : 1;
+
+  narrer(
+    `${type === 'ami' ? 'Amis' : 'Rival'} actuel${liste.length > 1 ? 's' : ''} : ` +
+    (liste.length > 0 ? liste.join(', ') : 'aucun') + `. Maximum : ${max}.`
+  );
+
+  const actions = [];
+
+  if (liste.length < max) {
+    actions.push({
+      label: `Ajouter un ${type}`,
+      action: () => {
+        const $liste = document.getElementById('liste-actions');
+        $liste.innerHTML = '';
+        const li = document.createElement('li');
+        const input = document.createElement('input');
+        input.type = 'text';
+        input.placeholder = `Nom du ${type}`;
+        input.setAttribute('aria-label', `Nom du ${type}`);
+        const btn = document.createElement('button');
+        btn.textContent = 'Confirmer';
+        const valider = () => {
+          const val = input.value.trim();
+          if (!val) { alerter('Entrez un nom.'); input.focus(); return; }
+          liste.push(val);
+          alerter(`${type === 'ami' ? 'Ami' : 'Rival'} ajouté : ${val}.`);
+          sauvegarder({ personnage: _personnage });
+          _finSession();
+        };
+        btn.addEventListener('click', valider);
+        input.addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); valider(); } });
+        li.appendChild(input);
+        li.appendChild(btn);
+        $liste.appendChild(li);
+        input.focus();
+      }
+    });
+  }
+
+  if (liste.length > 0) {
+    actions.push({
+      label: `Retirer un ${type}`,
+      action: () => {
+        narrer(`Quel ${type} voulez-vous retirer ?`);
+        afficherActions([
+          ...liste.map((nom, i) => ({
+            label: nom,
+            action: () => {
+              liste.splice(i, 1);
+              alerter(`${nom} retiré de vos ${type === 'ami' ? 'amis' : 'rivaux'}.`);
+              sauvegarder({ personnage: _personnage });
+              _finSession();
+            }
+          })),
+          { label: 'Annuler', action: () => _mettreAJourRelation(type) }
+        ]);
+      }
+    });
+  }
+
+  actions.push({ label: 'Retour à la fin de session', action: _finSession });
+  afficherActions(actions);
+}
+
+// ---- Helper ----
+
+function _signeParle(val) {
+  if (val === -99) return 'Inconscient';
+  if (val === 0)   return 'zéro';
+  if (val > 0)     return `plus ${val}`;
+  return `moins ${Math.abs(val)}`;
+}
+
+  return { lancerJeu };
+})();
+
+// ===== main.js =====
+const { etat } = (function() {
+// Point d'entrée — initialise le jeu et gère les écrans.
+
+
+
+
+
+
+
+
+
+
+// État global de la session
+const etat = {
+  personnage: null,
+  derniereAction: null  // pour la touche R (relancer les dés)
+};
+
+// ---- Démarrage ----
+
+document.addEventListener('DOMContentLoaded', async () => {
+  initClavier({
+    lireFiche:    (section) => lireFiche(section, etat.personnage),
+    sauvegarder:  () => _sauvegarder(),
+    relancerDes:  () => etat.derniereAction?.()
+  });
+
+  const sauvegarde = charger();
+  if (sauvegarde?.personnage) {
+    etat.personnage = sauvegarde.personnage;
+    mettreAJourFiche(etat.personnage);
+    afficherMenuPrincipal(true);
+  } else {
+    afficherMenuPrincipal(false);
+  }
+});
+
+// ---- Écrans ----
+
+function afficherMenuPrincipal(aUneSauvegarde) {
+  narrerFrais(
+    aUneSauvegarde
+      ? `Bienvenue à Poudlard, ${etat.personnage.prenom}. Votre aventure vous attend.`
+      : 'Bienvenue à Poudlard. Aucune partie en cours. Créez votre sorcière ou sorcier pour commencer.'
+  );
+
+  const actions = [];
+
+  if (aUneSauvegarde) {
+    actions.push({ label: 'Reprendre la partie',   action: reprendrePartie });
+    actions.push({ label: 'Nouvelle partie',        action: demanderConfirmationNouvelle });
+  } else {
+    actions.push({ label: 'Créer votre sorcière ou sorcier', action: demarrerCreation });
+  }
+
+  actions.push({ label: 'Aide et raccourcis clavier', action: afficherAide });
+
+  afficherActions(actions);
+}
+
+function reprendrePartie() {
+  narrer(`Vous reprenez l'aventure avec ${etat.personnage.prenom} ${etat.personnage.nom}.`);
+  _assureProgressions(etat.personnage);
+  lancerJeu(etat.personnage, () => afficherMenuPrincipal(true));
+}
+
+function demanderConfirmationNouvelle() {
+  narrerFrais('Attention : cela effacera votre partie en cours. Êtes-vous certain ?');
+  afficherActions([
+    { label: 'Oui, commencer une nouvelle partie',  action: demarrerCreation },
+    { label: 'Non, retourner au menu',              action: () => afficherMenuPrincipal(true) }
+  ]);
+}
+
+function demarrerCreation() {
+  effacer();
+  etat.personnage = creerPersonnageVide();
+  lancerCreation(etat.personnage, (personnageFinalise) => {
+    etat.personnage = personnageFinalise;
+    _assureProgressions(etat.personnage);
+    sauvegarder({ personnage: etat.personnage });
+    mettreAJourFiche(etat.personnage);
+    narrer('Personnage créé et sauvegardé. L\'aventure commence !');
+    lancerJeu(etat.personnage, () => afficherMenuPrincipal(true));
+  });
+}
+
+function afficherAide() {
+  narrerFrais([
+    'Aide et raccourcis clavier.',
+    'Espace : relire le dernier message.',
+    'F1 : lire vos traits.',
+    'F2 : lire vos états actifs.',
+    'F3 : lire vos sorts connus.',
+    'F4 : lire vos amis et rivaux.',
+    'F5 : lire votre chance et expérience.',
+    'R : relancer les dés.',
+    'S : sauvegarder la partie.',
+    'Tabulation et flèches : naviguer entre les actions.',
+    'Entrée : confirmer.',
+    'Échappement : retour en arrière.'
+  ].join(' '));
+
+  afficherActions([
+    { label: 'Retour au menu principal', action: () => afficherMenuPrincipal(!!etat.personnage?.prenom) }
+  ]);
+}
+
+// ---- Helpers ----
+
+function _sauvegarder() {
+  if (!etat.personnage) {
+    statuer('Aucun personnage à sauvegarder.');
+    return;
+  }
+  sauvegarder({ personnage: etat.personnage });
+}
+
+function _assureProgressions(personnage) {
+  if (!personnage.progressions) {
+    personnage.progressions = { traitsAmeliores: 0, deuxiemeMatiere: false };
+  }
+}
+
+// Exporté pour les modules enfants (création, jeu, etc.)
+
+  return { etat };
+})();
+
+</script>
+
+</body>
+</html>

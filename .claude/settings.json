@@ -1,0 +1,33 @@
+{
+  "permissions": {
+    "allow": [
+      "Read(**)",
+      "Write(**)",
+      "Edit(**)",
+      "Glob(**)",
+      "Bash(powershell*)",
+      "Bash(node*)",
+      "Bash(npm*)",
+      "Bash(npx*)",
+      "Bash(git*)",
+      "Bash(ls*)",
+      "Bash(mkdir*)",
+      "Bash(cp*)",
+      "Bash(mv*)"
+    ],
+    "deny": []
+  },
+  "hooks": {
+    "Stop": [
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "powershell -Command \"Write-Host '--- RAPPEL MEMOIRE ---'; Write-Host 'Si le contexte du projet a change cette session (nouvelle decision technique, nouvelle fonctionnalite, nouveau terme), mettre a jour les fichiers dans memory/.'\""
+          }
+        ]
+      }
+    ]
+  }
+}
