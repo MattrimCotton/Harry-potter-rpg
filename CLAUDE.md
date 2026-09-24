@@ -34,7 +34,7 @@ Au début de chaque session, tu dois :
 - **Plateforme** : Web (HTML + CSS + JS vanille) — fonctionne hors-ligne dans un navigateur
 - **Accessibilité** : Niveau textuel complet — personnes entièrement aveugles
 - **Mode** : Solo uniquement (pas de multijoueur)
-- **Dépôt** : GitHub `MattrimCotton/Harry-potter-rpg` (privé; contient les PDFs sources, versionnés depuis 2026-09-24, branche `main`)
+- **Dépôt** : GitHub `MattrimCotton/Harry-potter-rpg` (public depuis le 2026-09-24; contient les PDFs sources, versionnés depuis 2026-09-24, branche `main`)
 
 ---
 
