@@ -190,6 +190,18 @@ export function demanderTexte({ question, exemple, onValider, onAnnuler }) {
   input.focus();
 }
 
+// Affiche un contenu libre (un formulaire complet, par exemple) à la place des
+// choix, dans le même groupe nommé par le tour. `cibleFocus` reçoit le focus.
+// `retour` (facultatif) : action déclenchée par Échap ou Retour arrière.
+export function afficherContenu($contenu, cibleFocus, retour = null) {
+  const $liste = _viderListe();
+  const li = document.createElement('li');
+  li.appendChild($contenu);
+  $liste.appendChild(li);
+  _actionRetour = retour;
+  _placerFocus(cibleFocus);
+}
+
 // Appelé par la touche Échap. Renvoie false s'il n'y a pas de retour possible.
 export function declencherRetour() {
   if (!_actionRetour) {

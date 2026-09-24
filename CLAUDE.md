@@ -164,13 +164,13 @@ Noms de fichiers et de dossiers **en anglais** (décision de l'utilisateur, 2026
 | `src/lib/bootstrap/` | Bootstrap 5.3.8 (CSS, JS bundle, LICENSE MIT) copié pour fonctionner hors ligne |
 | `src/js/main.js` | Point d'entrée : état global `etat`, menu principal, création, reprise, initialisation clavier et outils |
 | `src/js/ui/narration.js` | Tours de texte (`narrer`, `narrerFrais`, `alerter`, `terminerTour`), `relire()` (F9), annonces `annoncer`/`statuer` |
-| `src/js/ui/choices.js` | `afficherActions()` (liste déroulante dès 3 choix, boutons sinon ; groupe nommé par le tour ; focus), `demanderTexte()`, `declencherRetour()`, `deplacerFocusActions()` ; action `{ label, action, desactive?, retour?, bouton?, principal? }` |
+| `src/js/ui/choices.js` | `afficherActions()` (liste déroulante dès 3 choix, boutons sinon ; groupe nommé par le tour ; focus), `demanderTexte()`, `afficherContenu()` (formulaire ou contenu libre), `declencherRetour()`, `deplacerFocusActions()` ; action `{ label, action, desactive?, retour?, bouton?, principal? }` |
 | `src/js/ui/keyboard.js` | Raccourcis F1-F5, F8, F9, Échap, Retour arrière, flèches ; boutons du menu Outils |
 | `src/js/ui/character-sheet.js` | Fiche : `lireFiche(section)` (annonce F1-F5), `mettreAJourFiche()` (cartes visuelles) |
 | `src/js/rules/dice.js` | Jets 2d6 (`lancerDes`, `d6`, `deuxD6Independants`), annonce orale du résultat |
 | `src/js/rules/moves.js` | Les 11 manœuvres (`MANOEUVRES`) et `resoudreManoeuvre(manoeuvre, personnage, onFin, onAnnuler)` |
 | `src/js/rules/character.js` | Personnage : `creerPersonnageVide()`, `traitEffectif()`, origine, maison, `NOMS_TRAITS` |
-| `src/js/engine/character-creation.js` | Les 12 étapes de création du personnage |
+| `src/js/engine/character-creation.js` | Création de personnage : formulaire unique avec sections (identité, apparence, baguette, traits, maison, etc.) + option "Tout tirer au hasard" pour dés automatiques |
 | `src/js/engine/game.js` | Boucle de jeu : menu, manœuvres, États, relations, Progression, fin de session, choix du scénario, jet de survie |
 | `src/js/engine/scenario.js` | Moteur de scénario : scènes JSON, conditions `&&`/`\|\|`, effets, fins ; `"deplacement": true` → bouton |
 | `src/js/engine/save.js` | Sauvegarde localStorage (clé `poudlard_rpg_v1`, inchangée pour garder les parties existantes) |
@@ -196,7 +196,7 @@ Le bundler met tous les exports au même niveau : deux modules ne doivent jamais
 ## Ce qui a été fait
 
 - [x] Référence des termes FR lore HP (`docs/terms-reference.md`)
-- [x] Création de personnage en 12 étapes, 11 manœuvres conformes au PDF, États, Chance, Expérience, Progression, jet de survie
+- [x] Création de personnage (formulaire unique + dés automatiques), 11 manœuvres conformes au PDF, États, Chance, Expérience, Progression, jet de survie
 - [x] Moteur de scénario + scénario 1 « Le Compartiment du Fond »
 - [x] Interface NVDA : tours lus comme nom du groupe de choix, modes navigation et formulaire, F1-F5/F8/F9, Échap/Retour arrière
 - [x] Interface Bootstrap 5 hors ligne : listes déroulantes, menu Outils et aide repliables

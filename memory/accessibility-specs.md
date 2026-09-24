@@ -57,6 +57,15 @@ Règle pour les chargements JSON : **charger d'abord, narrer ensuite**.
 
 Un seul composant pour tout le jeu : `<label for>` explicite avec phrase complète et exemple, erreur dans `#erreur-saisie` liée par `aria-describedby`, `aria-invalid`, Entrée pour valider, bouton Valider, bouton Annuler optionnel (Échap ne marche pas dans un champ : NVDA la garde en mode formulaire ; Retour arrière efface du texte). Le champ est dans le groupe nommé par le tour, donc le contexte est lu avant le libellé. Le focus va directement dans le champ. Pas de `placeholder`.
 
+## Création du personnage (`src/js/engine/character-creation.js`) — décision de l'utilisateur, 2026-09-24
+
+- **Tout sur une seule page** : un formulaire avec une section (`fieldset` + `legend`) par étape : Identité, Apparence, Baguette et ambition, Origine, Matière préférée, Sorts de départ, Traits, Maison, Ami et rival, Animal de compagnie, Patronus. Listes déroulantes pour les choix, champs texte pour les noms. Chaque liste commence par « À choisir ».
+- **Bouton « Tout tirer au hasard »** en tête : tous les dés d'un coup, selon les tables du PDF (un seul dé pour ambition et bois, maison relancée sur 5 ou 6, matière en 2d6, Patronus en 2d6). Puis résumé avec chaque dé, et choix : Commencer, Relancer tous les dés, Modifier (formulaire pré-rempli).
+- Listes dépendantes, mises à jour sans recharger : année → matières et sorts ; origine → nombre de listes de sorts ; maison → questions d'ami et de rival ; catégorie → animal du Patronus. Une liste en attente est désactivée avec le texte « Choisissez d'abord… ». Les changements hors de vue sont annoncés par la région status.
+- Diplômé : connaît tous les sorts, rien à choisir.
+- Validation à l'envoi : récapitulatif d'erreurs en tête (groupe recréé et nommé par son titre, focus sur le premier lien, chaque lien mène au champ), plus `aria-invalid` et message lié par `aria-describedby` sur chaque champ. Vérifie aussi un sort choisi deux fois et la répartition des traits.
+- Le formulaire est affiché par `afficherContenu()` de `choices.js`, dans le groupe nommé par le tour.
+
 ## Raccourcis (`src/js/ui/keyboard.js`)
 
 | Touche | Action |

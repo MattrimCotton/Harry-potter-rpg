@@ -19,7 +19,7 @@ HTML sémantique + CSS + JavaScript vanille (modules ES6), aucune dépendance. C
 
 ## Architecture (flux)
 
-`main.js` (menu) → `engine/character-creation.js` (12 étapes) → `engine/game.js` (boucle : manœuvres, états, relations, progression, choix de scénario) → `engine/scenario.js` (scènes JSON, conditions `&&`/`||`, effets, fins).
+`main.js` (menu) → `engine/character-creation.js` (formulaire unique ou tirage complet) → `engine/game.js` (boucle : manœuvres, états, relations, progression, choix de scénario) → `engine/scenario.js` (scènes JSON, conditions `&&`/`||`, effets, fins).
 Tout le texte passe par `ui/narration.js` (tours). Les choix par `ui/choices.js`. Les raccourcis par `ui/keyboard.js`. La fiche (F1-F5) par `ui/character-sheet.js`. Les règles dans `rules/` (dés, manœuvres, personnage). Tous ces chemins sont sous `src/js/`.
 
 La table détaillée des fichiers est dans `CLAUDE.md`.
