@@ -10,6 +10,7 @@ Le jeu source est prévu pour un groupe avec un Narrateur humain. Ici, **le Narr
 
 - Local : `C:\Users\asdes.ASUS\Documents\SourceCode\Harry-potter-rpg`
 - GitHub : `MattrimCotton/Harry-potter-rpg` — **public** (créé le 2026-09-24, passé en public le même jour, branche `main`).
+- SonarCloud : projet `MattrimCotton_Harry-potter-rpg` (org `mattrimcotton`, créé le 2026-09-24). Analyse via GitHub Actions (`.github/workflows/sonarcloud.yml`, secret `SONAR_TOKEN`) ; MCP SonarQube pour Claude Code dans `.mcp.json` (Docker requis).
 - Les PDF sources (`docs/sources/`) sont versionnés. Leur licence (CC BY-NC-SA 4.0) permet de les redistribuer sans modification, avec attribution et sans usage commercial.
 - Structure et licences : voir `README.md` et `CREDITS.md`. Projet entier sous CC BY-NC-SA 4.0 (obligatoire, adaptation d'un jeu sous cette licence). Noms de fichiers et dossiers en anglais.
 
