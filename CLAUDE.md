@@ -156,6 +156,7 @@ Noms de fichiers et de dossiers **en anglais** (décision de l'utilisateur, 2026
 | `docs/terms-reference.md` | Référence des traductions françaises du lore HP |
 | `docs/lore/principles.md` | Principes du lore : règles de rédaction des scénarios et campagnes, sources retenues/exclues du canon, échelle des événements, originalité — **lire avant d'écrire un scénario** |
 | `docs/lore/characters.md` | Lore du jeu : personnages et état du monde sorcier après 1998 (canon vs libre d'invention) — consulter avant de créer des PNJ ou de fixer l'époque de la campagne. **DÉCISION 2026-09-24 : *L'Enfant maudit* est entièrement exclu ; le jeu ne reconnaît que le canon des 7 livres et les interviews de J.K. Rowling post-2007.** Les maisons des enfants connus (sauf Teddy) et les carrières post-2014 restent à inventer. |
+| `docs/design/inspiration-hogwarts-live.md` | Inspiration du jeu de rôle textuel en ligne Hogwarts Live (2004–) : analyse des mécaniques adaptables au système PbtA, choix de ce qu'on reprend ou rejette, tone et priorités de développement — **consulter avant d'ajouter des nouvelles mécaniques de jeu** |
 | `docs/sources/` | PDF du jeu d'origine (redistribués sans modification, CC BY-NC-SA 4.0) |
 | `tools/build.js` | Compilation : `node tools/build.js` depuis la racine. Lit `src/`, transforme les modules ES6 en script classique, intègre CSS, JS, JSON et Bootstrap (sans sourceMappingURL) dans `dist/hogwarts-rpg.html` |
 | `tools/build.bat` | Double-clic sous Windows : se place à la racine, vérifie Node.js, compile, propose d'ouvrir le résultat |

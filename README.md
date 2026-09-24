@@ -32,7 +32,7 @@ Après une modification dans `src/`, régénérez le fichier jouable :
   - `lib/bootstrap/` : Bootstrap 5, copié ici pour fonctionner sans connexion.
 - `tools/` : les scripts de compilation.
 - `dist/hogwarts-rpg.html` : le fichier jouable, généré.
-- `docs/` : la référence des termes français, les PDF du jeu d'origine (`docs/sources/`) et le lore du jeu (`docs/lore/`).
+- `docs/` : la référence des termes français, les PDF du jeu d'origine (`docs/sources/`) le lore du jeu (`docs/lore/`) et les notes de conception (`docs/design/`).
 - `licenses/` : les textes originaux des licences.
 - `memory/` : les notes de conception du projet (règles, accessibilité, décisions).
 

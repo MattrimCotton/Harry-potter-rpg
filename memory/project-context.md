@@ -44,6 +44,10 @@ Restent absents : Quidditch, Points de Maison, Mystères, Menaces. Le jeu en sol
 - À trancher avec l'utilisateur : l'époque de la campagne, les professeurs à inventer, les directeurs de maison.
 - Histoires originales uniquement : personnages connus possibles en arrière-plan, pas d'intrigues reprises des livres.
 
+## Inspiration Hogwarts Live (2026-09-24)
+
+Demande de l'utilisateur : s'inspirer aussi du jeu textuel Hogwarts Live (hogwartslive.com, depuis 2004, accessible aux aveugles, ton parodique). Synthèse et adaptations proposées : `docs/design/inspiration-hogwarts-live.md`. On reprend des idées et des structures (calendrier, lieux à rencontres aléatoires, Points de Maison, examens, club de duel, boutiques, courrier), jamais les textes ni les personnages. Pas de Voldemort ni de politique du Ministère. En attente : le ton (humour léger ou parodie) et l'ordre des mécaniques à ajouter.
+
 ## Décisions de conception (2026-09-24)
 
 - **NVDA d'abord, pas de synthèse vocale intégrée.** Voir `accessibility-specs.md`.
