@@ -63,7 +63,9 @@ Un seul composant pour tout le jeu : `<label for>` explicite avec phrase complè
 - **Bouton « Tout tirer au hasard »** en tête : tous les dés d'un coup, selon les tables du PDF (un seul dé pour ambition et bois, maison relancée sur 5 ou 6, matière en 2d6, Patronus en 2d6). Puis résumé avec chaque dé, et choix : Commencer, Relancer tous les dés, Modifier (formulaire pré-rempli).
 - Listes dépendantes, mises à jour sans recharger : année → matières et sorts ; origine → nombre de listes de sorts ; maison → questions d'ami et de rival ; catégorie → animal du Patronus. Une liste en attente est désactivée avec le texte « Choisissez d'abord… ». Les changements hors de vue sont annoncés par la région status.
 - Diplômé : connaît tous les sorts, rien à choisir.
-- Validation à l'envoi : récapitulatif d'erreurs en tête (groupe recréé et nommé par son titre, focus sur le premier lien, chaque lien mène au champ), plus `aria-invalid` et message lié par `aria-describedby` sur chaque champ. Vérifie aussi un sort choisi deux fois et la répartition des traits.
+- Validation à l'envoi : récapitulatif d'erreurs en tête (groupe recréé et nommé par son titre, focus sur le premier lien, chaque lien mène au champ), plus `aria-invalid` et message « Erreur : … » lié par `aria-describedby` sur chaque champ.
+- **Chaque erreur dit précisément où et quoi** (demande de l'utilisateur) : « Section <légende>, <libellé du champ> : <problème>. <comment corriger>. » La section et le libellé sont lus dans le DOM (`legend`, `label`). Le titre du récapitulatif donne le nombre d'erreurs et les sections concernées.
+- Cas précis : sort en double (« le sort X est déjà choisi dans Sort 1 sur 3 ») ; traits (chaque trait qui porte une valeur en trop est marqué, avec les autres traits qui ont la même valeur, et les valeurs pas encore utilisées).
 - Le formulaire est affiché par `afficherContenu()` de `choices.js`, dans le groupe nommé par le tour.
 
 ## Raccourcis (`src/js/ui/keyboard.js`)

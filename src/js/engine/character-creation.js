@@ -234,59 +234,97 @@ function _lireFormulaire($form) {
   };
 }
 
-// Renvoie [{ id du champ, message }] dans l'ordre du formulaire.
+// Renvoie [{ id du champ, probleme }] dans l'ordre du formulaire.
+// La section et le nom du champ sont ajoutés à l'affichage (voir _montrerErreurs).
 function _verifier(c) {
   const e = [];
-  const manque = (id, nom) => e.push({ id, message: `${nom} : à choisir.` });
+  const liste = (id) => e.push({ id, probleme: 'aucun choix. Choisissez une option dans la liste.' });
+  const texte = (id) => e.push({ id, probleme: 'le champ est vide. Écrivez un nom.' });
 
-  if (!c.annee) manque('annee', 'Année');
-  if (!c.prenom) e.push({ id: 'prenom', message: 'Prénom : à écrire.' });
-  if (!c.nom) e.push({ id: 'nom', message: 'Nom de famille : à écrire.' });
-  if (!c.teint) manque('teint', 'Teint');
-  if (!c.cheveux) manque('cheveux', 'Cheveux');
-  if (!c.silhouette) manque('silhouette', 'Silhouette');
-  if (!c.ambition) manque('ambition', 'Ambition');
-  if (!c.bois) manque('bois', 'Bois de la baguette');
-  if (!c.coeur) manque('coeur', 'Cœur de la baguette');
-  if (!c.aspect) manque('aspect', 'Aspect de la baguette');
-  if (!c.origine) manque('origine', 'Origine');
-  if (!c.matiere) manque('matiere', 'Matière préférée');
+  if (!c.annee) liste('annee');
+  if (!c.prenom) e.push({ id: 'prenom', probleme: 'le champ est vide. Écrivez un prénom.' });
+  if (!c.nom) texte('nom');
+  if (!c.teint) liste('teint');
+  if (!c.cheveux) liste('cheveux');
+  if (!c.silhouette) liste('silhouette');
+  if (!c.ambition) liste('ambition');
+  if (!c.bois) liste('bois');
+  if (!c.coeur) liste('coeur');
+  if (!c.aspect) liste('aspect');
+  if (!c.origine) liste('origine');
+  if (!c.matiere) liste('matiere');
 
-  c.sorts.forEach((s, i) => { if (!s) manque(`sort-${i + 1}`, `Sort ${i + 1}`); });
-  const doublon = c.sorts.findIndex((s, i) => s && c.sorts.indexOf(s) !== i);
-  if (doublon !== -1) e.push({ id: `sort-${doublon + 1}`, message: `Sort ${doublon + 1} : ce sort est déjà choisi dans une autre liste.` });
+  const nbSorts = c.sorts.length;
+  c.sorts.forEach((s, i) => {
+    if (!s) { liste(`sort-${i + 1}`); return; }
+    const premier = c.sorts.indexOf(s);
+    if (premier !== i) {
+      e.push({ id: `sort-${i + 1}`, probleme: `le sort ${s} est déjà choisi dans Sort ${premier + 1} sur ${nbSorts}. Choisissez un autre sort.` });
+    }
+  });
 
   const cles = Object.keys(NOMS_TRAITS);
-  cles.forEach(cle => { if (c.traits[cle] === '') manque(`trait-${cle}`, NOMS_TRAITS[cle]); });
-  if (cles.every(cle => c.traits[cle] !== '')) {
-    const donnees = cles.map(cle => Number(c.traits[cle])).sort((a, b) => b - a).join(',');
-    if (donnees !== VALEURS_TRAITS.join(',')) {
-      e.push({ id: `trait-${cles[0]}`, message: 'Traits : chaque valeur doit servir une fois exactement, soit plus 2, plus 1, plus 1, zéro et moins 1.' });
-    }
-  }
+  cles.forEach(cle => { if (c.traits[cle] === '') liste(`trait-${cle}`); });
+  if (cles.every(cle => c.traits[cle] !== '')) e.push(..._erreursTraits(c.traits));
 
-  if (!c.maison) manque('maison', 'Maison');
-  if (c.maison && !c.questionAmi) manque('question-ami', 'Question de votre ami');
-  if (c.maison && !c.questionRival) manque('question-rival', 'Question de votre rival');
-  if (!c.animal) manque('animal', 'Animal');
-  if (c.animal && c.animal !== 'aucun' && !c.nomAnimal) e.push({ id: 'nom-animal', message: 'Nom de l\'animal : à écrire.' });
-  if (!c.categoriePatronus) manque('categorie-patronus', 'Catégorie du Patronus');
-  if (c.categoriePatronus && c.categoriePatronus !== 'plus-tard' && !c.patronus) manque('patronus', 'Animal du Patronus');
+  if (!c.maison) liste('maison');
+  if (c.maison && !c.questionAmi) liste('question-ami');
+  if (c.maison && !c.questionRival) liste('question-rival');
+  if (!c.animal) liste('animal');
+  if (c.animal && c.animal !== 'aucun' && !c.nomAnimal) texte('nom-animal');
+  if (!c.categoriePatronus) liste('categorie-patronus');
+  if (c.categoriePatronus && c.categoriePatronus !== 'plus-tard' && !c.patronus) liste('patronus');
   return e;
 }
 
+// Traits : dit quelle valeur est en trop, dans quels traits, et ce qui manque.
+function _erreursTraits(traits) {
+  const attendu = {};
+  VALEURS_TRAITS.forEach(v => { attendu[v] = (attendu[v] ?? 0) + 1; });
+  const utilise = {};
+  Object.values(traits).forEach(v => { utilise[Number(v)] = (utilise[Number(v)] ?? 0) + 1; });
+
+  const manquantes = Object.keys(attendu).map(Number).sort((a, b) => b - a)
+    .flatMap(v => Array((attendu[v] - (utilise[v] ?? 0)) > 0 ? attendu[v] - (utilise[v] ?? 0) : 0).fill(_signeParle(v)));
+  if (!manquantes.length) return [];
+  const suite = ` Valeur${manquantes.length > 1 ? 's' : ''} pas encore utilisée${manquantes.length > 1 ? 's' : ''} : ${manquantes.join(', ')}.`;
+
+  const erreurs = [];
+  for (const [cle, brut] of Object.entries(traits)) {
+    const v = Number(brut);
+    if ((utilise[v] ?? 0) <= (attendu[v] ?? 0)) continue;
+    const autres = Object.entries(traits).filter(([k, x]) => k !== cle && Number(x) === v).map(([k]) => NOMS_TRAITS[k]);
+    const fois = attendu[v] === 1 ? "qu'une fois" : `que ${attendu[v]} fois`;
+    erreurs.push({
+      id: `trait-${cle}`,
+      probleme: `la valeur ${_signeParle(v)} est aussi donnée à ${autres.join(' et ')}, alors qu'elle ne doit servir ${fois}.${suite}`
+    });
+  }
+  return erreurs;
+}
+
 // Récapitulatif en tête du formulaire, avec un lien vers chaque champ,
-// et marquage de chaque champ en erreur. Comme pour les choix, le récapitulatif
-// est un groupe recréé à chaque fois et nommé par son titre ; le focus va sur
-// le premier lien : NVDA lit le titre puis le lien, dans les deux modes.
+// et marquage de chaque champ en erreur. Chaque erreur dit la section,
+// le champ, le problème et comment le corriger. Comme pour les choix, le
+// récapitulatif est un groupe recréé à chaque fois et nommé par son titre ;
+// le focus va sur le premier lien : NVDA lit le titre puis le lien.
 let _compteurErreurs = 0;
 
 function _montrerErreurs($form, $erreurs, erreurs) {
   $form.querySelectorAll('.is-invalid').forEach(el => {
     el.classList.remove('is-invalid');
     el.removeAttribute('aria-invalid');
+    el.removeAttribute('aria-describedby');
   });
   $form.querySelectorAll('.invalid-feedback').forEach(el => el.remove());
+
+  const lieu = (champ) => {
+    const section = champ?.closest('fieldset')?.querySelector('legend')?.textContent ?? '';
+    const nom = champ?.labels?.[0]?.textContent ?? '';
+    return { section, nom };
+  };
+
+  const sections = [...new Set(erreurs.map(({ id }) => lieu($form.querySelector(`#creation-${id}`)).section))];
 
   $erreurs.innerHTML = '';
   const groupe = document.createElement('div');
@@ -295,19 +333,21 @@ function _montrerErreurs($form, $erreurs, erreurs) {
   titre.id = `titre-erreurs-${++_compteurErreurs}`;
   groupe.setAttribute('aria-labelledby', titre.id);
   titre.className = 'h5';
-  titre.textContent = erreurs.length === 1
-    ? 'Il reste 1 point à corriger avant de valider.'
-    : `Il reste ${erreurs.length} points à corriger avant de valider.`;
+  titre.textContent =
+    `${erreurs.length === 1 ? 'Il reste 1 erreur' : `Il reste ${erreurs.length} erreurs`}, ` +
+    `dans ${sections.length === 1 ? 'la section' : 'les sections'} ${_enumerer(sections)}. ` +
+    'Chaque lien mène au champ à corriger.';
   const ul = document.createElement('ul');
   ul.className = 'mb-0';
 
-  erreurs.forEach(({ id, message }) => {
+  erreurs.forEach(({ id, probleme }) => {
     const champ = $form.querySelector(`#creation-${id}`);
+    const { section, nom } = lieu(champ);
     const li = document.createElement('li');
     const lien = document.createElement('a');
     lien.href = `#creation-${id}`;
     lien.className = 'alert-link';
-    lien.textContent = message;
+    lien.textContent = `Section ${section}, ${nom} : ${probleme}`;
     lien.addEventListener('click', (e) => { e.preventDefault(); champ?.focus(); });
     li.appendChild(lien);
     ul.appendChild(li);
@@ -318,7 +358,7 @@ function _montrerErreurs($form, $erreurs, erreurs) {
       const retour = document.createElement('div');
       retour.id = `erreur-${id}`;
       retour.className = 'invalid-feedback';
-      retour.textContent = message;
+      retour.textContent = `Erreur : ${probleme}`;
       champ.insertAdjacentElement('afterend', retour);
       champ.setAttribute('aria-describedby', retour.id);
     }
@@ -328,6 +368,12 @@ function _montrerErreurs($form, $erreurs, erreurs) {
   $erreurs.appendChild(groupe);
   $erreurs.hidden = false;
   ul.querySelector('a').focus();
+}
+
+// « A », « A et B », « A, B et C »
+function _enumerer(mots) {
+  if (mots.length <= 1) return mots.join('');
+  return `${mots.slice(0, -1).join(', ')} et ${mots[mots.length - 1]}`;
 }
 
 // ================================================================
