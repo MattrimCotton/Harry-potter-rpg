@@ -1,95 +1,119 @@
 <!DOCTYPE html>
-<html lang="fr">
+<html lang="fr" data-bs-theme="dark">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Poudlard — Jeu de Rôle Solo</title>
+  <link rel="stylesheet" href="vendor/bootstrap/bootstrap.min.css">
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
-  <a href="#zone-actions" class="lien-evitement">Aller aux actions</a>
+  <a href="#zone-actions" class="visually-hidden-focusable btn btn-warning m-2">Aller aux choix</a>
 
-  <header>
-    <h1>Poudlard — Jeu de Rôle Solo</h1>
+  <header class="border-bottom border-warning-subtle py-3 mb-4">
+    <div class="container">
+      <h1 class="h3 m-0 text-warning">Poudlard — Jeu de Rôle Solo</h1>
+    </div>
   </header>
 
-  <main id="contenu-principal" tabindex="-1">
+  <main id="contenu-principal" class="container" tabindex="-1">
 
     <!-- Historique découpé en tours. Pas de région live : le tour devient le nom
          du groupe de choix, lu par NVDA quand le focus y entre (voir actions.js). -->
-    <section id="section-histoire" aria-labelledby="titre-narration">
-      <h2 id="titre-narration" class="sr-seul">Histoire</h2>
-      <div id="narration"></div>
+    <section aria-labelledby="titre-narration" class="mb-4">
+      <h2 id="titre-narration" class="visually-hidden">Histoire</h2>
+      <div class="card"><div id="narration" class="card-body"></div></div>
     </section>
 
-    <nav id="zone-actions" aria-label="Actions disponibles" tabindex="-1">
-      <h2 class="sr-seul">Actions</h2>
+    <nav id="zone-actions" aria-labelledby="titre-actions" class="mb-4" tabindex="-1">
+      <h2 id="titre-actions" class="visually-hidden">Choix</h2>
     </nav>
 
-    <nav id="zone-outils" aria-label="Fiche et outils">
-      <h2 class="sr-seul">Fiche et outils</h2>
-      <ul>
-        <li><button type="button" data-outil="relire"  aria-keyshortcuts="F9">Relire le dernier tour <span class="raccourci">F9</span></button></li>
-        <li><button type="button" data-outil="traits"  aria-keyshortcuts="F1">Traits <span class="raccourci">F1</span></button></li>
-        <li><button type="button" data-outil="etats"   aria-keyshortcuts="F2">États <span class="raccourci">F2</span></button></li>
-        <li><button type="button" data-outil="sorts"   aria-keyshortcuts="F3">Sorts <span class="raccourci">F3</span></button></li>
-        <li><button type="button" data-outil="amis"    aria-keyshortcuts="F4">Amis et rivaux <span class="raccourci">F4</span></button></li>
-        <li><button type="button" data-outil="chance"  aria-keyshortcuts="F5">Chance et expérience <span class="raccourci">F5</span></button></li>
-        <li><button type="button" data-outil="sauver"  aria-keyshortcuts="F8">Sauvegarder <span class="raccourci">F8</span></button></li>
-        <li><button type="button" data-outil="aide">Aide et raccourcis</button></li>
-      </ul>
+    <!-- Menu d'outils : replié par défaut -->
+    <nav aria-labelledby="bouton-outils" class="mb-4">
+      <button id="bouton-outils" class="btn btn-outline-warning" type="button"
+              data-bs-toggle="collapse" data-bs-target="#zone-outils"
+              aria-expanded="false" aria-controls="zone-outils">
+        Outils
+      </button>
+      <div id="zone-outils" class="collapse mt-2">
+        <div class="list-group">
+          <button type="button" class="list-group-item list-group-item-action" data-outil="relire" aria-keyshortcuts="F9">Relire le dernier texte <kbd aria-hidden="true">F9</kbd></button>
+          <button type="button" class="list-group-item list-group-item-action" data-outil="traits" aria-keyshortcuts="F1">Traits <kbd aria-hidden="true">F1</kbd></button>
+          <button type="button" class="list-group-item list-group-item-action" data-outil="etats"  aria-keyshortcuts="F2">États <kbd aria-hidden="true">F2</kbd></button>
+          <button type="button" class="list-group-item list-group-item-action" data-outil="sorts"  aria-keyshortcuts="F3">Sorts <kbd aria-hidden="true">F3</kbd></button>
+          <button type="button" class="list-group-item list-group-item-action" data-outil="amis"   aria-keyshortcuts="F4">Amis et rivaux <kbd aria-hidden="true">F4</kbd></button>
+          <button type="button" class="list-group-item list-group-item-action" data-outil="chance" aria-keyshortcuts="F5">Chance et expérience <kbd aria-hidden="true">F5</kbd></button>
+          <button type="button" class="list-group-item list-group-item-action" data-outil="sauver" aria-keyshortcuts="F8">Sauvegarder <kbd aria-hidden="true">F8</kbd></button>
+        </div>
+      </div>
     </nav>
 
-    <!-- Annonces sans déplacement de focus : fiche, sauvegarde, erreurs -->
-    <div id="alerte" role="alert" aria-atomic="true" class="sr-seul"></div>
-    <div id="statut" role="status" aria-atomic="true" class="sr-seul"></div>
+    <!-- Annonces sans déplacement de focus : fiche, relecture, sauvegarde, erreurs -->
+    <div id="alerte" role="alert" aria-atomic="true" class="visually-hidden"></div>
+    <div id="statut" role="status" aria-atomic="true" class="visually-hidden"></div>
 
   </main>
 
-  <details id="aide">
-    <summary>Aide et raccourcis clavier</summary>
-    <p>Le jeu est prévu pour NVDA et fonctionne dans les deux modes : navigation et formulaire. Après chaque choix, NVDA lit le nouveau texte, puis place le focus sur le choix suivant.</p>
-    <p>Quand il y a trois possibilités ou plus, elles sont dans une liste déroulante : choisissez avec les flèches haut et bas, puis appuyez sur Entrée, ou sur le bouton « Valider le choix ». Quand il y en a une ou deux, ce sont des boutons : appuyez sur Entrée. Les déplacements (nord, est…) sont toujours des boutons.</p>
-    <ul>
-      <li>F9 : relire le dernier texte, sans quitter le choix en cours.</li>
-      <li>Échap, en mode navigation, ou Retour arrière, dans les deux modes : revenir en arrière ou annuler, quand c'est possible.</li>
-      <li>F1 : vos traits.</li>
-      <li>F2 : vos états actifs.</li>
-      <li>F3 : vos sorts connus.</li>
-      <li>F4 : vos amis et rivaux.</li>
-      <li>F5 : votre chance et votre expérience.</li>
-      <li>F8 : sauvegarder. La partie est aussi sauvegardée après chaque jet.</li>
-      <li>Mode formulaire : sur un bouton, les flèches haut et bas, Début et Fin passent d'un bouton à l'autre.</li>
-      <li>Mode navigation : les flèches lisent l'histoire, et les commandes B et Maj+B de NVDA passent d'un bouton à l'autre. L'historique des derniers tours est juste au-dessus des choix.</li>
-    </ul>
-    <p>Sur un ordinateur portable, il faut parfois maintenir la touche Fn pour les touches F. Tous ces raccourcis existent aussi en boutons, dans la zone « Fiche et outils », juste après les choix.</p>
-  </details>
-
   <!-- Fiche personnage visuelle. Les touches F1-F5 l'annoncent sans déplacer le focus. -->
-  <aside id="fiche-personnage" aria-label="Fiche de personnage" hidden>
-    <section aria-labelledby="titre-traits">
-      <h2 id="titre-traits">Traits</h2>
-      <dl id="liste-traits"></dl>
-    </section>
-    <section aria-labelledby="titre-etats">
-      <h2 id="titre-etats">États actifs</h2>
-      <ul id="liste-etats"></ul>
-    </section>
-    <section aria-labelledby="titre-sorts">
-      <h2 id="titre-sorts">Sorts connus</h2>
-      <ul id="liste-sorts"></ul>
-    </section>
-    <section aria-labelledby="titre-amis">
-      <h2 id="titre-amis">Amis et Rivaux</h2>
-      <ul id="liste-amis"></ul>
-    </section>
-    <section aria-labelledby="titre-chance">
-      <h2 id="titre-chance">Chance et Expérience</h2>
-      <dl id="liste-chance"></dl>
-    </section>
+  <aside id="fiche-personnage" class="container mb-4" aria-label="Fiche de personnage" hidden>
+    <div class="row g-3">
+      <section class="col-md-6" aria-labelledby="titre-traits">
+        <div class="card h-100"><div class="card-body">
+          <h2 id="titre-traits" class="h6 text-warning">Traits</h2>
+          <dl id="liste-traits" class="mb-0"></dl>
+        </div></div>
+      </section>
+      <section class="col-md-6" aria-labelledby="titre-chance">
+        <div class="card h-100"><div class="card-body">
+          <h2 id="titre-chance" class="h6 text-warning">Chance et Expérience</h2>
+          <dl id="liste-chance" class="mb-0"></dl>
+        </div></div>
+      </section>
+      <section class="col-md-4" aria-labelledby="titre-etats">
+        <div class="card h-100"><div class="card-body">
+          <h2 id="titre-etats" class="h6 text-warning">États actifs</h2>
+          <ul id="liste-etats" class="mb-0"></ul>
+        </div></div>
+      </section>
+      <section class="col-md-4" aria-labelledby="titre-sorts">
+        <div class="card h-100"><div class="card-body">
+          <h2 id="titre-sorts" class="h6 text-warning">Sorts connus</h2>
+          <ul id="liste-sorts" class="mb-0"></ul>
+        </div></div>
+      </section>
+      <section class="col-md-4" aria-labelledby="titre-amis">
+        <div class="card h-100"><div class="card-body">
+          <h2 id="titre-amis" class="h6 text-warning">Amis et Rivaux</h2>
+          <ul id="liste-amis" class="mb-0"></ul>
+        </div></div>
+      </section>
+    </div>
   </aside>
 
+  <!-- Aide : un seul endroit, en bas de page, repliée par défaut -->
+  <footer class="container border-top border-warning-subtle pt-3 pb-5">
+    <button id="bouton-aide" class="btn btn-outline-warning" type="button"
+            data-bs-toggle="collapse" data-bs-target="#aide"
+            aria-expanded="false" aria-controls="aide">
+      Aide
+    </button>
+    <div id="aide" class="collapse mt-3">
+      <p>Après chaque choix, NVDA lit le nouveau texte, puis le choix suivant. Le jeu fonctionne en mode navigation comme en mode formulaire.</p>
+      <p>Dans une liste déroulante, choisissez avec les flèches, puis validez avec Entrée. Sur un bouton, appuyez sur Entrée.</p>
+      <h2 class="h6 text-warning">Raccourcis</h2>
+      <ul>
+        <li>F1 : traits. F2 : états. F3 : sorts. F4 : amis et rivaux. F5 : chance et expérience.</li>
+        <li>F8 : sauvegarder. La partie se sauvegarde aussi toute seule.</li>
+        <li>F9 : relire le dernier texte.</li>
+        <li>Échap ou Retour arrière : revenir en arrière. Échap ne marche qu'en mode navigation.</li>
+      </ul>
+      <p class="mb-0">Sur un portable, maintenez Fn pour les touches F. Le menu Outils propose les mêmes actions.</p>
+    </div>
+  </footer>
+
+  <script src="vendor/bootstrap/bootstrap.bundle.min.js"></script>
   <script type="module" src="js/main.js"></script>
 
 </body>

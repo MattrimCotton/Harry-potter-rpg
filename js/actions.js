@@ -1,7 +1,7 @@
 // Zone d'actions : les choix du moment.
 //
 // Format d'une action :
-// { label: string, action: () => void, desactive?: bool, retour?: bool, bouton?: bool }
+// { label: string, action: () => void, desactive?: bool, retour?: bool, bouton?: bool, principal?: bool }
 //
 // Présentation (choix de l'utilisateur) :
 // - 3 choix ou plus : une liste déroulante, validée par Entrée ou par le bouton Valider ;
@@ -62,14 +62,15 @@ export function afficherActions(actions) {
 
 function _creerListeDeroulante($liste, choix) {
   const li = document.createElement('li');
-  li.className = 'choix-deroulant';
 
   const label = document.createElement('label');
   label.htmlFor = 'liste-choix';
+  label.className = 'form-label';
   label.textContent = 'Votre choix';
 
   const select = document.createElement('select');
   select.id = 'liste-choix';
+  select.className = 'form-select form-select-lg';
   choix.forEach((a, i) => {
     const option = document.createElement('option');
     option.value = String(i);
@@ -96,7 +97,8 @@ function _creerListeDeroulante($liste, choix) {
   li.append(label, select);
   $liste.appendChild(li);
 
-  _creerBouton($liste, { label: 'Valider le choix', action: valider });
+  // Nécessaire en mode navigation : NVDA n'y transmet pas Entrée à la liste.
+  _creerBouton($liste, { label: 'Valider le choix', action: valider, principal: true });
   return select;
 }
 
@@ -104,18 +106,22 @@ function _creerBouton($liste, a) {
   const li  = document.createElement('li');
   const btn = document.createElement('button');
   btn.type = 'button';
+  btn.textContent = a.label;
 
   if (a === _actionRetour) {
+    // La touche est déclarée une seule fois (aria-keyshortcuts) ; l'indication
+    // visible est masquée à NVDA pour éviter qu'il la dise deux fois.
+    btn.className = 'btn btn-outline-secondary w-100 text-start';
     btn.setAttribute('aria-keyshortcuts', 'Escape Backspace');
-    btn.setAttribute('aria-label', `${a.label}, touche Échap ou Retour arrière`);
-    const libelle = document.createElement('span');
-    libelle.textContent = a.label;
-    const touche = document.createElement('span');
-    touche.className = 'raccourci';
+    const touche = document.createElement('kbd');
+    touche.className = 'ms-2';
+    touche.setAttribute('aria-hidden', 'true');
     touche.textContent = 'Échap';
-    btn.append(libelle, touche);
+    btn.appendChild(touche);
   } else {
-    btn.textContent = a.label;
+    btn.className = a.principal
+      ? 'btn btn-warning w-100 text-start'
+      : 'btn btn-outline-light w-100 text-start';
   }
 
   if (a.desactive) {
@@ -137,22 +143,23 @@ export function demanderTexte({ question, exemple, onValider, onAnnuler }) {
   if (tour) _nommerGroupe($liste, tour);
 
   const li    = document.createElement('li');
-  li.className = 'saisie';
 
   const label = document.createElement('label');
   label.htmlFor = 'champ-saisie';
+  label.className = 'form-label';
   const phrase = /[.?!:]$/.test(question) ? question : `${question}.`;
   label.textContent = exemple ? `${phrase} Exemple : ${exemple}.` : phrase;
 
   const input = document.createElement('input');
   input.type = 'text';
   input.id   = 'champ-saisie';
+  input.className = 'form-control form-control-lg';
   input.autocomplete = 'off';
   input.setAttribute('aria-describedby', 'erreur-saisie');
 
   const erreur = document.createElement('p');
   erreur.id = 'erreur-saisie';
-  erreur.className = 'erreur';
+  erreur.className = 'invalid-feedback d-block';
 
   li.append(label, input, erreur);
   $liste.appendChild(li);
@@ -161,6 +168,7 @@ export function demanderTexte({ question, exemple, onValider, onAnnuler }) {
     const val = input.value.trim();
     if (!val) {
       input.setAttribute('aria-invalid', 'true');
+      input.classList.add('is-invalid');
       erreur.textContent = 'Le champ est vide. Écrivez une réponse, puis appuyez sur Entrée.';
       annoncer(erreur.textContent);
       input.focus();
@@ -173,20 +181,11 @@ export function demanderTexte({ question, exemple, onValider, onAnnuler }) {
     if (e.key === 'Enter') { e.preventDefault(); valider(); }
   });
 
-  const boutons = [{ label: 'Valider', action: valider }];
-  if (onAnnuler) boutons.push({ label: 'Annuler', action: onAnnuler, retour: true });
-  _actionRetour = onAnnuler ? boutons[1] : null;
-
-  boutons.forEach((b) => {
-    const liBtn = document.createElement('li');
-    const btn   = document.createElement('button');
-    btn.type = 'button';
-    btn.textContent = b.label;
-    if (b.retour) btn.setAttribute('aria-keyshortcuts', 'Escape Backspace');
-    btn.addEventListener('click', b.action);
-    liBtn.appendChild(btn);
-    $liste.appendChild(liBtn);
-  });
+  _creerBouton($liste, { label: 'Valider', action: valider, principal: true });
+  if (onAnnuler) {
+    _actionRetour = { label: 'Annuler', action: onAnnuler, retour: true };
+    _creerBouton($liste, _actionRetour);
+  }
 
   input.focus();
 }
@@ -231,6 +230,7 @@ function _viderListe() {
 
   const $liste = document.createElement('ul');
   $liste.id = 'liste-actions';
+  $liste.className = 'list-unstyled d-grid gap-2 mb-0';
 
   $groupe.appendChild($liste);
   $zone.appendChild($groupe);

@@ -142,6 +142,12 @@ function build() {
 
   const css  = fs.readFileSync(path.join(ROOT, 'style.css'), 'utf8');
   const html = fs.readFileSync(path.join(ROOT, 'index.html'), 'utf8');
+
+  // Bootstrap est copié dans vendor/ et intégré au fichier : aucune connexion requise.
+  // Les commentaires sourceMappingURL sont retirés (le navigateur chercherait le fichier .map).
+  const sansSourceMap = (code) => code.replace(/\/[/*]# sourceMappingURL=.*$/m, '');
+  const bootstrapCss = sansSourceMap(fs.readFileSync(path.join(ROOT, 'vendor/bootstrap/bootstrap.min.css'), 'utf8'));
+  const bootstrapJs  = sansSourceMap(fs.readFileSync(path.join(ROOT, 'vendor/bootstrap/bootstrap.bundle.min.js'), 'utf8'));
   const resourceMap = buildResourceMap();
 
   // --- Fetch override : intercepte les appels JSON locaux ---
@@ -177,16 +183,26 @@ const __RESSOURCES = ${JSON.stringify(resourceMap)};
   }
 
   // --- Injection dans le HTML ---
+  // Remplacements par fonction : le code injecté contient des « $ »,
+  // que replace() interpréterait sinon comme des motifs spéciaux.
   let output = html
     // CSS inline
     .replace(
+      /<link rel="stylesheet" href="vendor\/bootstrap\/bootstrap\.min\.css">/,
+      () => `<style>\n${bootstrapCss}\n</style>`
+    )
+    .replace(
       /<link rel="stylesheet" href="style\.css">/,
-      `<style>\n${css}\n</style>`
+      () => `<style>\n${css}\n</style>`
+    )
+    .replace(
+      /<script src="vendor\/bootstrap\/bootstrap\.bundle\.min\.js"><\/script>/,
+      () => `<script>\n${bootstrapJs}\n</script>`
     )
     // Script module → script classique
     .replace(
       /<script type="module" src="js\/main\.js"><\/script>/,
-      `<script>\n${jsBundle}\n</script>`
+      () => `<script>\n${jsBundle}\n</script>`
     );
 
   // --- Écriture ---

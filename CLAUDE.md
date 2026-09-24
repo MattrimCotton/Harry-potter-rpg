@@ -41,14 +41,15 @@ Au début de chaque session, tu dois :
 ## Stack technique
 
 - **HTML sémantique** — structure accessible, landmarks ARIA
-- **CSS** — mise en forme (secondaire pour les non-voyants)
-- **JavaScript vanille** — aucun framework, aucune dépendance, modules ES6 bundlés
+- **Bootstrap 5** — framework CSS pour mise en forme, thème sombre (`data-bs-theme="dark"`), système de grille, composants collapse ; copié dans `vendor/bootstrap/` et bundlé directement (aucune CDN, offline-first)
+- **CSS** — mise en forme supplémentaire (secondaire pour les non-voyants)
+- **JavaScript vanille** — aucun framework de logique métier, aucune dépendance JS, modules ES6 bundlés
 - **Modèle des tours** (`narration.js` + `actions.js`) — le texte du jeu est groupé en « tours » (historique `#narration`). Chaque tour devient le nom (`aria-labelledby`) d'un groupe de choix `role="group"` **recréé à chaque tour**, et le focus va sur le premier choix : NVDA lit le tour puis le choix, en mode navigation comme en mode formulaire
 - **ARIA Regions** — `role="alert"` (assertive) et `role="status"` (polite) **uniquement** pour annonces sans déplacement de focus (fiche F1-F5, sauvegarde F8, erreurs de saisie) ; **pas de région live pour la narration** (qui couperait NVDA)
 - **Pas de synthèse vocale intégrée** — le jeu se joue avec NVDA, qui lit tout (décision du 2026-09-24)
 - **localStorage** — sauvegarde des parties
 - **JSON** — contenu du jeu (sorts, tables, scénarios)
-- **Build** — `build.js` (Node.js) → genère `poudlard-rpg.html` standalone (aucun serveur requis)
+- **Build** — `build.js` (Node.js) → genère `poudlard-rpg.html` standalone (aucun serveur requis) ; includes Bootstrap CSS & JS inline
 
 ### Compatibilité lecteurs d'écran cible
 - NVDA + Firefox/Chrome (Windows) — **référence** : tout doit marcher en mode navigation ET en mode formulaire
@@ -120,9 +121,10 @@ Ensorcelé (-1 trait au choix Narrateur), Inconscient (hors jeu)
 6. **Pas de délais** sur les interactions (pas de timeout)
 7. **Langage clair** — phrases courtes, pas d'abréviations, nombres et signes en toutes lettres (« plus 1 »)
 8. **Répétition** — F9 relit le dernier tour par annonce, sans déplacer le focus
-9. **Chaque raccourci existe aussi en bouton** — zone « Fiche et outils »
+9. **Chaque raccourci existe aussi en bouton** — menu « Outils » (collapse Bootstrap, replié par défaut) ; la touche est déclarée une seule fois (`aria-keyshortcuts`), l'indication visible `<kbd>` est `aria-hidden` pour éviter que NVDA la dise deux fois
 11. **Choix** — 3 choix ou plus : liste déroulante (Entrée ou « Valider le choix ») ; 1 ou 2 choix : boutons ; déplacements (`"deplacement": true` dans les scénarios) et retour : toujours des boutons
-12. **Aide** — bloc `<details>` replié par défaut
+12. **Aide** — à un seul endroit : bas de page, collapse Bootstrap replié par défaut (ni dans le menu, ni dans le message d'accueil, ni dans les outils)
+13. **Bootstrap pour toute l'interface** (décision de l'utilisateur) — pas de CSS maison sauf thème et historique
 10. **Sauvegarde automatique silencieuse** — seule F8 annonce « Partie sauvegardée »
 
 ### Raccourcis clavier standard du jeu (NVDA prioritaire)
@@ -147,16 +149,17 @@ Les touches F sont interceptées même dans un champ texte, pour que F5 ne recha
 | `memory/MEMORY.md` | Index mémoire — lire en premier |
 | `termes-reference.md` | Référence complète des traductions FR lore HP |
 | `resources-pdf/` | PDFs source du jeu original |
-| `index.html` | Point d'entrée, structure sémantique : `<main>` contient narration (section histoire), actions (nav), outils (nav F1-F5/F8-F9), annonces (alert/status). `<section id="aide">` : aide contextuelle. `<aside>` : fiche personnage cachée (traits/états/sorts/amis/chance). Annonces via `role="alert"` (assertive) et `role="status"` (polite) sans aria-live. |
-| `style.css` | Mise en forme (secondaire pour accessibilité) |
-| `build.js` | Bundler Node.js — transforme modules ES6 en script classique, inline CSS + JS + JSON dans `poudlard-rpg.html` (usage: `node build.js`) |
+| `index.html` | Point d'entrée, structure Bootstrap 5 : `<html data-bs-theme="dark">` ; `<main class="container">` contient narration (section avec card), actions (nav), menu « Outils » (collapse Bootstrap replié par défaut, boutons F1-F5/F8-F9 avec `aria-keyshortcuts`, indication `<kbd>` `aria-hidden`), annonces (alert/status). `<footer>` : aide contextuelle (collapse). `<aside class="container">` : fiche personnage cachée (grille Bootstrap row/col-md avec cards, traits/états/sorts/amis/chance). Annonces via `role="alert"` (assertive) et `role="status"` (polite) sans aria-live. Classes Bootstrap : `visually-hidden-focusable`, `btn`, `collapse`, `list-group`, `card`, `row g-3`, `col-md-*`, utilités (border, spacing). |
+| `style.css` | Mise en forme personnalisée complément Bootstrap (secondaire pour accessibilité) |
+| `vendor/bootstrap/` | Bootstrap 5 framework — CSS et JS, chaîné dans le build |
+| `build.js` | Bundler Node.js — transforme modules ES6 en script classique, inline CSS (style.css + Bootstrap) + JS (modules + Bootstrap bundle) + JSON dans `poudlard-rpg.html` (usage: `node build.js`) ; Bootstrap files lus depuis `vendor/bootstrap/` et désourceMappingURL-é pour compatibilité offline |
 | `build.bat` | Script batch Windows — wrapper autour de `build.js`, vérifie Node.js, compile et propose d'ouvrir le résultat (usage: double-cliquer) |
 | `.claude/launch.json` | Configuration Claude Code — serveur de développement Python `http.server` sur port 8765 (usage: `python -m http.server 8765`) — permet prévisualisation live dans Claude Code |
-| `js/main.js` | Point d'entrée JavaScript (module ES6+) — gère l'état global du jeu (`etat` singleton avec `personnage`), orchestration des écrans (menu principal, création, reprise), initialisation au démarrage via `DOMContentLoaded`, intègre clavier + sauvegarde, imports `lancerCreation` de `creation.js` et `lancerJeu` de `jeu.js`; `demarrerCreation()` et `reprendrePartie()` appellent `_assureProgressions()` puis `lancerJeu()` pour démarrer/reprendre le jeu; `_allerAide()` place le focus sur `#aide` (section fixe d'aide) |
+| `js/main.js` | Point d'entrée JavaScript (module ES6+) — gère l'état global du jeu (`etat` singleton avec `personnage`), orchestration des écrans (menu principal, création, reprise), initialisation au démarrage via `DOMContentLoaded`, intègre clavier + sauvegarde, imports `lancerCreation` de `creation.js` et `lancerJeu` de `jeu.js`; `demarrerCreation()` et `reprendrePartie()` appellent `_assureProgressions()` puis `lancerJeu()` pour démarrer/reprendre le jeu |
 | `js/narration.js` | Module central d'annonces — gestion des tours (texte groupé par écran narratif) ; le tour sert de nom au groupe de choix (compatible modes navigation et formulaire) ; `relire()` annonce le dernier tour ; annonces isolées via `role="alert"` (dés, erreurs) et `role="status"` (statut) sans aria-live ; `narrer()`, `narrerFrais()`, `alerter()`, `annoncer()`, `statuer()`, `terminerTour()`, `relire()` |
 | `js/personnage.js` | Gestion du personnage joueur — structure de données, calcul de traits effectifs (avec malus d'états), helpers d'application des bonus d'origine & maison |
 | `js/fiche.js` | Lecture et affichage de la fiche de personnage — appelé par les touches F1-F5 (traits, états, sorts, amis/rivaux, chance/expérience), mises à jour DOM |
-| `js/clavier.js` | Raccourcis clavier globaux (F1-F5, F8, Échap, flèches) et gestion des outils (`zone-outils`) — initialisation via `initClavier(raccourcis)` et `initOutils(raccourcis)` au démarrage, branche touches/boutons aux callbacks du jeu (lireFiche, sauvegarder, afficherAide) |
+| `js/clavier.js` | Raccourcis clavier globaux (F1-F5, F8, Échap, flèches) et gestion du menu « Outils » (collapse Bootstrap) — initialisation via `initClavier(raccourcis)` et `initOutils(raccourcis)` au démarrage, branche touches/boutons aux callbacks du jeu (lireFiche, sauvegarder) ; chaque bouton déclare sa touche via `aria-keyshortcuts` (une seule déclaration ARIA), indication `<kbd>` `aria-hidden` |
 | `js/actions.js` | Affichage des actions (boutons et formulaires texte) — `afficherActions(actions)` construit les boutons avec ARIA labels et focus management ; `demanderTexte({ question, exemple, onValider, onAnnuler })` pour saisie texte accessible ; `declencherRetour()` et `deplacerFocusActions(touche)` pour gestion clavier (Échap, flèches) ; format action: `{ label, action, desactive?, retour? }` (retour=true pour Échap) |
 | `js/des.js` | Moteur de dés — jets 2d6 selon les règles PbtA (succès complet 10+, partiel 7-9, échec 6-) |
 | `js/manoeuvres.js` | Les 11 manœuvres (base + magiques) — définition catalogue (11 objets avec `id`, `nom`, `traits: []`, `options10/79/texte6/questions`, `prealable?`, `bonusRelation?`, `consequenceObligatoire?`) + `resoudreManoeuvre(manoeuvre, personnage, onFin, onAnnuler)` orchestrant : sélection trait si multi-trait, pré-requis (sort/potion), choix bonus (matière/ami/rival), jet 2d6, résultat (10+/7-9/6-), prise d'État, dépense de Chance |
@@ -186,12 +189,12 @@ Les touches F sont interceptées même dans un champ texte, pour que F5 ne recha
 - [x] Architecture définie
 - [x] CLAUDE.md créé
 - [x] Permissions .claude/settings.json configurées
-- [x] `index.html` — landmarks, zone « Fiche et outils », section d'aide, régions alert/status, fiche personnage
-- [x] `style.css` — focus visible, sr-seul, lien d'évitement
+- [x] `index.html` — Bootstrap 5.3.8 local, menu Outils repliable, aide repliable en bas de page, régions alert/status, fiche personnage en cartes
+- [x] `style.css` — thème sombre et or au-dessus de Bootstrap, historique des tours, focus visible
 - [x] `js/narration.js` — tours lus comme nom du groupe de choix (modes navigation et formulaire), régions alert/status pour annonces isolées
 - [x] `js/des.js` — lancerDes(trait, nom), d6(), deuxD6Independants()
 - [x] `js/actions.js` — afficherActions(), demanderTexte(), Échap, flèches
-- [x] `js/clavier.js` — F1-F5, F8, F9, Échap, flèches ; boutons « Fiche et outils »
+- [x] `js/clavier.js` — F1-F5, F8, F9, Échap, Retour arrière, flèches ; boutons du menu « Outils »
 - [x] `js/personnage.js` — creerPersonnageVide(), traitEffectif(), appliquerMaison()
 - [x] `js/fiche.js` — lireFiche(section), mettreAJourFiche()
 - [x] `js/sauvegarde.js` — localStorage

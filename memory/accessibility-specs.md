@@ -16,7 +16,8 @@ Conséquences :
 - Retour : Échap (mode navigation) **et** Retour arrière (les deux modes, ignoré dans un champ texte).
 - Le texte d'un tour doit être lu **sans que le joueur ait à le parcourir avec les flèches** (impossible en mode formulaire).
 - Pas de raccourci à une lettre (WCAG 2.1.4).
-- Chaque raccourci existe aussi en bouton (zone « Fiche et outils »).
+- Chaque raccourci existe aussi en bouton (menu « Outils », replié par défaut).
+- **Chaque touche n'est annoncée qu'une fois** : `aria-keyshortcuts` sur le bouton, et l'indication visible (`<kbd>`) en `aria-hidden`. Ne jamais mettre la touche dans le nom du bouton en plus : NVDA la dirait deux fois.
 
 ## Modèle de lecture : les « tours »
 
@@ -83,14 +84,19 @@ Automatique et **silencieuse** après chaque jet et chaque changement. Une annon
 - Listes longues : les regrouper en sous-menus (le menu de jeu a un sous-menu « Faire une manœuvre libre »).
 - Le jet de dés dit déjà « Succès complet » ou « Succès partiel » : le texte suivant ne le répète pas.
 
-## Page (`index.html`)
+## Page (`index.html`) — Bootstrap pour toute l'interface (décision de l'utilisateur)
 
-`<main>` : section Histoire (`#narration`), `nav#zone-actions`, `nav#zone-outils`, régions `#alerte` et `#statut`. Hors `<main>` : `details#aide` (**repliée par défaut**, décision de l'utilisateur ; le bouton Aide l'ouvre et place le focus sur son `summary` ; pas de titre dans le `summary`, qui se comporte comme un bouton), `aside#fiche-personnage` (visuel).
+- Bootstrap 5.3.8 copié dans `vendor/bootstrap/` (CSS, JS bundle, licence MIT) et intégré à `poudlard-rpg.html` par `build.js` : **aucune connexion Internet**. Thème sombre `data-bs-theme="dark"`, `style.css` ne garde que les couleurs or, l'historique et la fiche.
+- Composants : `card` (historique, fiche), `form-select` / `form-control` / `form-label` / `invalid-feedback` (choix et saisie), `btn` (choix, Valider en `btn-warning`, Retour en `btn-outline-secondary`), `collapse` (Outils, Aide), `list-group` (outils), `visually-hidden` et `visually-hidden-focusable` (lien d'évitement).
+- `<main class="container">` : historique (`#narration`, corps de la carte), `nav#zone-actions`, menu **Outils** (bouton `aria-expanded` + `collapse`, **replié par défaut**), régions `#alerte` et `#statut`.
+- `aside#fiche-personnage` : cartes visuelles.
+- `<footer>` : **Aide, à un seul endroit**, bouton + `collapse` **replié par défaut**. Pas d'entrée d'aide dans le menu, l'accueil ou les outils.
+- Collapse Bootstrap : NVDA annonce « réduit » / « développé » grâce à `aria-expanded`, mis à jour par Bootstrap.
 
 ## Vérifications
 
 - axe-core (serveur MCP `a11y-accessibility`) : 0 violation le 2026-09-24 (WCAG 2.2 AA + bonnes pratiques).
-- Test automatisé du focus dans le navigateur intégré : création complète, manœuvres, Échap, F1, F9, flèches, scénario. OK.
+- Test automatisé du focus dans le navigateur intégré : création complète, manœuvres, Échap, Retour arrière, F1, F9, flèches, listes déroulantes, scénario, repli/dépli Outils et Aide. OK.
 - **À faire : test réel avec NVDA**, via le journal de NVDA au niveau « Entrée/sortie » (`%TEMP%\nvda.log`), dans les deux modes. À vérifier : le nom du groupe est-il lu en entier à chaque tour ? Échap passe-t-il en mode navigation ? Retour arrière dans les deux modes ?
 
 ## Dette restante

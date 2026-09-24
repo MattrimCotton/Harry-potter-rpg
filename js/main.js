@@ -19,8 +19,7 @@ const etat = {
 document.addEventListener('DOMContentLoaded', () => {
   const raccourcis = {
     lireFiche:    (section) => lireFiche(section, etat.personnage),
-    sauvegarder:  _sauvegarder,
-    afficherAide: _allerAide
+    sauvegarder:  _sauvegarder
   };
   initClavier(raccourcis);
   initOutils(raccourcis);
@@ -41,8 +40,7 @@ function afficherMenuPrincipal(aUneSauvegarde) {
   narrerFrais(
     aUneSauvegarde
       ? `Bienvenue à Poudlard, ${etat.personnage.prenom}. Votre aventure vous attend.`
-      : 'Bienvenue à Poudlard. Aucune partie en cours. Créez votre sorcière ou sorcier pour commencer. ' +
-        'Pour l\'aide et les raccourcis clavier, choisissez « Aide » ci-dessous.'
+      : 'Bienvenue à Poudlard. Aucune partie en cours. Créez votre sorcière ou sorcier pour commencer.'
   );
 
   const actions = [];
@@ -53,8 +51,6 @@ function afficherMenuPrincipal(aUneSauvegarde) {
   } else {
     actions.push({ label: 'Créer votre sorcière ou sorcier', action: demarrerCreation });
   }
-
-  actions.push({ label: 'Aide et raccourcis clavier', action: _allerAide });
 
   afficherActions(actions);
 }
@@ -84,16 +80,6 @@ function demarrerCreation() {
     narrer('Personnage créé et sauvegardé. L\'aventure commence !');
     lancerJeu(etat.personnage, () => afficherMenuPrincipal(true));
   });
-}
-
-// L'aide est un bloc repliable de la page (fermé au chargement) :
-// on l'ouvre et on place le focus sur son titre.
-function _allerAide() {
-  const $aide = document.getElementById('aide');
-  $aide.open = true;
-  const $titre = $aide.querySelector('summary');
-  $titre.focus();
-  $titre.scrollIntoView();
 }
 
 // ---- Helpers ----

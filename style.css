@@ -1,114 +1,39 @@
-/* =============================================
-   Poudlard RPG — Feuille de style
-   Priorité : accessibilité clavier et focus visible
-   ============================================= */
+/* Poudlard RPG — petite couche au-dessus de Bootstrap (thème sombre, accent or).
+   L'essentiel de la mise en forme vient des classes Bootstrap dans le HTML. */
 
-/* Classe standard d'accessibilité :
-   visuellement invisible, mais lu par les lecteurs d'écran */
-.sr-seul {
-  position: absolute;
-  width: 1px;
-  height: 1px;
-  padding: 0;
-  margin: -1px;
-  overflow: hidden;
-  clip: rect(0, 0, 0, 0);
-  white-space: nowrap;
-  border: 0;
+:root,
+[data-bs-theme="dark"] {
+  --bs-body-bg: #1a0a00;
+  --bs-body-color: #f0e6d3;
+  --bs-body-font-family: Georgia, 'Times New Roman', serif;
+  --bs-body-font-size: 1.1rem;
+  --bs-body-line-height: 1.7;
+  --bs-card-bg: #0d0500;
+  --bs-border-color: #4a3000;
+  --bs-focus-ring-color: rgba(212, 175, 55, 0.6);
 }
 
-/* Lien d'évitement — visible uniquement au focus clavier */
-.lien-evitement {
-  position: absolute;
-  left: -9999px;
-}
-.lien-evitement:focus {
-  position: static;
-  left: auto;
-  padding: 0.5rem 1rem;
-  background: #d4af37;
-  color: #000;
-  font-weight: bold;
-  text-decoration: none;
-  display: block;
-}
-
-/* Focus visible — indispensable pour navigation clavier */
+/* Focus toujours très visible */
 :focus-visible {
-  outline: 3px solid #d4af37;
+  outline: 3px solid #d4af37 !important;
   outline-offset: 3px;
 }
 
-/* Supprime le focus par clic souris, garde le focus clavier */
-:focus:not(:focus-visible) {
-  outline: none;
-}
-
-/* ---- Base ---- */
-*, *::before, *::after {
-  box-sizing: border-box;
-}
-
-html {
-  font-size: 16px;
-}
-
-body {
-  margin: 0;
-  padding: 0;
-  background: #1a0a00;
-  color: #f0e6d3;
-  font-family: Georgia, 'Times New Roman', serif;
-  font-size: 1.1rem;
-  line-height: 1.7;
-}
-
-/* ---- En-tête ---- */
-header {
-  background: #0d0500;
-  padding: 1rem 2rem;
-  border-bottom: 2px solid #d4af37;
-}
-
-header h1 {
-  margin: 0;
-  color: #d4af37;
-  font-size: 1.6rem;
-  letter-spacing: 0.05em;
-}
-
-/* ---- Contenu principal ---- */
-main {
-  max-width: 800px;
-  margin: 0 auto;
-  padding: 1.5rem 2rem 3rem;
-}
-
-/* ---- Zone de narration ---- */
-#narration {
-  min-height: 5rem;
-  padding: 1rem 1.25rem;
-  background: #0d0500;
-  border: 1px solid #4a3000;
-  border-radius: 4px;
-  margin-bottom: 2rem;
-}
-
-#narration p {
-  margin: 0 0 0.5rem;
-}
-
-/* Un tour = le texte entre deux séries de choix. Les anciens tours restent
-   lisibles au lecteur d'écran, mais s'effacent visuellement. */
+/* ---- Historique : un tour = le texte entre deux séries de choix.
+   Les anciens tours restent lisibles au lecteur d'écran, mais s'effacent visuellement. */
 .tour {
   padding: 0.5rem 0;
-  border-bottom: 1px solid #4a3000;
+  border-bottom: 1px solid var(--bs-border-color);
   color: #a08060;
 }
 
 .tour:last-child {
   border-bottom: 0;
   color: inherit;
+}
+
+.tour p {
+  margin: 0 0 0.5rem;
 }
 
 .tour p.nouvel-ecran {
@@ -119,203 +44,19 @@ main {
   font-weight: bold;
 }
 
-/* ---- Zone d'actions ---- */
-#zone-actions h2 {
-  font-size: 0.9rem;
-  color: #a08060;
-  text-transform: uppercase;
-  letter-spacing: 0.1em;
-  margin: 0 0 0.75rem;
-}
-
-#liste-actions {
-  list-style: none;
-  padding: 0;
-  margin: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 0.4rem;
-}
-
-#liste-actions button,
-#zone-outils button {
-  width: 100%;
-  padding: 0.7rem 1.25rem;
-  background: #2a1500;
-  color: #f0e6d3;
-  border: 1px solid #6a4500;
-  border-radius: 4px;
-  font-family: inherit;
-  font-size: 1rem;
-  text-align: left;
-  cursor: pointer;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-#liste-actions button:hover,
-#zone-outils button:hover {
-  background: #3a2000;
-  border-color: #d4af37;
-}
-
-#liste-actions button:focus-visible,
-#zone-outils button:focus-visible {
-  background: #3a2000;
-  border-color: #d4af37;
-  outline: 3px solid #d4af37;
-  outline-offset: 2px;
-}
-
-#liste-actions button:disabled {
-  opacity: 0.4;
-  cursor: not-allowed;
-}
-
-/* ---- Champs texte (création de personnage) ---- */
-#liste-actions input[type="text"] {
-  display: block;
-  width: 100%;
-  padding: 0.6rem 0.9rem;
-  margin-bottom: 0.5rem;
-  background: #0d0500;
-  color: #f0e6d3;
-  border: 1px solid #6a4500;
-  border-radius: 4px;
-  font-family: inherit;
-  font-size: 1rem;
-}
-
-#liste-actions input[type="text"]:focus-visible {
-  outline: 3px solid #d4af37;
-  outline-offset: 2px;
-  border-color: #d4af37;
-}
-
-
-/* ---- Barre d'outils permanente ---- */
-#zone-outils {
-  margin-top: 2rem;
-  padding-top: 1rem;
-  border-top: 1px solid #4a3000;
-}
-
-#zone-outils ul {
-  list-style: none;
-  padding: 0;
-  margin: 0;
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(14rem, 1fr));
-  gap: 0.4rem;
-}
-
-#zone-outils button {
-  font-size: 0.95rem;
-}
-
-/* ---- Liste déroulante de choix ---- */
-.choix-deroulant label {
-  display: block;
-  margin-bottom: 0.4rem;
-  color: #a08060;
-}
-
-.choix-deroulant select {
-  display: block;
-  width: 100%;
-  padding: 0.6rem 0.9rem;
-  margin-bottom: 0.4rem;
-  background: #0d0500;
-  color: #f0e6d3;
-  border: 1px solid #6a4500;
-  border-radius: 4px;
-  font-family: inherit;
-  font-size: 1rem;
-}
-
-.choix-deroulant select:focus-visible {
-  outline: 3px solid #d4af37;
-  outline-offset: 2px;
-  border-color: #d4af37;
-}
-
-/* ---- Saisie de texte ---- */
-.saisie label {
-  display: block;
-  margin-bottom: 0.4rem;
-}
-
-.erreur {
-  margin: 0 0 0.5rem;
-  color: #ff9f80;
-  font-weight: bold;
-}
-
-.erreur:empty {
-  display: none;
-}
-
-/* ---- Aide ---- */
-#aide {
-  max-width: 800px;
-  margin: 2rem auto;
-  padding: 1.5rem 2rem;
-  border-top: 1px solid #4a3000;
-}
-
-#aide summary {
-  cursor: pointer;
-  color: #d4af37;
-  font-size: 1.1rem;
-  font-weight: bold;
-}
-
-.raccourci {
-  font-size: 0.8rem;
-  color: #888;
-  font-family: monospace;
-  flex-shrink: 0;
-  margin-left: 1rem;
-}
-
-/* ---- Fiche personnage (hors flux) ---- */
-#fiche-personnage {
-  max-width: 800px;
-  margin: 2rem auto;
-  padding: 1.5rem 2rem;
-  border-top: 1px solid #4a3000;
-}
-
-#fiche-personnage h2 {
-  color: #d4af37;
-  font-size: 1rem;
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-  border-bottom: 1px solid #4a3000;
-  padding-bottom: 0.4rem;
-  margin-bottom: 0.75rem;
-}
-
+/* ---- Fiche personnage ---- */
 #fiche-personnage dl {
   display: grid;
   grid-template-columns: max-content 1fr;
   gap: 0.25rem 1rem;
-  margin: 0 0 1rem;
 }
 
 #fiche-personnage dt {
-  color: #a08060;
   font-weight: normal;
+  color: #a08060;
 }
 
 #fiche-personnage dd {
   margin: 0;
   font-weight: bold;
-}
-
-#fiche-personnage ul {
-  list-style: disc;
-  padding-left: 1.5rem;
-  margin: 0 0 1rem;
 }

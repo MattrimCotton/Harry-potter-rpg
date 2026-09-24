@@ -63,13 +63,12 @@ function _dansUnChamp() {
 }
 
 // Branche les boutons de la barre d'outils permanente sur les mêmes fonctions.
-export function initOutils({ lireFiche, sauvegarder, afficherAide }) {
+export function initOutils({ lireFiche, sauvegarder }) {
   document.getElementById('zone-outils').addEventListener('click', (e) => {
     const outil = e.target.closest('button')?.dataset.outil;
     if (!outil) return;
     if (outil === 'relire')      relire();
     else if (outil === 'sauver') sauvegarder();
-    else if (outil === 'aide')   afficherAide();
     else                         lireFiche(outil);
   });
 }
