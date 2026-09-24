@@ -37,8 +37,10 @@ Restent absents : Quidditch, Points de Maison, Mystères, Menaces. Le jeu en sol
 ## Lore (2026-09-24)
 
 - Les PDF ne contiennent **aucune campagne ni scénario** : tout le contenu narratif est à écrire.
-- **Lore propre au jeu, non canon**, construit à partir de ce qu'on sait officiellement de l'univers **après 1998** (épilogue, *L'Enfant maudit*, textes Wizarding World, interviews de J.K. Rowling).
-- Recensement des personnages connus et des postes à inventer : `docs/lore/characters.md` (chaque information avec sa source ; le fanon n'est pas repris).
+- **Lore propre au jeu, pas trop canon**, construit à partir de ce qu'on sait officiellement de l'univers **après 1998** : romans et épilogue, textes Wizarding World, interviews de J.K. Rowling.
+- **_L'Enfant maudit_ est exclu** (décision de l'utilisateur) : ni Delphi, ni rien qui ne vienne que de la pièce. Les maisons d'Albus, Rose, Scorpius, James redeviennent inconnues.
+- **Échelle des événements** : histoires à hauteur d'élèves, sans bouleverser le monde sorcier. Un événement majeur n'est permis que s'il se termine bien et explique la situation actuelle. Règles complètes : `docs/lore/principles.md` — **à lire avant d'écrire un scénario**.
+- Recensement des personnages connus et des postes à inventer : `docs/lore/characters.md` (chaque information avec sa source ; le fanon et la pièce ne sont pas repris).
 - À trancher avec l'utilisateur : l'époque de la campagne, les professeurs à inventer, les directeurs de maison.
 - Histoires originales uniquement : personnages connus possibles en arrière-plan, pas d'intrigues reprises des livres.
 
