@@ -1,12 +1,12 @@
 // Écran de jeu principal — boucle narrative et sélection des manœuvres.
 
-import { narrerFrais, narrer, alerter } from './narration.js';
-import { afficherActions, demanderTexte } from './actions.js';
-import { MANOEUVRES, resoudreManoeuvre } from './manoeuvres.js';
-import { mettreAJourFiche } from './fiche.js';
-import { sauvegarder } from './sauvegarde.js';
-import { tousEtatsActifs, traitEffectif, NOMS_TRAITS } from './personnage.js';
-import { lancerDes, SUCCES_COMPLET, SUCCES_PARTIEL, ECHEC } from './des.js';
+import { narrerFrais, narrer, alerter } from '../ui/narration.js';
+import { afficherActions, demanderTexte } from '../ui/choices.js';
+import { MANOEUVRES, resoudreManoeuvre } from '../rules/moves.js';
+import { mettreAJourFiche } from '../ui/character-sheet.js';
+import { sauvegarder } from './save.js';
+import { tousEtatsActifs, traitEffectif, NOMS_TRAITS } from '../rules/character.js';
+import { lancerDes, SUCCES_COMPLET, SUCCES_PARTIEL, ECHEC } from '../rules/dice.js';
 import { lancerScenario } from './scenario.js';
 
 let _personnage = null;
@@ -32,7 +32,7 @@ function _afficherEcranJeu() {
 
   narrerFrais(
     `Jeu en cours. Personnage : ${nom}, ${_personnage.maison}, ` +
-    `${_personnage.annee <= 7 ? `${_personnage.annee}ème Année` : 'Diplômé'}. ` +
+    `${_personnage.annee <= 7 ? `${_personnage.annee}${_personnage.annee === 1 ? "ère" : "ème"} Année` : 'Diplômé'}. ` +
     (etats.length > 0
       ? `États actifs : ${etats.join(', ')}.`
       : 'Aucun état actif.') +
@@ -198,7 +198,7 @@ function _noterCicatrice() {
 async function _afficherScenarios() {
   let index;
   try {
-    const rep = await fetch('contenu/scenarios/index.json');
+    const rep = await fetch('data/scenarios/index.json');
     index = await rep.json();
   } catch {
     alerter('Impossible de charger la liste des scénarios.');
@@ -413,7 +413,7 @@ function _choisirTraitAAmeliorer() {
 function _choisirDeuxiemeMatiere() {
   narrer('Choisissez votre deuxième Matière Préférée parmi celles que vous n\'avez pas déjà.');
   // Import dynamique pour éviter la circularité avec tables.json
-  fetch('contenu/tables.json')
+  fetch('data/tables.json')
     .then(r => r.json())
     .then(tables => {
       const toutesLesMatières = [
@@ -441,7 +441,7 @@ function _choisirDeuxiemeMatiere() {
 
 function _apprendreSortProgression() {
   const annee = Math.min(_personnage.annee, 7);
-  fetch('contenu/sorts.json')
+  fetch('data/spells.json')
     .then(r => r.json())
     .then(sorts => {
       const connusNoms = _personnage.sorts.map(s => s.nom);

@@ -9,7 +9,7 @@
 // déroulante, elles changent la sélection (comportement natif).
 
 import { relire } from './narration.js';
-import { declencherRetour, deplacerFocusActions } from './actions.js';
+import { declencherRetour, deplacerFocusActions } from './choices.js';
 
 const SECTIONS_FICHE = { F1: 'traits', F2: 'etats', F3: 'sorts', F4: 'amis', F5: 'chance' };
 

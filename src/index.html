@@ -4,8 +4,8 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Poudlard — Jeu de Rôle Solo</title>
-  <link rel="stylesheet" href="vendor/bootstrap/bootstrap.min.css">
-  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="lib/bootstrap/bootstrap.min.css">
+  <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
 
@@ -20,7 +20,7 @@
   <main id="contenu-principal" class="container" tabindex="-1">
 
     <!-- Historique découpé en tours. Pas de région live : le tour devient le nom
-         du groupe de choix, lu par NVDA quand le focus y entre (voir actions.js). -->
+         du groupe de choix, lu par NVDA quand le focus y entre (voir js/ui/choices.js). -->
     <section aria-labelledby="titre-narration" class="mb-4">
       <h2 id="titre-narration" class="visually-hidden">Histoire</h2>
       <div class="card"><div id="narration" class="card-body"></div></div>
@@ -113,7 +113,7 @@
     </div>
   </footer>
 
-  <script src="vendor/bootstrap/bootstrap.bundle.min.js"></script>
+  <script src="lib/bootstrap/bootstrap.bundle.min.js"></script>
   <script type="module" src="js/main.js"></script>
 
 </body>

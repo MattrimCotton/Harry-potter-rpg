@@ -1,8 +1,8 @@
 # Règles du jeu — référence d'implémentation
 
-Implémentation : `js/manoeuvres.js` (ids : `faire-face`, `acquerir-connaissance`, `cacher-faufiler`, `obtenir`, `aider-entraver`, `approcher-creature`, `lancer-sort`, `dueller`, `preparer-potion`, `objet-magique`, `jet`).
+Implémentation : `src/js/rules/moves.js` (ids : `faire-face`, `acquerir-connaissance`, `cacher-faufiler`, `obtenir`, `aider-entraver`, `approcher-creature`, `lancer-sort`, `dueller`, `preparer-potion`, `objet-magique`, `jet`).
 
-Source : *Hogwarts: An RPG* v1.2, `resources-pdf/Hogwarts RPG Full Game.pdf`. Les termes français suivent `termes-reference.md` (lore Gallimard). Adaptation solo : « le Narrateur » = le moteur de scénario.
+Source : *Hogwarts: An RPG* v1.2, `docs/sources/hogwarts-rpg-full-game.pdf`. Les termes français suivent `docs/terms-reference.md` (lore Gallimard). Adaptation solo : « le Narrateur » = le moteur de scénario.
 
 ## Principes
 
@@ -136,7 +136,7 @@ Jusqu'à 2 Amis et 1 Rival. On n'en ajoute ou n'en retire qu'**à la fin d'une s
 
 1. Année (1-7 ou diplômé). 2. Apparence (teint, cheveux, silhouette, 1d6 chacun). 3. Baguette : ambition/bois, cœur (dragon, phénix, licorne), aspect. 4. Origine 1d6 : 1-2 Né-Moldu (1 sort, 3 XP), 3-4 Sang-mêlé (2 sorts, 2 XP), 5-6 Sang-pur (3 sorts, 1 XP). 5. Matière préférée (2d6 : obligatoire ou option ; options dès la 3e année). 6. Sorts de son Année. 7. Traits. 8. Nom. 9. Animal optionnel (hibou/chouette : courrier ; rat : pas de courrier ; chat : refuse le courrier). 10. Maison 1d6 (5-6 relancer), ou maison du meilleur trait. 11. Amis/Rivaux via les questions de la maison. 12. Patronus (2d6).
 
-Les tables sont dans `contenu/tables.json`, les sorts dans `contenu/sorts.json`.
+Les tables sont dans `src/data/tables.json`, les sorts dans `src/data/spells.json`.
 
 ## Manœuvres du Narrateur (pour écrire les scénarios)
 

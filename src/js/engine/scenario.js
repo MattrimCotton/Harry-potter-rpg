@@ -1,11 +1,11 @@
 // Moteur de scénario — charge, affiche et orchestre les scènes JSON.
 
-import { narrerFrais, narrer, alerter } from './narration.js';
-import { afficherActions } from './actions.js';
-import { resoudreManoeuvre, MANOEUVRES } from './manoeuvres.js';
-import { mettreAJourFiche } from './fiche.js';
-import { sauvegarder } from './sauvegarde.js';
-import { SUCCES_COMPLET, SUCCES_PARTIEL, ECHEC } from './des.js';
+import { narrerFrais, narrer, alerter } from '../ui/narration.js';
+import { afficherActions } from '../ui/choices.js';
+import { resoudreManoeuvre, MANOEUVRES } from '../rules/moves.js';
+import { mettreAJourFiche } from '../ui/character-sheet.js';
+import { sauvegarder } from './save.js';
+import { SUCCES_COMPLET, SUCCES_PARTIEL, ECHEC } from '../rules/dice.js';
 
 let _personnage = null;
 let _onFin      = null;
@@ -22,7 +22,7 @@ export async function lancerScenario(idScenario, personnage, onFin) {
   _etat       = { flags: {}, objets: [], sceneActuelle: null };
 
   try {
-    const rep = await fetch(`contenu/scenarios/${idScenario}.json`);
+    const rep = await fetch(`data/scenarios/${idScenario}.json`);
     if (!rep.ok) throw new Error(`Scénario introuvable : ${idScenario}`);
     _scenario = await rep.json();
   } catch (err) {

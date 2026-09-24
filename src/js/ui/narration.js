@@ -4,7 +4,7 @@
 // Le texte du jeu est regroupé en « tours » : tout ce qui est narré entre deux
 // affichages de choix. Chaque tour est ajouté à l'historique, lisible en mode
 // navigation. Quand les choix s'affichent, le tour devient le nom du groupe de
-// choix (voir actions.js) : NVDA le lit en entrant dans le groupe, quel que soit
+// choix (voir ui/choices.js) : NVDA le lit en entrant dans le groupe, quel que soit
 // le mode. On évite les régions live pour la narration, car un déplacement de
 // focus coupe la parole de NVDA et le texte serait perdu.
 //
@@ -37,7 +37,7 @@ export function alerter(texte) {
   _ajouterParagraphe(texte, 'important');
 }
 
-// Ferme le tour en cours et le renvoie, pour que actions.js en fasse le nom du groupe.
+// Ferme le tour en cours et le renvoie, pour que choices.js en fasse le nom du groupe.
 export function terminerTour() {
   clearTimeout(_verification);
   const tour = _tourCourant;

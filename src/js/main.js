@@ -1,13 +1,13 @@
 // Point d'entrée — initialise le jeu et gère les écrans.
 
-import { narrer, narrerFrais, statuer } from './narration.js';
-import { afficherActions } from './actions.js';
-import { initClavier, initOutils } from './clavier.js';
-import { lireFiche, mettreAJourFiche } from './fiche.js';
-import { charger, sauvegarder, effacer } from './sauvegarde.js';
-import { creerPersonnageVide } from './personnage.js';
-import { lancerCreation } from './creation.js';
-import { lancerJeu } from './jeu.js';
+import { narrer, narrerFrais, statuer } from './ui/narration.js';
+import { afficherActions } from './ui/choices.js';
+import { initClavier, initOutils } from './ui/keyboard.js';
+import { lireFiche, mettreAJourFiche } from './ui/character-sheet.js';
+import { charger, sauvegarder, effacer } from './engine/save.js';
+import { creerPersonnageVide } from './rules/character.js';
+import { lancerCreation } from './engine/character-creation.js';
+import { lancerJeu } from './engine/game.js';
 
 // État global de la session
 const etat = {

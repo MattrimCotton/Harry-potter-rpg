@@ -10,16 +10,17 @@ Le jeu source est prévu pour un groupe avec un Narrateur humain. Ici, **le Narr
 
 - Local : `C:\Users\asdes.ASUS\Documents\SourceCode\Harry-potter-rpg`
 - GitHub : `MattrimCotton/Harry-potter-rpg` — **privé** (créé le 2026-09-24, branche `main`).
-- Les PDF sources (`resources-pdf/`) sont versionnés : le dépôt doit rester privé tant qu'ils y sont.
+- Les PDF sources (`docs/sources/`) sont versionnés. Leur licence (CC BY-NC-SA 4.0) permet de les redistribuer sans modification, avec attribution et sans usage commercial.
+- Structure et licences : voir `README.md` et `CREDITS.md`. Projet entier sous CC BY-NC-SA 4.0 (obligatoire, adaptation d'un jeu sous cette licence). Noms de fichiers et dossiers en anglais.
 
 ## Stack
 
-HTML sémantique + CSS + JavaScript vanille (modules ES6), aucune dépendance. Contenu en JSON dans `contenu/`. `node build.js` (ou `build.bat`) produit `poudlard-rpg.html`, un fichier unique jouable hors ligne sans serveur. Sauvegarde dans `localStorage` (clé `poudlard_rpg_v1`).
+HTML sémantique + CSS + JavaScript vanille (modules ES6), aucune dépendance. Contenu en JSON dans `src/data/`. `node tools/build.js` (ou `tools/build.bat`) produit `dist/hogwarts-rpg.html`, un fichier unique jouable hors ligne sans serveur. Sauvegarde dans `localStorage` (clé `poudlard_rpg_v1`).
 
 ## Architecture (flux)
 
-`main.js` (menu) → `creation.js` (12 étapes) → `jeu.js` (boucle : manœuvres, états, relations, progression, choix de scénario) → `scenario.js` (scènes JSON, conditions `&&`/`||`, effets, fins).
-Tout le texte passe par `narration.js` (tours lus par le focus). Les boutons par `actions.js`. Les raccourcis globaux par `clavier.js`. La fiche (F1-F5) par `fiche.js`.
+`main.js` (menu) → `engine/character-creation.js` (12 étapes) → `engine/game.js` (boucle : manœuvres, états, relations, progression, choix de scénario) → `engine/scenario.js` (scènes JSON, conditions `&&`/`||`, effets, fins).
+Tout le texte passe par `ui/narration.js` (tours). Les choix par `ui/choices.js`. Les raccourcis par `ui/keyboard.js`. La fiche (F1-F5) par `ui/character-sheet.js`. Les règles dans `rules/` (dés, manœuvres, personnage). Tous ces chemins sont sous `src/js/`.
 
 La table détaillée des fichiers est dans `CLAUDE.md`.
 
@@ -43,8 +44,8 @@ Restent absents : Quidditch, Points de Maison, Mystères, Menaces. Le jeu en sol
 
 ## Développement
 
-- `node build.js` régénère `poudlard-rpg.html` : à relancer après chaque modification de `js/`, `index.html`, `style.css` ou `contenu/`.
-- Serveur local de test : `python -m http.server 8765` (`.claude/launch.json`), puis `http://localhost:8765/poudlard-rpg.html` ou `index.html` (version modules).
+- `node tools/build.js` régénère `dist/hogwarts-rpg.html` : à relancer après chaque modification dans `src/`.
+- Serveur local de test : `python -m http.server 8765` (`.claude/launch.json`), puis `http://localhost:8765/dist/hogwarts-rpg.html` ou `http://localhost:8765/src/index.html` (version modules).
 - Le bundler supprime les `import` et met tous les exports au même niveau : **deux modules ne doivent pas exporter le même nom**.
 - Piège fréquent : une apostrophe dans une chaîne entre apostrophes casse tout le script. Utiliser des guillemets doubles quand le texte contient une apostrophe.
 
@@ -52,5 +53,5 @@ Restent absents : Quidditch, Points de Maison, Mystères, Menaces. Le jeu en sol
 
 1. Test réel avec NVDA + Firefox (lecture d'un tour de plusieurs paragraphes).
 2. Regrouper les longues listes de sorts.
-3. Écrire d'autres scénarios (index dans `contenu/scenarios/index.json`), en utilisant les nouvelles manœuvres (`approcher-creature`, `dueller`, `jet`).
+3. Écrire d'autres scénarios (index dans `src/data/scenarios/index.json` ; l'id d'un scénario = nom de son fichier ; l'ajouter aussi à `JSON_RESOURCES` dans `tools/build.js`), en utilisant les nouvelles manœuvres (`approcher-creature`, `dueller`, `jet`).
 4. Jet de survie dans le moteur de scénario.

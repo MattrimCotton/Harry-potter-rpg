@@ -4,10 +4,10 @@
 // Une option peut être une chaîne, ou { texte, etat: true } quand elle
 // fait prendre un État : le joueur choisit alors lequel cocher.
 
-import { narrer, alerter } from './narration.js';
-import { afficherActions } from './actions.js';
-import { lancerDes, SUCCES_COMPLET, SUCCES_PARTIEL, ECHEC } from './des.js';
-import { traitEffectif, NOMS_TRAITS } from './personnage.js';
+import { narrer, alerter } from '../ui/narration.js';
+import { afficherActions } from '../ui/choices.js';
+import { lancerDes, SUCCES_COMPLET, SUCCES_PARTIEL, ECHEC } from './dice.js';
+import { traitEffectif, NOMS_TRAITS } from './character.js';
 
 const TOUS_LES_TRAITS = Object.keys(NOMS_TRAITS);
 

@@ -41,15 +41,15 @@ Au début de chaque session, tu dois :
 ## Stack technique
 
 - **HTML sémantique** — structure accessible, landmarks ARIA
-- **Bootstrap 5** — framework CSS pour mise en forme, thème sombre (`data-bs-theme="dark"`), système de grille, composants collapse ; copié dans `vendor/bootstrap/` et bundlé directement (aucune CDN, offline-first)
+- **Bootstrap 5** — framework CSS pour mise en forme, thème sombre (`data-bs-theme="dark"`), système de grille, composants collapse ; copié dans `src/lib/bootstrap/` et bundlé directement (aucune CDN, offline-first)
 - **CSS** — mise en forme supplémentaire (secondaire pour les non-voyants)
 - **JavaScript vanille** — aucun framework de logique métier, aucune dépendance JS, modules ES6 bundlés
-- **Modèle des tours** (`narration.js` + `actions.js`) — le texte du jeu est groupé en « tours » (historique `#narration`). Chaque tour devient le nom (`aria-labelledby`) d'un groupe de choix `role="group"` **recréé à chaque tour**, et le focus va sur le premier choix : NVDA lit le tour puis le choix, en mode navigation comme en mode formulaire
+- **Modèle des tours** (`src/js/ui/narration.js` + `src/js/ui/choices.js`) — le texte du jeu est groupé en « tours » (historique `#narration`). Chaque tour devient le nom (`aria-labelledby`) d'un groupe de choix `role="group"` **recréé à chaque tour**, et le focus va sur le premier choix : NVDA lit le tour puis le choix, en mode navigation comme en mode formulaire
 - **ARIA Regions** — `role="alert"` (assertive) et `role="status"` (polite) **uniquement** pour annonces sans déplacement de focus (fiche F1-F5, sauvegarde F8, erreurs de saisie) ; **pas de région live pour la narration** (qui couperait NVDA)
 - **Pas de synthèse vocale intégrée** — le jeu se joue avec NVDA, qui lit tout (décision du 2026-09-24)
 - **localStorage** — sauvegarde des parties
 - **JSON** — contenu du jeu (sorts, tables, scénarios)
-- **Build** — `build.js` (Node.js) → genère `poudlard-rpg.html` standalone (aucun serveur requis) ; includes Bootstrap CSS & JS inline
+- **Build** — `tools/build.js` (Node.js) → genère `dist/hogwarts-rpg.html` standalone (aucun serveur requis) ; includes Bootstrap CSS & JS inline
 
 ### Compatibilité lecteurs d'écran cible
 - NVDA + Firefox/Chrome (Windows) — **référence** : tout doit marcher en mode navigation ET en mode formulaire
@@ -122,10 +122,10 @@ Ensorcelé (-1 trait au choix Narrateur), Inconscient (hors jeu)
 7. **Langage clair** — phrases courtes, pas d'abréviations, nombres et signes en toutes lettres (« plus 1 »)
 8. **Répétition** — F9 relit le dernier tour par annonce, sans déplacer le focus
 9. **Chaque raccourci existe aussi en bouton** — menu « Outils » (collapse Bootstrap, replié par défaut) ; la touche est déclarée une seule fois (`aria-keyshortcuts`), l'indication visible `<kbd>` est `aria-hidden` pour éviter que NVDA la dise deux fois
-11. **Choix** — 3 choix ou plus : liste déroulante (Entrée ou « Valider le choix ») ; 1 ou 2 choix : boutons ; déplacements (`"deplacement": true` dans les scénarios) et retour : toujours des boutons
-12. **Aide** — à un seul endroit : bas de page, collapse Bootstrap replié par défaut (ni dans le menu, ni dans le message d'accueil, ni dans les outils)
-13. **Bootstrap pour toute l'interface** (décision de l'utilisateur) — pas de CSS maison sauf thème et historique
-10. **Sauvegarde automatique silencieuse** — seule F8 annonce « Partie sauvegardée »
+10. **Choix** — 3 choix ou plus : liste déroulante (Entrée ou « Valider le choix ») ; 1 ou 2 choix : boutons ; déplacements (`"deplacement": true` dans les scénarios) et retour : toujours des boutons
+11. **Aide** — à un seul endroit : bas de page, collapse Bootstrap replié par défaut (ni dans le menu, ni dans le message d'accueil, ni dans les outils)
+12. **Bootstrap pour toute l'interface** (décision de l'utilisateur) — pas de CSS maison sauf thème et historique
+13. **Sauvegarde automatique silencieuse** — seule F8 annonce « Partie sauvegardée »
 
 ### Raccourcis clavier standard du jeu (NVDA prioritaire)
 
@@ -142,71 +142,63 @@ Les touches F sont interceptées même dans un champ texte, pour que F5 ne recha
 
 ---
 
-## Fichiers clés du projet
+## Structure du projet
 
-| Fichier | Contenu |
+Noms de fichiers et de dossiers **en anglais** (décision de l'utilisateur, 2026-09-24). Le code (fonctions, variables) et les textes restent en français.
+
+| Chemin | Contenu |
 |---|---|
-| `memory/MEMORY.md` | Index mémoire — lire en premier |
-| `termes-reference.md` | Référence complète des traductions FR lore HP |
-| `resources-pdf/` | PDFs source du jeu original |
-| `index.html` | Point d'entrée, structure Bootstrap 5 : `<html data-bs-theme="dark">` ; `<main class="container">` contient narration (section avec card), actions (nav), menu « Outils » (collapse Bootstrap replié par défaut, boutons F1-F5/F8-F9 avec `aria-keyshortcuts`, indication `<kbd>` `aria-hidden`), annonces (alert/status). `<footer>` : aide contextuelle (collapse). `<aside class="container">` : fiche personnage cachée (grille Bootstrap row/col-md avec cards, traits/états/sorts/amis/chance). Annonces via `role="alert"` (assertive) et `role="status"` (polite) sans aria-live. Classes Bootstrap : `visually-hidden-focusable`, `btn`, `collapse`, `list-group`, `card`, `row g-3`, `col-md-*`, utilités (border, spacing). |
-| `style.css` | Mise en forme personnalisée complément Bootstrap (secondaire pour accessibilité) |
-| `vendor/bootstrap/` | Bootstrap 5 framework — CSS et JS, chaîné dans le build |
-| `build.js` | Bundler Node.js — transforme modules ES6 en script classique, inline CSS (style.css + Bootstrap) + JS (modules + Bootstrap bundle) + JSON dans `poudlard-rpg.html` (usage: `node build.js`) ; Bootstrap files lus depuis `vendor/bootstrap/` et désourceMappingURL-é pour compatibilité offline |
-| `build.bat` | Script batch Windows — wrapper autour de `build.js`, vérifie Node.js, compile et propose d'ouvrir le résultat (usage: double-cliquer) |
-| `.claude/launch.json` | Configuration Claude Code — serveur de développement Python `http.server` sur port 8765 (usage: `python -m http.server 8765`) — permet prévisualisation live dans Claude Code |
-| `js/main.js` | Point d'entrée JavaScript (module ES6+) — gère l'état global du jeu (`etat` singleton avec `personnage`), orchestration des écrans (menu principal, création, reprise), initialisation au démarrage via `DOMContentLoaded`, intègre clavier + sauvegarde, imports `lancerCreation` de `creation.js` et `lancerJeu` de `jeu.js`; `demarrerCreation()` et `reprendrePartie()` appellent `_assureProgressions()` puis `lancerJeu()` pour démarrer/reprendre le jeu |
-| `js/narration.js` | Module central d'annonces — gestion des tours (texte groupé par écran narratif) ; le tour sert de nom au groupe de choix (compatible modes navigation et formulaire) ; `relire()` annonce le dernier tour ; annonces isolées via `role="alert"` (dés, erreurs) et `role="status"` (statut) sans aria-live ; `narrer()`, `narrerFrais()`, `alerter()`, `annoncer()`, `statuer()`, `terminerTour()`, `relire()` |
-| `js/personnage.js` | Gestion du personnage joueur — structure de données, calcul de traits effectifs (avec malus d'états), helpers d'application des bonus d'origine & maison |
-| `js/fiche.js` | Lecture et affichage de la fiche de personnage — appelé par les touches F1-F5 (traits, états, sorts, amis/rivaux, chance/expérience), mises à jour DOM |
-| `js/clavier.js` | Raccourcis clavier globaux (F1-F5, F8, Échap, flèches) et gestion du menu « Outils » (collapse Bootstrap) — initialisation via `initClavier(raccourcis)` et `initOutils(raccourcis)` au démarrage, branche touches/boutons aux callbacks du jeu (lireFiche, sauvegarder) ; chaque bouton déclare sa touche via `aria-keyshortcuts` (une seule déclaration ARIA), indication `<kbd>` `aria-hidden` |
-| `js/actions.js` | Affichage des actions (boutons et formulaires texte) — `afficherActions(actions)` construit les boutons avec ARIA labels et focus management ; `demanderTexte({ question, exemple, onValider, onAnnuler })` pour saisie texte accessible ; `declencherRetour()` et `deplacerFocusActions(touche)` pour gestion clavier (Échap, flèches) ; format action: `{ label, action, desactive?, retour? }` (retour=true pour Échap) |
-| `js/des.js` | Moteur de dés — jets 2d6 selon les règles PbtA (succès complet 10+, partiel 7-9, échec 6-) |
-| `js/manoeuvres.js` | Les 11 manœuvres (base + magiques) — définition catalogue (11 objets avec `id`, `nom`, `traits: []`, `options10/79/texte6/questions`, `prealable?`, `bonusRelation?`, `consequenceObligatoire?`) + `resoudreManoeuvre(manoeuvre, personnage, onFin, onAnnuler)` orchestrant : sélection trait si multi-trait, pré-requis (sort/potion), choix bonus (matière/ami/rival), jet 2d6, résultat (10+/7-9/6-), prise d'État, dépense de Chance |
-| `js/sauvegarde.js` | Sauvegarde/chargement via localStorage (clé `poudlard_rpg_v1`) — fournit `sauvegarder()`, `charger()`, `effacer()`, `aUneSauvegarde()` |
-| `js/scenario.js` | Moteur de scénario — charge et orchestre les scènes JSON, gère la navigation, les conditions, les effets, et les variables (`lancerScenario(idScenario, personnage, onFin)`, support des conditions composées avec `&&` et `\|\|`, état interne avec flags et objets) |
-| `contenu/` | Données JSON du jeu (scenarios, règles, sorts, etc.) |
-| `contenu/tables.json` | Tables de création de personnage (origines, maisons, traits, apparence, baguette, matières, patronus, noms, questions amis/rivaux) |
-| `contenu/scenarios/index.json` | Catalogue des scénarios disponibles — liste des scénarios avec id, titre, accroche, années, durée, manœuvres |
-| `contenu/scenarios/compartiment.json` | Scénario d'introduction : "Le Compartiment du Fond" |
+| `README.md` | Présentation, comment jouer, comment compiler, structure |
+| `LICENSE` | Texte officiel CC BY-NC-SA 4.0 (obligatoire : adaptation d'un jeu sous cette licence) |
+| `CREDITS.md` | Attributions (jeu d'origine, Bootstrap MIT) et avertissement Harry Potter (œuvre de fan) |
+| `licenses/` | Textes originaux : `CC-BY-NC-SA-4.0.txt`, `CC-BY-NC-SA-4.0.fr.html` (traduction officielle), `Bootstrap-MIT.txt` |
+| `memory/` | Mémoire du projet — lire `memory/MEMORY.md` en premier |
+| `docs/terms-reference.md` | Référence des traductions françaises du lore HP |
+| `docs/sources/` | PDF du jeu d'origine (redistribués sans modification, CC BY-NC-SA 4.0) |
+| `tools/build.js` | Compilation : `node tools/build.js` depuis la racine. Lit `src/`, transforme les modules ES6 en script classique, intègre CSS, JS, JSON et Bootstrap (sans sourceMappingURL) dans `dist/hogwarts-rpg.html` |
+| `tools/build.bat` | Double-clic sous Windows : se place à la racine, vérifie Node.js, compile, propose d'ouvrir le résultat |
+| `dist/hogwarts-rpg.html` | Fichier jouable généré (~450 Ko), autonome et hors ligne |
+| `.claude/launch.json` | Serveur de test `python -m http.server 8765` à la racine → `http://localhost:8765/src/index.html` (modules) ou `/dist/hogwarts-rpg.html` |
+| `src/index.html` | Page Bootstrap 5 (`data-bs-theme="dark"`) : historique (carte), `nav#zone-actions`, menu Outils (collapse replié), régions alert/status, fiche en cartes, aide en bas de page (collapse replié) |
+| `src/css/style.css` | Thème sombre et or au-dessus de Bootstrap, historique des tours, fiche |
+| `src/lib/bootstrap/` | Bootstrap 5.3.8 (CSS, JS bundle, LICENSE MIT) copié pour fonctionner hors ligne |
+| `src/js/main.js` | Point d'entrée : état global `etat`, menu principal, création, reprise, initialisation clavier et outils |
+| `src/js/ui/narration.js` | Tours de texte (`narrer`, `narrerFrais`, `alerter`, `terminerTour`), `relire()` (F9), annonces `annoncer`/`statuer` |
+| `src/js/ui/choices.js` | `afficherActions()` (liste déroulante dès 3 choix, boutons sinon ; groupe nommé par le tour ; focus), `demanderTexte()`, `declencherRetour()`, `deplacerFocusActions()` ; action `{ label, action, desactive?, retour?, bouton?, principal? }` |
+| `src/js/ui/keyboard.js` | Raccourcis F1-F5, F8, F9, Échap, Retour arrière, flèches ; boutons du menu Outils |
+| `src/js/ui/character-sheet.js` | Fiche : `lireFiche(section)` (annonce F1-F5), `mettreAJourFiche()` (cartes visuelles) |
+| `src/js/rules/dice.js` | Jets 2d6 (`lancerDes`, `d6`, `deuxD6Independants`), annonce orale du résultat |
+| `src/js/rules/moves.js` | Les 11 manœuvres (`MANOEUVRES`) et `resoudreManoeuvre(manoeuvre, personnage, onFin, onAnnuler)` |
+| `src/js/rules/character.js` | Personnage : `creerPersonnageVide()`, `traitEffectif()`, origine, maison, `NOMS_TRAITS` |
+| `src/js/engine/character-creation.js` | Les 12 étapes de création du personnage |
+| `src/js/engine/game.js` | Boucle de jeu : menu, manœuvres, États, relations, Progression, fin de session, choix du scénario, jet de survie |
+| `src/js/engine/scenario.js` | Moteur de scénario : scènes JSON, conditions `&&`/`\|\|`, effets, fins ; `"deplacement": true` → bouton |
+| `src/js/engine/save.js` | Sauvegarde localStorage (clé `poudlard_rpg_v1`, inchangée pour garder les parties existantes) |
+| `src/data/spells.json` | ~90 sorts et potions par Année + Impardonnables |
+| `src/data/tables.json` | Tables de création (origines, maisons, apparence, baguette, matières, Patronus, noms, questions amis/rivaux) |
+| `src/data/scenarios/index.json` | Catalogue des scénarios (id = nom du fichier sans `.json`) |
+| `src/data/scenarios/back-compartment.json` | Scénario 1 : « Le Compartiment du Fond » (id `back-compartment`) |
+
+Le bundler met tous les exports au même niveau : deux modules ne doivent jamais exporter le même nom. Un nouveau module ou un nouveau fichier JSON doit être ajouté aux listes `MODULES` et `JSON_RESOURCES` de `tools/build.js`.
 
 ---
 
 ## Conventions de code
 
-- JS : ES6+, pas de framework, modules natifs (`type="module"`)
+- JS : ES6+, pas de framework de logique, modules natifs (`type="module"`)
+- Noms de fichiers et dossiers en anglais ; fonctions, variables, textes et ARIA en français
 - Pas de commentaires sauf WHY non-évident
-- Noms de variables en français pour le domaine du jeu
-- ARIA labels en français
 - Fichiers JSON pour tout le contenu textuel (facile à modifier sans toucher au code)
+- Texte contenant une apostrophe : chaîne entre guillemets doubles (une apostrophe non échappée casse tout le script)
 
 ---
 
 ## Ce qui a été fait
 
-- [x] Référence des termes FR lore HP (`termes-reference.md`)
-- [x] Décision stack validée
-- [x] Architecture définie
-- [x] CLAUDE.md créé
-- [x] Permissions .claude/settings.json configurées
-- [x] `index.html` — Bootstrap 5.3.8 local, menu Outils repliable, aide repliable en bas de page, régions alert/status, fiche personnage en cartes
-- [x] `style.css` — thème sombre et or au-dessus de Bootstrap, historique des tours, focus visible
-- [x] `js/narration.js` — tours lus comme nom du groupe de choix (modes navigation et formulaire), régions alert/status pour annonces isolées
-- [x] `js/des.js` — lancerDes(trait, nom), d6(), deuxD6Independants()
-- [x] `js/actions.js` — afficherActions(), demanderTexte(), Échap, flèches
-- [x] `js/clavier.js` — F1-F5, F8, F9, Échap, Retour arrière, flèches ; boutons du menu « Outils »
-- [x] `js/personnage.js` — creerPersonnageVide(), traitEffectif(), appliquerMaison()
-- [x] `js/fiche.js` — lireFiche(section), mettreAJourFiche()
-- [x] `js/sauvegarde.js` — localStorage
-- [x] `contenu/sorts.json` — ~90 sorts classés par Année 1-7 + Impardonnables
-- [x] `contenu/tables.json` — tables de création (teint, cheveux, maisons, patronus, prénoms…)
-- [x] `js/creation.js` — les 12 étapes de création de personnage (dés, texte libre, tables)
-- [x] `js/manoeuvres.js` — 11 manœuvres (base + magiques) : multi-trait, pré-requis sort/potion, États optionnels, bonus matière/ami/rival, résultats 10+/7-9/6-, Chance, XP
-- [x] `js/jeu.js` — boucle de jeu : manœuvres, états, relations, progression, fin de session, sélection de scénario
-- [x] `js/main.js` — routing complet : menu → création → jeu (lancerJeu connecté)
-- [x] `js/scenario.js` — moteur de scénario : chargement JSON, navigation de scènes, conditions, effets, fins
-- [x] `contenu/scenarios/index.json` — liste des scénarios disponibles
-- [x] `contenu/scenarios/compartiment.json` — scénario 1 : Le Compartiment du Fond (style narratif HP)
-- [x] `build.js` — script Node.js qui bundle tout en un seul `poudlard-rpg.html` standalone
-- [x] `build.bat` — raccourci Windows pour lancer le build
-- [x] `poudlard-rpg.html` — fichier distributable généré (135 Ko, fonctionne sans serveur)
+- [x] Référence des termes FR lore HP (`docs/terms-reference.md`)
+- [x] Création de personnage en 12 étapes, 11 manœuvres conformes au PDF, États, Chance, Expérience, Progression, jet de survie
+- [x] Moteur de scénario + scénario 1 « Le Compartiment du Fond »
+- [x] Interface NVDA : tours lus comme nom du groupe de choix, modes navigation et formulaire, F1-F5/F8/F9, Échap/Retour arrière
+- [x] Interface Bootstrap 5 hors ligne : listes déroulantes, menu Outils et aide repliables
+- [x] Compilation en un fichier autonome `dist/hogwarts-rpg.html`
+- [x] Structure en anglais (`src/`, `tools/`, `dist/`, `docs/`, `licenses/`), README, CREDITS, licences officielles

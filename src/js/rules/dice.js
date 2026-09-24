@@ -1,7 +1,7 @@
 // Moteur de dés — jets 2d6 selon les règles PbtA.
 // Toujours annoncer le résultat via alerter() pour les non-voyants.
 
-import { alerter } from './narration.js';
+import { alerter } from '../ui/narration.js';
 
 // Résultats possibles
 export const SUCCES_COMPLET = 'succes';

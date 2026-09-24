@@ -2,7 +2,7 @@
 // Appelé par les touches F1-F5 : annonce sans déplacer le focus, pour ne pas perdre sa place.
 
 import { annoncer } from './narration.js';
-import { NOMS_TRAITS, traitEffectif } from './personnage.js';
+import { NOMS_TRAITS, traitEffectif } from '../rules/character.js';
 
 export function lireFiche(section, personnage) {
   if (!personnage || !personnage.prenom) {

@@ -1,38 +1,41 @@
 #!/usr/bin/env node
-// build.js — Crée poudlard-rpg.html, fichier standalone sans serveur requis.
-// Usage : node build.js
-// Sortie : poudlard-rpg.html (ouvrir directement dans n'importe quel navigateur moderne)
+// build.js — Crée dist/hogwarts-rpg.html, fichier autonome sans serveur requis.
+// Usage (depuis la racine du projet) : node tools/build.js
+// Sources : src/ (HTML, CSS, JS, données JSON, Bootstrap dans src/lib/).
+// Sortie : dist/hogwarts-rpg.html (ouvrir directement dans n'importe quel navigateur moderne)
 
 'use strict';
 const fs   = require('fs');
 const path = require('path');
 
-const ROOT = __dirname;
+const ROOT = path.join(__dirname, '..');
+const SRC  = path.join(ROOT, 'src');
+const SORTIE = path.join(ROOT, 'dist', 'hogwarts-rpg.html');
 
 // ================================================================
 // Ordre de traitement : feuilles en premier, main.js en dernier
 // ================================================================
 const MODULES = [
-  'js/narration.js',
-  'js/personnage.js',
-  'js/sauvegarde.js',
-  'js/actions.js',
-  'js/des.js',
-  'js/fiche.js',
-  'js/clavier.js',
-  'js/manoeuvres.js',
-  'js/creation.js',
-  'js/scenario.js',
-  'js/jeu.js',
+  'js/ui/narration.js',
+  'js/rules/character.js',
+  'js/engine/save.js',
+  'js/ui/choices.js',
+  'js/rules/dice.js',
+  'js/ui/character-sheet.js',
+  'js/ui/keyboard.js',
+  'js/rules/moves.js',
+  'js/engine/character-creation.js',
+  'js/engine/scenario.js',
+  'js/engine/game.js',
   'js/main.js'
 ];
 
-// Ressources JSON à bundler (clé = chemin tel qu'utilisé dans fetch())
+// Ressources JSON à bundler (clé = chemin relatif à src/, tel qu'utilisé dans fetch())
 const JSON_RESOURCES = [
-  'contenu/sorts.json',
-  'contenu/tables.json',
-  'contenu/scenarios/index.json',
-  'contenu/scenarios/compartiment.json'
+  'data/spells.json',
+  'data/tables.json',
+  'data/scenarios/index.json',
+  'data/scenarios/back-compartment.json'
 ];
 
 // ================================================================
@@ -86,7 +89,7 @@ function transformModule(code) {
 }
 
 function wrapModule(filePath) {
-  const raw     = fs.readFileSync(path.join(ROOT, filePath), 'utf8');
+  const raw     = fs.readFileSync(path.join(SRC, filePath), 'utf8');
   const exports = collectExports(raw);
   const code    = transformModule(raw);
 
@@ -114,7 +117,7 @@ ${code}
 function buildResourceMap() {
   const map = {};
   for (const rel of JSON_RESOURCES) {
-    const full = path.join(ROOT, rel);
+    const full = path.join(SRC, rel);
     if (!fs.existsSync(full)) {
       console.warn(`  Avertissement : ${rel} introuvable — ignoré.`);
       continue;
@@ -130,24 +133,24 @@ function buildResourceMap() {
 // ================================================================
 
 function build() {
-  console.log('\nCompilation de poudlard-rpg.html...\n');
+  console.log('\nCompilation de dist/hogwarts-rpg.html...\n');
 
   // Vérifier les fichiers sources
   for (const mod of MODULES) {
-    if (!fs.existsSync(path.join(ROOT, mod))) {
+    if (!fs.existsSync(path.join(SRC, mod))) {
       console.error(`ERREUR : ${mod} introuvable.`);
       process.exit(1);
     }
   }
 
-  const css  = fs.readFileSync(path.join(ROOT, 'style.css'), 'utf8');
-  const html = fs.readFileSync(path.join(ROOT, 'index.html'), 'utf8');
+  const css  = fs.readFileSync(path.join(SRC, 'css/style.css'), 'utf8');
+  const html = fs.readFileSync(path.join(SRC, 'index.html'), 'utf8');
 
-  // Bootstrap est copié dans vendor/ et intégré au fichier : aucune connexion requise.
+  // Bootstrap est copié dans src/lib/ et intégré au fichier : aucune connexion requise.
   // Les commentaires sourceMappingURL sont retirés (le navigateur chercherait le fichier .map).
   const sansSourceMap = (code) => code.replace(/\/[/*]# sourceMappingURL=.*$/m, '');
-  const bootstrapCss = sansSourceMap(fs.readFileSync(path.join(ROOT, 'vendor/bootstrap/bootstrap.min.css'), 'utf8'));
-  const bootstrapJs  = sansSourceMap(fs.readFileSync(path.join(ROOT, 'vendor/bootstrap/bootstrap.bundle.min.js'), 'utf8'));
+  const bootstrapCss = sansSourceMap(fs.readFileSync(path.join(SRC, 'lib/bootstrap/bootstrap.min.css'), 'utf8'));
+  const bootstrapJs  = sansSourceMap(fs.readFileSync(path.join(SRC, 'lib/bootstrap/bootstrap.bundle.min.js'), 'utf8'));
   const resourceMap = buildResourceMap();
 
   // --- Fetch override : intercepte les appels JSON locaux ---
@@ -188,15 +191,15 @@ const __RESSOURCES = ${JSON.stringify(resourceMap)};
   let output = html
     // CSS inline
     .replace(
-      /<link rel="stylesheet" href="vendor\/bootstrap\/bootstrap\.min\.css">/,
+      /<link rel="stylesheet" href="lib\/bootstrap\/bootstrap\.min\.css">/,
       () => `<style>\n${bootstrapCss}\n</style>`
     )
     .replace(
-      /<link rel="stylesheet" href="style\.css">/,
+      /<link rel="stylesheet" href="css\/style\.css">/,
       () => `<style>\n${css}\n</style>`
     )
     .replace(
-      /<script src="vendor\/bootstrap\/bootstrap\.bundle\.min\.js"><\/script>/,
+      /<script src="lib\/bootstrap\/bootstrap\.bundle\.min\.js"><\/script>/,
       () => `<script>\n${bootstrapJs}\n</script>`
     )
     // Script module → script classique
@@ -206,11 +209,12 @@ const __RESSOURCES = ${JSON.stringify(resourceMap)};
     );
 
   // --- Écriture ---
-  const outPath = path.join(ROOT, 'poudlard-rpg.html');
+  const outPath = SORTIE;
+  fs.mkdirSync(path.dirname(outPath), { recursive: true });
   fs.writeFileSync(outPath, output, 'utf8');
 
   const sizeKo = Math.round(fs.statSync(outPath).size / 1024);
-  console.log(`\nTerminé ! poudlard-rpg.html créé (${sizeKo} Ko).`);
+  console.log(`\nTerminé ! dist/hogwarts-rpg.html créé (${sizeKo} Ko).`);
   console.log('Ouvrez ce fichier directement dans n\'importe quel navigateur moderne.');
   console.log('Aucun serveur, aucune installation requis.\n');
 }

@@ -1,6 +1,6 @@
 // Sauvegarde et chargement via localStorage.
 
-import { statuer } from './narration.js';
+import { statuer } from '../ui/narration.js';
 
 const CLE = 'poudlard_rpg_v1';
 

@@ -23,7 +23,7 @@ Conséquences :
 
 Un tour = tout le texte produit entre deux affichages de choix. Il est ajouté à l'historique `#narration` dans un `<div class="tour">`, lisible en mode navigation.
 
-Quand les choix s'affichent, `actions.js` **recrée** un `<div class="groupe-choix" role="group" aria-labelledby="tour-N">` contenant `<ul id="liste-actions">`, puis met le focus sur le premier choix. NVDA annonce le nom d'un groupe quand le focus y entre, dans les deux modes : le joueur entend le texte du tour, puis « groupe », puis le choix.
+Quand les choix s'affichent, `src/js/ui/choices.js` **recrée** un `<div class="groupe-choix" role="group" aria-labelledby="tour-N">` contenant `<ul id="liste-actions">`, puis met le focus sur le premier choix. NVDA annonce le nom d'un groupe quand le focus y entre, dans les deux modes : le joueur entend le texte du tour, puis « groupe », puis le choix.
 
 Le groupe doit être un **nouvel élément à chaque tour** : si le focus reste dans le même groupe, NVDA ne réannonce pas son nom, même s'il a changé.
 
@@ -31,11 +31,11 @@ Sans nouveau texte (par exemple après un Retour), le groupe n'a pas de nom et N
 
 **Pourquoi pas de région live pour la narration** : un déplacement de focus coupe la parole de NVDA, et le texte serait perdu. Première version (abandonnée) : le focus allait sur le `div` du tour ; en mode formulaire, NVDA ne lit pas le contenu d'un `div` non interactif de façon fiable.
 
-API (`narration.js`) :
+API (`src/js/ui/narration.js`) :
 - `narrer(texte)` : paragraphe dans le tour.
 - `narrerFrais(texte)` : idem, marqué comme début d'écran (séparation visuelle seulement). Ne coupe **pas** le tour.
 - `alerter(texte)` : paragraphe important (en gras).
-- `terminerTour()` : ferme le tour et le renvoie ; `actions.js` en fait le nom du groupe.
+- `terminerTour()` : ferme le tour et le renvoie ; `choices.js` en fait le nom du groupe.
 - `relire()` : F9, annonce le dernier tour dans la région alert, **sans déplacer le focus**.
 - `annoncer(texte, { urgent })` / `statuer(texte)` : régions `#alerte` (role alert) et `#statut` (role status), seulement quand le focus ne bouge pas (fiche F1-F5, F9, sauvegarde F8, champ vide, « Aucun retour possible »). Vidage puis remplissage 50 ms plus tard pour forcer la ré-annonce.
 - Filet de sécurité : texte narré sans choix derrière (erreur isolée) → annoncé par la région alert.
@@ -43,7 +43,7 @@ API (`narration.js`) :
 
 Règle pour les chargements JSON : **charger d'abord, narrer ensuite**.
 
-## Présentation des choix (`actions.js`) — décision de l'utilisateur, 2026-09-24
+## Présentation des choix (`src/js/ui/choices.js`) — décision de l'utilisateur, 2026-09-24
 
 - **3 choix ou plus : liste déroulante** (`<select id="liste-choix">`, libellé « Votre choix »), validée par **Entrée** ou par le bouton « Valider le choix ». Les choix indisponibles sont des `<option disabled>` (NVDA dit « indisponible »). Le focus va sur la liste.
 - **1 ou 2 choix : boutons.**
@@ -57,7 +57,7 @@ Règle pour les chargements JSON : **charger d'abord, narrer ensuite**.
 
 Un seul composant pour tout le jeu : `<label for>` explicite avec phrase complète et exemple, erreur dans `#erreur-saisie` liée par `aria-describedby`, `aria-invalid`, Entrée pour valider, bouton Valider, bouton Annuler optionnel (Échap ne marche pas dans un champ : NVDA la garde en mode formulaire ; Retour arrière efface du texte). Le champ est dans le groupe nommé par le tour, donc le contexte est lu avant le libellé. Le focus va directement dans le champ. Pas de `placeholder`.
 
-## Raccourcis (`clavier.js`)
+## Raccourcis (`src/js/ui/keyboard.js`)
 
 | Touche | Action |
 |---|---|
@@ -84,9 +84,9 @@ Automatique et **silencieuse** après chaque jet et chaque changement. Une annon
 - Listes longues : les regrouper en sous-menus (le menu de jeu a un sous-menu « Faire une manœuvre libre »).
 - Le jet de dés dit déjà « Succès complet » ou « Succès partiel » : le texte suivant ne le répète pas.
 
-## Page (`index.html`) — Bootstrap pour toute l'interface (décision de l'utilisateur)
+## Page (`src/index.html`) — Bootstrap pour toute l'interface (décision de l'utilisateur)
 
-- Bootstrap 5.3.8 copié dans `vendor/bootstrap/` (CSS, JS bundle, licence MIT) et intégré à `poudlard-rpg.html` par `build.js` : **aucune connexion Internet**. Thème sombre `data-bs-theme="dark"`, `style.css` ne garde que les couleurs or, l'historique et la fiche.
+- Bootstrap 5.3.8 copié dans `src/lib/bootstrap/` (CSS, JS bundle, licence MIT) et intégré à `dist/hogwarts-rpg.html` par `tools/build.js` : **aucune connexion Internet**. Thème sombre `data-bs-theme="dark"`, `style.css` ne garde que les couleurs or, l'historique et la fiche.
 - Composants : `card` (historique, fiche), `form-select` / `form-control` / `form-label` / `invalid-feedback` (choix et saisie), `btn` (choix, Valider en `btn-warning`, Retour en `btn-outline-secondary`), `collapse` (Outils, Aide), `list-group` (outils), `visually-hidden` et `visually-hidden-focusable` (lien d'évitement).
 - `<main class="container">` : historique (`#narration`, corps de la carte), `nav#zone-actions`, menu **Outils** (bouton `aria-expanded` + `collapse`, **replié par défaut**), régions `#alerte` et `#statut`.
 - `aside#fiche-personnage` : cartes visuelles.

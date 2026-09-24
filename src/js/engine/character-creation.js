@@ -1,11 +1,11 @@
 // Les 12 étapes de création de personnage.
 // Chaque étape annonce ce qu'elle fait et propose des choix accessibles.
 
-import { narrerFrais, narrer, alerter } from './narration.js';
-import { afficherActions, demanderTexte } from './actions.js';
-import { d6, deuxD6Independants } from './des.js';
-import { appliquerMaison, appliquerOrigine, NOMS_TRAITS } from './personnage.js';
-import { mettreAJourFiche } from './fiche.js';
+import { narrerFrais, narrer, alerter } from '../ui/narration.js';
+import { afficherActions, demanderTexte } from '../ui/choices.js';
+import { d6, deuxD6Independants } from '../rules/dice.js';
+import { appliquerMaison, appliquerOrigine, NOMS_TRAITS } from '../rules/character.js';
+import { mettreAJourFiche } from '../ui/character-sheet.js';
 
 let _p       = null; // personnage en cours de création
 let _tables  = null;
@@ -19,8 +19,8 @@ export async function lancerCreation(personnage, onFin) {
   _onFin = onFin;
 
   const [tRes, sRes] = await Promise.all([
-    fetch('contenu/tables.json'),
-    fetch('contenu/sorts.json')
+    fetch('data/tables.json'),
+    fetch('data/spells.json')
   ]);
   _tables = await tRes.json();
   _sorts  = await sRes.json();
@@ -661,7 +661,7 @@ function _finirCreation() {
 
   narrerFrais(
     `Création terminée. Voici votre sorcière ou sorcier. ` +
-    `${_p.prenom} ${_p.nom}, ${_p.annee <= 7 ? `${_p.annee}ème Année` : 'Diplômé'}, ` +
+    `${_p.prenom} ${_p.nom}, ${_p.annee <= 7 ? `${_p.annee}${_p.annee === 1 ? "ère" : "ème"} Année` : 'Diplômé'}, ` +
     `maison ${_p.maison}, origines ${origine}. ` +
     `Traits : Bravoure ${_signeParle(_p.traits.bravoure)}, ` +
     `Ruse ${_signeParle(_p.traits.ruse)}, ` +
