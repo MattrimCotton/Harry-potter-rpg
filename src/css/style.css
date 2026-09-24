@@ -44,6 +44,12 @@
   font-weight: bold;
 }
 
+/* Le curseur est placé sur le premier paragraphe du nouveau tour */
+.tour p:focus {
+  outline: 3px solid #d4af37;
+  outline-offset: 4px;
+}
+
 /* ---- Fiche personnage ---- */
 #fiche-personnage dl {
   display: grid;

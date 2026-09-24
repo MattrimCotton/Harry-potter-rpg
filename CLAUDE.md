@@ -44,7 +44,7 @@ Au début de chaque session, tu dois :
 - **Bootstrap 5** — framework CSS pour mise en forme, thème sombre (`data-bs-theme="dark"`), système de grille, composants collapse ; copié dans `src/lib/bootstrap/` et bundlé directement (aucune CDN, offline-first)
 - **CSS** — mise en forme supplémentaire (secondaire pour les non-voyants)
 - **JavaScript vanille** — aucun framework de logique métier, aucune dépendance JS, modules ES6 bundlés
-- **Modèle des tours** (`src/js/ui/narration.js` + `src/js/ui/choices.js`) — le texte du jeu est groupé en « tours » (historique `#narration`). Chaque tour devient le nom (`aria-labelledby`) d'un groupe de choix `role="group"` **recréé à chaque tour**, et le focus va sur le premier choix : NVDA lit le tour puis le choix, en mode navigation comme en mode formulaire
+- **Modèle des tours** (`src/js/ui/narration.js` + `src/js/ui/choices.js`) — le texte du jeu est groupé en « tours » (historique `#narration`). Quand les choix s'affichent, **le curseur se place au début du nouveau tour** (premier paragraphe, `tabindex="-1"`) : NVDA lit le texte, la flèche bas mène au reste puis aux choix, placés juste après. Sans texte nouveau, focus sur le premier choix
 - **ARIA Regions** — `role="alert"` (assertive) et `role="status"` (polite) **uniquement** pour annonces sans déplacement de focus (fiche F1-F5, sauvegarde F8, erreurs de saisie) ; **pas de région live pour la narration** (qui couperait NVDA)
 - **Pas de synthèse vocale intégrée** — le jeu se joue avec NVDA, qui lit tout (décision du 2026-09-24)
 - **localStorage** — sauvegarde des parties
@@ -115,12 +115,12 @@ Ensorcelé (-1 trait au choix Narrateur), Inconscient (hors jeu)
 
 1. **Navigation 100% clavier, compatible avec les deux modes de NVDA** — raccourcis sur les touches F ; retour par Échap (mode navigation) ou Retour arrière (les deux modes : NVDA garde Échap en mode formulaire)
 2. **Aucune information visuelle exclusive** — tout est dans le texte
-3. **Modèle des tours** — le texte du tour est le nom du groupe de choix ; le focus va sur le premier choix ; jamais de lecture qui exigerait les flèches (impossible en mode formulaire)
-4. **ARIA Live Regions** (`role="alert"` et `role="status"`) **uniquement** pour les annonces sans déplacement de focus (fiche F1-F5, relecture F9, sauvegarde F8, erreurs)
+3. **Curseur au début de la narration** (demande de l'utilisateur) — après chaque choix, le focus va sur le premier paragraphe du nouveau texte, jamais directement sur les choix ; NVDA repasse de lui-même en mode navigation sur un paragraphe
+4. **ARIA Live Regions** (`role="alert"` et `role="status"`) **uniquement** pour les annonces sans déplacement de focus (fiche F1-F5, sauvegarde F8, erreurs)
 5. **Pas de synthèse vocale intégrée** — le jeu se joue avec NVDA, qui lit tout (décision du 2026-09-24)
 6. **Pas de délais** sur les interactions (pas de timeout)
 7. **Langage clair** — phrases courtes, pas d'abréviations, nombres et signes en toutes lettres (« plus 1 »)
-8. **Répétition** — F9 relit le dernier tour par annonce, sans déplacer le focus
+8. **Répétition** — F9 ramène le curseur au début du dernier texte
 9. **Chaque raccourci existe aussi en bouton** — menu « Outils » (collapse Bootstrap, replié par défaut) ; la touche est déclarée une seule fois (`aria-keyshortcuts`), l'indication visible `<kbd>` est `aria-hidden` pour éviter que NVDA la dise deux fois
 10. **Choix** — 3 choix ou plus : liste déroulante (Entrée ou « Valider le choix ») ; 1 ou 2 choix : boutons ; déplacements (`"deplacement": true` dans les scénarios) et retour : toujours des boutons
 11. **Aide** — à un seul endroit : bas de page, collapse Bootstrap replié par défaut (ni dans le menu, ni dans le message d'accueil, ni dans les outils)
@@ -133,7 +133,7 @@ Ensorcelé (-1 trait au choix Narrateur), Inconscient (hors jeu)
 |---|---|
 | F1 à F5 | Traits, États, Sorts, Amis et rivaux, Chance et expérience (annonce, focus inchangé) |
 | F8 | Sauvegarder (annoncé) |
-| F9 | Relire le dernier tour (annonce, focus inchangé) |
+| F9 | Revenir au début du dernier texte (curseur déplacé) |
 | Échap | Retour / annuler (mode navigation) |
 | Retour arrière | Retour / annuler (les deux modes, sauf dans un champ texte) |
 | Flèches, Début, Fin | Parcourir les choix (mode formulaire) |
@@ -163,7 +163,7 @@ Noms de fichiers et de dossiers **en anglais** (décision de l'utilisateur, 2026
 | `src/css/style.css` | Thème sombre et or au-dessus de Bootstrap, historique des tours, fiche |
 | `src/lib/bootstrap/` | Bootstrap 5.3.8 (CSS, JS bundle, LICENSE MIT) copié pour fonctionner hors ligne |
 | `src/js/main.js` | Point d'entrée : état global `etat`, menu principal, création, reprise, initialisation clavier et outils |
-| `src/js/ui/narration.js` | Tours de texte (`narrer`, `narrerFrais`, `alerter`, `terminerTour`), `relire()` (F9), annonces `annoncer`/`statuer` |
+| `src/js/ui/narration.js` | Tours de texte (`narrer`, `narrerFrais`, `alerter`, `terminerTour`), `allerAuTour()` (curseur au début d'un tour), `relire()` (F9), annonces `annoncer`/`statuer` |
 | `src/js/ui/choices.js` | `afficherActions()` (liste déroulante dès 3 choix, boutons sinon ; groupe nommé par le tour ; focus), `demanderTexte()`, `afficherContenu()` (formulaire ou contenu libre), `declencherRetour()`, `deplacerFocusActions()` ; action `{ label, action, desactive?, retour?, bouton?, principal? }` |
 | `src/js/ui/keyboard.js` | Raccourcis F1-F5, F8, F9, Échap, Retour arrière, flèches ; boutons du menu Outils |
 | `src/js/ui/character-sheet.js` | Fiche : `lireFiche(section)` (annonce F1-F5), `mettreAJourFiche()` (cartes visuelles) |
@@ -198,7 +198,7 @@ Le bundler met tous les exports au même niveau : deux modules ne doivent jamais
 - [x] Référence des termes FR lore HP (`docs/terms-reference.md`)
 - [x] Création de personnage (formulaire unique + dés automatiques), 11 manœuvres conformes au PDF, États, Chance, Expérience, Progression, jet de survie
 - [x] Moteur de scénario + scénario 1 « Le Compartiment du Fond »
-- [x] Interface NVDA : tours lus comme nom du groupe de choix, modes navigation et formulaire, F1-F5/F8/F9, Échap/Retour arrière
+- [x] Interface NVDA : curseur au début de chaque nouveau texte, F1-F5/F8/F9, Échap/Retour arrière
 - [x] Interface Bootstrap 5 hors ligne : listes déroulantes, menu Outils et aide repliables
 - [x] Compilation en un fichier autonome `dist/hogwarts-rpg.html`
 - [x] Structure en anglais (`src/`, `tools/`, `dist/`, `docs/`, `licenses/`), README, CREDITS, licences officielles

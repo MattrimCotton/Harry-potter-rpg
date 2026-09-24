@@ -1,15 +1,15 @@
-// Module central de texte, compatible avec les deux modes de NVDA
-// (navigation et formulaire).
+// Module central de texte, pensé pour NVDA.
 //
 // Le texte du jeu est regroupé en « tours » : tout ce qui est narré entre deux
-// affichages de choix. Chaque tour est ajouté à l'historique, lisible en mode
-// navigation. Quand les choix s'affichent, le tour devient le nom du groupe de
-// choix (voir ui/choices.js) : NVDA le lit en entrant dans le groupe, quel que soit
-// le mode. On évite les régions live pour la narration, car un déplacement de
-// focus coupe la parole de NVDA et le texte serait perdu.
+// affichages de choix. Chaque tour est ajouté à l'historique. Quand les choix
+// s'affichent, le curseur se place au début du nouveau tour (demande de
+// l'utilisateur) : NVDA lit le texte, et la flèche bas mène au reste du tour,
+// puis aux choix, placés juste après dans la page. Le focus arrive sur un
+// paragraphe, pas sur un champ : NVDA repasse de lui-même en mode navigation.
 //
-// Les régions live ne servent qu'aux annonces sans changement de focus
-// (fiche F1-F5, relecture F9, sauvegarde, erreurs de saisie).
+// On évite les régions live pour la narration, car un déplacement de focus
+// coupe la parole de NVDA et le texte serait perdu. Elles ne servent qu'aux
+// annonces sans changement de focus (fiche F1-F5, sauvegarde, erreurs de saisie).
 
 const MAX_TOURS = 50;
 
@@ -37,7 +37,7 @@ export function alerter(texte) {
   _ajouterParagraphe(texte, 'important');
 }
 
-// Ferme le tour en cours et le renvoie, pour que choices.js en fasse le nom du groupe.
+// Ferme le tour en cours et le renvoie, pour que choices.js y place le curseur.
 export function terminerTour() {
   clearTimeout(_verification);
   const tour = _tourCourant;
@@ -46,15 +46,21 @@ export function terminerTour() {
   return tour;
 }
 
-// Relit le dernier tour sans déplacer le focus (touche F9) :
-// fonctionne en mode formulaire, où les flèches ne lisent pas la page.
+// Place le curseur au début d'un tour : sur son premier paragraphe.
+export function allerAuTour(tour) {
+  const debut = tour?.firstElementChild;
+  if (!debut) return false;
+  debut.tabIndex = -1;
+  debut.focus();
+  return true;
+}
+
+// Ramène le curseur au début du dernier tour (touche F9).
 export function relire() {
   const cible = _tourCourant ?? _dernierTour;
-  if (!cible || !cible.isConnected) {
+  if (!cible || !cible.isConnected || !allerAuTour(cible)) {
     annoncer("Rien à relire pour l'instant.");
-    return;
   }
-  annoncer(_texteDuTour(cible));
 }
 
 // ---- Annonces sans déplacement de focus ----

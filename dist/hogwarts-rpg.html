@@ -59,6 +59,12 @@
   font-weight: bold;
 }
 
+/* Le curseur est placé sur le premier paragraphe du nouveau tour */
+.tour p:focus {
+  outline: 3px solid #d4af37;
+  outline-offset: 4px;
+}
+
 /* ---- Fiche personnage ---- */
 #fiche-personnage dl {
   display: grid;
@@ -171,13 +177,13 @@
       Aide
     </button>
     <div id="aide" class="collapse mt-3">
-      <p>Après chaque choix, NVDA lit le nouveau texte, puis le choix suivant. Le jeu fonctionne en mode navigation comme en mode formulaire.</p>
+      <p>Après chaque choix, le curseur se place au début du nouveau texte. Lisez-le avec la flèche bas : les choix suivent juste après. Pour y aller directement, utilisez la touche D de NVDA (repère suivant, « Choix »).</p>
       <p>Dans une liste déroulante, choisissez avec les flèches, puis validez avec Entrée. Sur un bouton, appuyez sur Entrée.</p>
       <h2 class="h6 text-warning">Raccourcis</h2>
       <ul>
         <li>F1 : traits. F2 : états. F3 : sorts. F4 : amis et rivaux. F5 : chance et expérience.</li>
         <li>F8 : sauvegarder. La partie se sauvegarde aussi toute seule.</li>
-        <li>F9 : relire le dernier texte.</li>
+        <li>F9 : revenir au début du dernier texte.</li>
         <li>Échap ou Retour arrière : revenir en arrière. Échap ne marche qu'en mode navigation.</li>
       </ul>
       <p class="mb-0">Sur un portable, maintenez Fn pour les touches F. Le menu Outils propose les mêmes actions.</p>
@@ -217,19 +223,19 @@ const __RESSOURCES = {"data/spells.json":{"types":{"sortilege":"Sortilège","mal
 })();
 
 // ===== narration.js =====
-const { narrer, narrerFrais, alerter, terminerTour, relire, annoncer, statuer } = (function() {
-// Module central de texte, compatible avec les deux modes de NVDA
-// (navigation et formulaire).
+const { narrer, narrerFrais, alerter, terminerTour, allerAuTour, relire, annoncer, statuer } = (function() {
+// Module central de texte, pensé pour NVDA.
 //
 // Le texte du jeu est regroupé en « tours » : tout ce qui est narré entre deux
-// affichages de choix. Chaque tour est ajouté à l'historique, lisible en mode
-// navigation. Quand les choix s'affichent, le tour devient le nom du groupe de
-// choix (voir ui/choices.js) : NVDA le lit en entrant dans le groupe, quel que soit
-// le mode. On évite les régions live pour la narration, car un déplacement de
-// focus coupe la parole de NVDA et le texte serait perdu.
+// affichages de choix. Chaque tour est ajouté à l'historique. Quand les choix
+// s'affichent, le curseur se place au début du nouveau tour (demande de
+// l'utilisateur) : NVDA lit le texte, et la flèche bas mène au reste du tour,
+// puis aux choix, placés juste après dans la page. Le focus arrive sur un
+// paragraphe, pas sur un champ : NVDA repasse de lui-même en mode navigation.
 //
-// Les régions live ne servent qu'aux annonces sans changement de focus
-// (fiche F1-F5, relecture F9, sauvegarde, erreurs de saisie).
+// On évite les régions live pour la narration, car un déplacement de focus
+// coupe la parole de NVDA et le texte serait perdu. Elles ne servent qu'aux
+// annonces sans changement de focus (fiche F1-F5, sauvegarde, erreurs de saisie).
 
 const MAX_TOURS = 50;
 
@@ -257,7 +263,7 @@ function alerter(texte) {
   _ajouterParagraphe(texte, 'important');
 }
 
-// Ferme le tour en cours et le renvoie, pour que choices.js en fasse le nom du groupe.
+// Ferme le tour en cours et le renvoie, pour que choices.js y place le curseur.
 function terminerTour() {
   clearTimeout(_verification);
   const tour = _tourCourant;
@@ -266,15 +272,21 @@ function terminerTour() {
   return tour;
 }
 
-// Relit le dernier tour sans déplacer le focus (touche F9) :
-// fonctionne en mode formulaire, où les flèches ne lisent pas la page.
+// Place le curseur au début d'un tour : sur son premier paragraphe.
+function allerAuTour(tour) {
+  const debut = tour?.firstElementChild;
+  if (!debut) return false;
+  debut.tabIndex = -1;
+  debut.focus();
+  return true;
+}
+
+// Ramène le curseur au début du dernier tour (touche F9).
 function relire() {
   const cible = _tourCourant ?? _dernierTour;
-  if (!cible || !cible.isConnected) {
+  if (!cible || !cible.isConnected || !allerAuTour(cible)) {
     annoncer("Rien à relire pour l'instant.");
-    return;
   }
-  annoncer(_texteDuTour(cible));
 }
 
 // ---- Annonces sans déplacement de focus ----
@@ -330,7 +342,7 @@ function _elaguerHistorique() {
   for (let i = 0; i < tours.length - MAX_TOURS; i++) tours[i].remove();
 }
 
-  return { narrer, narrerFrais, alerter, terminerTour, relire, annoncer, statuer };
+  return { narrer, narrerFrais, alerter, terminerTour, allerAuTour, relire, annoncer, statuer };
 })();
 
 // ===== character.js =====
@@ -530,11 +542,9 @@ const { afficherActions, demanderTexte, afficherContenu, declencherRetour, depla
 // L'action de retour (Échap ou Retour arrière) est celle marquée `retour: true`,
 // ou à défaut celle dont le libellé commence par « Retour » ou « Annuler ».
 //
-// Les choix sont recréés à chaque tour dans un groupe nommé par le texte du tour,
-// et le focus va sur le premier choix. NVDA annonce le nom d'un groupe quand le
-// focus y entre, en mode navigation comme en mode formulaire : le joueur entend
-// le texte du tour, puis le choix. Le groupe doit être un nouvel élément à chaque
-// tour, sinon NVDA ne le réannonce pas.
+// Quand des choix s'affichent après du texte nouveau, le curseur se place au
+// début de ce texte (demande de l'utilisateur) ; les choix suivent dans la page.
+// Sans texte nouveau (retour en arrière, par exemple), il va sur le premier choix.
 
 
 
@@ -658,7 +668,6 @@ function _creerBouton($liste, a) {
 function demanderTexte({ question, exemple, onValider, onAnnuler }) {
   const $liste = _viderListe();
   const tour   = terminerTour();
-  if (tour) _nommerGroupe($liste, tour);
 
   const li    = document.createElement('li');
 
@@ -705,11 +714,11 @@ function demanderTexte({ question, exemple, onValider, onAnnuler }) {
     _creerBouton($liste, _actionRetour);
   }
 
-  input.focus();
+  if (!allerAuTour(tour)) input.focus();
 }
 
 // Affiche un contenu libre (un formulaire complet, par exemple) à la place des
-// choix, dans le même groupe nommé par le tour. `cibleFocus` reçoit le focus.
+// choix. Le curseur va au début du texte nouveau, sinon sur `cibleFocus`.
 // `retour` (facultatif) : action déclenchée par Échap ou Retour arrière.
 function afficherContenu($contenu, cibleFocus, retour = null) {
   const $liste = _viderListe();
@@ -756,7 +765,6 @@ function _viderListe() {
 
   const $groupe = document.createElement('div');
   $groupe.className = 'groupe-choix';
-  $groupe.setAttribute('role', 'group');
 
   const $liste = document.createElement('ul');
   $liste.id = 'liste-actions';
@@ -768,19 +776,9 @@ function _viderListe() {
   return $liste;
 }
 
-let _compteurTours = 0;
-
-function _nommerGroupe($liste, tour) {
-  if (!tour.id) tour.id = `tour-${++_compteurTours}`;
-  $liste.parentElement.setAttribute('aria-labelledby', tour.id);
-}
-
-// Le texte du tour sert de nom au groupe ; le focus va sur le premier choix.
+// Curseur au début du texte nouveau s'il y en a, sinon sur le premier choix.
 function _placerFocus(premier) {
-  const tour = terminerTour();
-  const $liste = document.getElementById('liste-actions');
-  if (tour) _nommerGroupe($liste, tour);
-  premier?.focus();
+  if (!allerAuTour(terminerTour())) premier?.focus();
 }
 
   return { afficherActions, demanderTexte, afficherContenu, declencherRetour, deplacerFocusActions };

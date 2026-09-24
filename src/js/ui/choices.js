@@ -12,13 +12,11 @@
 // L'action de retour (Échap ou Retour arrière) est celle marquée `retour: true`,
 // ou à défaut celle dont le libellé commence par « Retour » ou « Annuler ».
 //
-// Les choix sont recréés à chaque tour dans un groupe nommé par le texte du tour,
-// et le focus va sur le premier choix. NVDA annonce le nom d'un groupe quand le
-// focus y entre, en mode navigation comme en mode formulaire : le joueur entend
-// le texte du tour, puis le choix. Le groupe doit être un nouvel élément à chaque
-// tour, sinon NVDA ne le réannonce pas.
+// Quand des choix s'affichent après du texte nouveau, le curseur se place au
+// début de ce texte (demande de l'utilisateur) ; les choix suivent dans la page.
+// Sans texte nouveau (retour en arrière, par exemple), il va sur le premier choix.
 
-import { terminerTour, annoncer } from './narration.js';
+import { terminerTour, allerAuTour, annoncer } from './narration.js';
 
 const RETOUR_PAR_LIBELLE = /^(Retour|Annuler)\b/;
 const SEUIL_LISTE_DEROULANTE = 3;
@@ -140,7 +138,6 @@ function _creerBouton($liste, a) {
 export function demanderTexte({ question, exemple, onValider, onAnnuler }) {
   const $liste = _viderListe();
   const tour   = terminerTour();
-  if (tour) _nommerGroupe($liste, tour);
 
   const li    = document.createElement('li');
 
@@ -187,11 +184,11 @@ export function demanderTexte({ question, exemple, onValider, onAnnuler }) {
     _creerBouton($liste, _actionRetour);
   }
 
-  input.focus();
+  if (!allerAuTour(tour)) input.focus();
 }
 
 // Affiche un contenu libre (un formulaire complet, par exemple) à la place des
-// choix, dans le même groupe nommé par le tour. `cibleFocus` reçoit le focus.
+// choix. Le curseur va au début du texte nouveau, sinon sur `cibleFocus`.
 // `retour` (facultatif) : action déclenchée par Échap ou Retour arrière.
 export function afficherContenu($contenu, cibleFocus, retour = null) {
   const $liste = _viderListe();
@@ -238,7 +235,6 @@ function _viderListe() {
 
   const $groupe = document.createElement('div');
   $groupe.className = 'groupe-choix';
-  $groupe.setAttribute('role', 'group');
 
   const $liste = document.createElement('ul');
   $liste.id = 'liste-actions';
@@ -250,17 +246,7 @@ function _viderListe() {
   return $liste;
 }
 
-let _compteurTours = 0;
-
-function _nommerGroupe($liste, tour) {
-  if (!tour.id) tour.id = `tour-${++_compteurTours}`;
-  $liste.parentElement.setAttribute('aria-labelledby', tour.id);
-}
-
-// Le texte du tour sert de nom au groupe ; le focus va sur le premier choix.
+// Curseur au début du texte nouveau s'il y en a, sinon sur le premier choix.
 function _placerFocus(premier) {
-  const tour = terminerTour();
-  const $liste = document.getElementById('liste-actions');
-  if (tour) _nommerGroupe($liste, tour);
-  premier?.focus();
+  if (!allerAuTour(terminerTour())) premier?.focus();
 }
