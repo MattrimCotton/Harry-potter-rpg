@@ -1,47 +1,57 @@
 # Spécifications accessibilité
 
-Public : personnes entièrement aveugles. **Référence absolue : NVDA en mode navigation**, avec Firefox ou Chrome. Puis VoiceOver + Safari, Orca + Firefox, JAWS + Chrome. WCAG 2.2 niveau AA au minimum.
+Public : personnes entièrement aveugles. **Référence absolue : NVDA, en mode navigation comme en mode formulaire**, avec Firefox ou Chrome. Puis VoiceOver + Safari, Orca + Firefox, JAWS + Chrome. WCAG 2.2 niveau AA au minimum.
 
 **Pas de synthèse vocale intégrée** (retirée le 2026-09-24, décision de l'utilisateur) : le jeu se joue avec NVDA, qui lit tout.
 
-## Contrainte de base : le mode navigation de NVDA
+## Contrainte de base : les deux modes de NVDA
 
-En mode navigation, NVDA garde pour lui les lettres (navigation rapide), les chiffres, Espace, Entrée et les flèches. Ces touches **n'arrivent jamais à la page**. Conséquences :
-- Pas de raccourci à une lettre (et WCAG 2.1.4 les déconseille de toute façon).
-- Raccourcis uniquement sur les touches F et Échap, que NVDA laisse passer.
-- Chaque raccourci existe aussi en bouton (zone « Fiche et outils »), car sur un portable il faut souvent Fn.
-- Les flèches ne sont gérées par le jeu que dans la liste d'actions, quand NVDA est en mode formulaire.
+**Tout doit fonctionner en mode navigation ET en mode formulaire** (rappel de l'utilisateur, 2026-09-24).
 
-## Modèle de lecture : les « tours » (`narration.js`)
+- Mode navigation : NVDA garde les lettres (navigation rapide), les chiffres, Espace, Entrée et les flèches. Elles n'arrivent pas à la page.
+- Mode formulaire : toutes les touches arrivent à la page, **sauf Échap**, que NVDA garde pour revenir au mode navigation. Et les flèches ne lisent plus la page.
 
-Un tour = tout le texte produit entre deux affichages de choix. Il est ajouté à l'historique `#narration` dans un `<div class="tour" tabindex="-1">`.
+Conséquences :
+- Raccourcis sur les touches F, que NVDA laisse passer dans les deux modes.
+- Retour : Échap (mode navigation) **et** Retour arrière (les deux modes, ignoré dans un champ texte).
+- Le texte d'un tour doit être lu **sans que le joueur ait à le parcourir avec les flèches** (impossible en mode formulaire).
+- Pas de raccourci à une lettre (WCAG 2.1.4).
+- Chaque raccourci existe aussi en bouton (zone « Fiche et outils »).
 
-Quand `afficherActions()` affiche les choix, le focus va **au début du nouveau tour**. NVDA le lit, et la flèche bas mène au reste du texte puis aux boutons, qui suivent dans le DOM. S'il n'y a pas de nouveau texte, le focus va sur le premier bouton actif.
+## Modèle de lecture : les « tours »
 
-**Pourquoi pas de région live pour la narration** : un déplacement de focus coupe la parole de NVDA. Remplir une région live puis déplacer le focus fait perdre le texte, et laisser le focus en place est impossible puisque les boutons sont remplacés.
+Un tour = tout le texte produit entre deux affichages de choix. Il est ajouté à l'historique `#narration` dans un `<div class="tour">`, lisible en mode navigation.
 
-API :
+Quand les choix s'affichent, `actions.js` **recrée** un `<div class="groupe-choix" role="group" aria-labelledby="tour-N">` contenant `<ul id="liste-actions">`, puis met le focus sur le premier choix. NVDA annonce le nom d'un groupe quand le focus y entre, dans les deux modes : le joueur entend le texte du tour, puis « groupe », puis le choix.
+
+Le groupe doit être un **nouvel élément à chaque tour** : si le focus reste dans le même groupe, NVDA ne réannonce pas son nom, même s'il a changé.
+
+Sans nouveau texte (par exemple après un Retour), le groupe n'a pas de nom et NVDA lit seulement le choix.
+
+**Pourquoi pas de région live pour la narration** : un déplacement de focus coupe la parole de NVDA, et le texte serait perdu. Première version (abandonnée) : le focus allait sur le `div` du tour ; en mode formulaire, NVDA ne lit pas le contenu d'un `div` non interactif de façon fiable.
+
+API (`narration.js`) :
 - `narrer(texte)` : paragraphe dans le tour.
-- `narrerFrais(texte)` : idem, marqué comme début d'écran (séparation visuelle seulement). Ne coupe **pas** le tour : un résultat annoncé juste avant reste lu.
-- `alerter(texte)` : paragraphe important (en gras). Plus de région assertive.
-- `terminerTour()` : ferme le tour et le renvoie (utilisé par `actions.js`).
-- `relire()` : F9, remet le focus au début du dernier tour.
-- `annoncer(texte, { urgent })` / `statuer(texte)` : régions `#alerte` (role alert) et `#statut` (role status), **seulement quand le focus ne bouge pas** (fiche F1-F5, sauvegarde F8, champ vide, « Aucun retour possible »). Vidage puis remplissage 50 ms plus tard pour forcer la ré-annonce.
-- Filet de sécurité : si du texte est narré sans être suivi de choix (message d'erreur isolé), il est annoncé par la région alert.
-- L'historique est limité aux 50 derniers tours.
+- `narrerFrais(texte)` : idem, marqué comme début d'écran (séparation visuelle seulement). Ne coupe **pas** le tour.
+- `alerter(texte)` : paragraphe important (en gras).
+- `terminerTour()` : ferme le tour et le renvoie ; `actions.js` en fait le nom du groupe.
+- `relire()` : F9, annonce le dernier tour dans la région alert, **sans déplacer le focus**.
+- `annoncer(texte, { urgent })` / `statuer(texte)` : régions `#alerte` (role alert) et `#statut` (role status), seulement quand le focus ne bouge pas (fiche F1-F5, F9, sauvegarde F8, champ vide, « Aucun retour possible »). Vidage puis remplissage 50 ms plus tard pour forcer la ré-annonce.
+- Filet de sécurité : texte narré sans choix derrière (erreur isolée) → annoncé par la région alert.
+- Historique limité aux 50 derniers tours.
 
-Règle pour les chargements JSON : **charger d'abord, narrer ensuite**. Sinon le filet de sécurité annonce le texte avant l'arrivée des choix, et il est lu deux fois.
+Règle pour les chargements JSON : **charger d'abord, narrer ensuite**.
 
 ## Boutons (`actions.js`)
 
 - Vrais `<button type="button">` dans `<ul id="liste-actions">`.
-- Action de retour (Échap) : `retour: true`, ou libellé commençant par « Retour » ou « Annuler ». Le bouton porte `aria-keyshortcuts="Escape"` et le libellé « …, touche Échap ».
+- Action de retour : `retour: true`, ou libellé commençant par « Retour » ou « Annuler ». Le bouton porte `aria-keyshortcuts="Escape Backspace"` et le libellé « …, touche Échap ou Retour arrière ».
 - Sans retour possible, Échap annonce « Aucun retour possible ici ».
 - Flèches haut/bas (en boucle), Début, Fin entre les boutons actifs.
 
 ## Saisie de texte (`demanderTexte`)
 
-Un seul composant pour tout le jeu : `<label for>` explicite avec phrase complète et exemple, erreur dans `#erreur-saisie` liée par `aria-describedby`, `aria-invalid`, Entrée pour valider, bouton Valider, Annuler optionnel (Échap). Le focus va directement dans le champ. Le tour en cours (résultat de dé, contexte) est ajouté à `aria-describedby` pour être lu avec le libellé. Pas de `placeholder`.
+Un seul composant pour tout le jeu : `<label for>` explicite avec phrase complète et exemple, erreur dans `#erreur-saisie` liée par `aria-describedby`, `aria-invalid`, Entrée pour valider, bouton Valider, bouton Annuler optionnel (Échap ne marche pas dans un champ : NVDA la garde en mode formulaire ; Retour arrière efface du texte). Le champ est dans le groupe nommé par le tour, donc le contexte est lu avant le libellé. Le focus va directement dans le champ. Pas de `placeholder`.
 
 ## Raccourcis (`clavier.js`)
 
@@ -49,8 +59,9 @@ Un seul composant pour tout le jeu : `<label for>` explicite avec phrase complè
 |---|---|
 | F1 à F5 | Traits, États, Sorts, Amis et rivaux, Chance et expérience (annonce, focus inchangé) |
 | F8 | Sauvegarder (annoncé) |
-| F9 | Revenir au début du dernier tour |
-| Échap | Retour / annuler |
+| F9 | Relire le dernier tour (annonce, focus inchangé) |
+| Échap | Retour / annuler, mode navigation |
+| Retour arrière | Retour / annuler, les deux modes (sauf dans un champ texte) |
 | Flèches, Début, Fin | Parcourir les choix (mode formulaire) |
 
 Les touches F sont interceptées même dans un champ texte, pour que F5 ne recharge jamais la page. Les combinaisons avec Alt, Ctrl ou Méta sont ignorées.
@@ -76,11 +87,10 @@ Automatique et **silencieuse** après chaque jet et chaque changement. Une annon
 
 - axe-core (serveur MCP `a11y-accessibility`) : 0 violation le 2026-09-24 (WCAG 2.2 AA + bonnes pratiques).
 - Test automatisé du focus dans le navigateur intégré : création complète, manœuvres, Échap, F1, F9, flèches, scénario. OK.
-- **À faire : test réel avec NVDA + Firefox.** Point à vérifier en priorité : quand le focus arrive sur un tour de plusieurs paragraphes, NVDA lit-il tout le tour ou seulement le premier paragraphe ? Si seulement le premier, envisager un seul paragraphe par tour.
+- **À faire : test réel avec NVDA**, via le journal de NVDA au niveau « Entrée/sortie » (`%TEMP%\nvda.log`), dans les deux modes. À vérifier : le nom du groupe est-il lu en entier à chaque tour ? Échap passe-t-il en mode navigation ? Retour arrière dans les deux modes ?
 
 ## Dette restante
 
-- Tours de plusieurs paragraphes : voir ci-dessus.
 - Listes de sorts longues (jusqu'à 30 boutons en 3e année) : envisager un regroupement par Année ou par type.
 - Création de personnage : Échap ne revient pas à l'étape précédente (sauf au Patronus).
 - Le moteur de scénario ne lance pas le jet de survie quand les 8 États sont cochés (le menu de jeu, oui).

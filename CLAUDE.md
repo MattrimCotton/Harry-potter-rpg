@@ -43,7 +43,7 @@ Au début de chaque session, tu dois :
 - **HTML sémantique** — structure accessible, landmarks ARIA
 - **CSS** — mise en forme (secondaire pour les non-voyants)
 - **JavaScript vanille** — aucun framework, aucune dépendance, modules ES6 bundlés
-- **Modèle des tours** (`narration.js`) — le texte du jeu est groupé en « tours » (écrans narratifs), chaque tour est un `<div class="tour" tabindex="-1">` dans `#narration` ; le focus y va au début du tour pour NVDA le lise complet, puis les flèches permettent d'accéder aux choix qui suivent dans le DOM
+- **Modèle des tours** (`narration.js` + `actions.js`) — le texte du jeu est groupé en « tours » (historique `#narration`). Chaque tour devient le nom (`aria-labelledby`) d'un groupe de choix `role="group"` **recréé à chaque tour**, et le focus va sur le premier choix : NVDA lit le tour puis le choix, en mode navigation comme en mode formulaire
 - **ARIA Regions** — `role="alert"` (assertive) et `role="status"` (polite) **uniquement** pour annonces sans déplacement de focus (fiche F1-F5, sauvegarde F8, erreurs de saisie) ; **pas de région live pour la narration** (qui couperait NVDA)
 - **Pas de synthèse vocale intégrée** — le jeu se joue avec NVDA, qui lit tout (décision du 2026-09-24)
 - **localStorage** — sauvegarde des parties
@@ -51,7 +51,7 @@ Au début de chaque session, tu dois :
 - **Build** — `build.js` (Node.js) → genère `poudlard-rpg.html` standalone (aucun serveur requis)
 
 ### Compatibilité lecteurs d'écran cible
-- NVDA + Firefox/Chrome (Windows) — **référence** : l'interface est conçue pour le mode navigation de NVDA
+- NVDA + Firefox/Chrome (Windows) — **référence** : tout doit marcher en mode navigation ET en mode formulaire
 - VoiceOver + Safari (macOS/iOS)
 - Orca + Firefox (Linux)
 - JAWS + Chrome (Windows)
@@ -112,14 +112,14 @@ Ensorcelé (-1 trait au choix Narrateur), Inconscient (hors jeu)
 
 ## Exigences accessibilité (non-négociables)
 
-1. **Navigation 100% clavier, compatible mode navigation NVDA** — seules les touches F et Échap servent de raccourcis (NVDA garde pour lui lettres, chiffres, Espace, Entrée et flèches)
+1. **Navigation 100% clavier, compatible avec les deux modes de NVDA** — raccourcis sur les touches F ; retour par Échap (mode navigation) ou Retour arrière (les deux modes : NVDA garde Échap en mode formulaire)
 2. **Aucune information visuelle exclusive** — tout est dans le texte
-3. **Modèle des tours** — chaque écran narratif groupe du texte dans un `<div class="tour" tabindex="-1">`, le focus y va au début du tour pour NVDA le lise complet avant accès aux choix
-4. **ARIA Live Regions** (`role="alert"` et `role="status"`) **uniquement** pour les annonces isolées sans déplacement de focus (fiche F1-F5, sauvegarde F8, erreurs, jet de dés)
+3. **Modèle des tours** — le texte du tour est le nom du groupe de choix ; le focus va sur le premier choix ; jamais de lecture qui exigerait les flèches (impossible en mode formulaire)
+4. **ARIA Live Regions** (`role="alert"` et `role="status"`) **uniquement** pour les annonces sans déplacement de focus (fiche F1-F5, relecture F9, sauvegarde F8, erreurs)
 5. **Pas de synthèse vocale intégrée** — le jeu se joue avec NVDA, qui lit tout (décision du 2026-09-24)
 6. **Pas de délais** sur les interactions (pas de timeout)
 7. **Langage clair** — phrases courtes, pas d'abréviations, nombres et signes en toutes lettres (« plus 1 »)
-8. **Répétition** — F9 replace le focus au début du dernier tour
+8. **Répétition** — F9 relit le dernier tour par annonce, sans déplacer le focus
 9. **Chaque raccourci existe aussi en bouton** — zone « Fiche et outils »
 10. **Sauvegarde automatique silencieuse** — seule F8 annonce « Partie sauvegardée »
 
@@ -129,11 +129,12 @@ Ensorcelé (-1 trait au choix Narrateur), Inconscient (hors jeu)
 |---|---|
 | F1 à F5 | Traits, États, Sorts, Amis et rivaux, Chance et expérience (annonce, focus inchangé) |
 | F8 | Sauvegarder (annoncé) |
-| F9 | Revenir au début du dernier tour |
-| Échap | Retour / annuler |
+| F9 | Relire le dernier tour (annonce, focus inchangé) |
+| Échap | Retour / annuler (mode navigation) |
+| Retour arrière | Retour / annuler (les deux modes, sauf dans un champ texte) |
 | Flèches, Début, Fin | Parcourir les choix (mode formulaire) |
 
-Les touches F sont interceptées même dans un champ texte, pour que F5 ne recharge jamais la page. Les combinaisons avec Alt, Ctrl ou Méta sont ignorées. En mode navigation NVDA, la flèche bas lit le tour complet, puis donne accès aux choix.
+Les touches F sont interceptées même dans un champ texte, pour que F5 ne recharge jamais la page. Les combinaisons avec Alt, Ctrl ou Méta sont ignorées. En mode navigation, la flèche haut relit l'historique des tours, placé juste avant les choix.
 
 ---
 
@@ -150,7 +151,7 @@ Les touches F sont interceptées même dans un champ texte, pour que F5 ne recha
 | `build.bat` | Script batch Windows — wrapper autour de `build.js`, vérifie Node.js, compile et propose d'ouvrir le résultat (usage: double-cliquer) |
 | `.claude/launch.json` | Configuration Claude Code — serveur de développement Python `http.server` sur port 8765 (usage: `python -m http.server 8765`) — permet prévisualisation live dans Claude Code |
 | `js/main.js` | Point d'entrée JavaScript (module ES6+) — gère l'état global du jeu (`etat` singleton avec `personnage`), orchestration des écrans (menu principal, création, reprise), initialisation au démarrage via `DOMContentLoaded`, intègre clavier + sauvegarde, imports `lancerCreation` de `creation.js` et `lancerJeu` de `jeu.js`; `demarrerCreation()` et `reprendrePartie()` appellent `_assureProgressions()` puis `lancerJeu()` pour démarrer/reprendre le jeu; `_allerAide()` place le focus sur `#aide` (section fixe d'aide) |
-| `js/narration.js` | Module central d'annonces — gestion des tours (texte groupé par écran narratif) et focus management pour NVDA mode navigation ; annonces isolées via `role="alert"` (dés, erreurs) et `role="status"` (statut) sans aria-live ; `narrer()`, `narrerFrais()`, `alerter()`, `annoncer()`, `statuer()`, `terminerTour()`, `relire()` |
+| `js/narration.js` | Module central d'annonces — gestion des tours (texte groupé par écran narratif) ; le tour sert de nom au groupe de choix (compatible modes navigation et formulaire) ; `relire()` annonce le dernier tour ; annonces isolées via `role="alert"` (dés, erreurs) et `role="status"` (statut) sans aria-live ; `narrer()`, `narrerFrais()`, `alerter()`, `annoncer()`, `statuer()`, `terminerTour()`, `relire()` |
 | `js/personnage.js` | Gestion du personnage joueur — structure de données, calcul de traits effectifs (avec malus d'états), helpers d'application des bonus d'origine & maison |
 | `js/fiche.js` | Lecture et affichage de la fiche de personnage — appelé par les touches F1-F5 (traits, états, sorts, amis/rivaux, chance/expérience), mises à jour DOM |
 | `js/clavier.js` | Raccourcis clavier globaux (F1-F5, F8, Échap, flèches) et gestion des outils (`zone-outils`) — initialisation via `initClavier(raccourcis)` et `initOutils(raccourcis)` au démarrage, branche touches/boutons aux callbacks du jeu (lireFiche, sauvegarder, afficherAide) |
@@ -185,7 +186,7 @@ Les touches F sont interceptées même dans un champ texte, pour que F5 ne recha
 - [x] Permissions .claude/settings.json configurées
 - [x] `index.html` — landmarks, zone « Fiche et outils », section d'aide, régions alert/status, fiche personnage
 - [x] `style.css` — focus visible, sr-seul, lien d'évitement
-- [x] `js/narration.js` — gestion des tours, focus management pour NVDA mode navigation, ARIA live regions pour annonces isolées
+- [x] `js/narration.js` — tours lus comme nom du groupe de choix (modes navigation et formulaire), régions alert/status pour annonces isolées
 - [x] `js/des.js` — lancerDes(trait, nom), d6(), deuxD6Independants()
 - [x] `js/actions.js` — afficherActions(), demanderTexte(), Échap, flèches
 - [x] `js/clavier.js` — F1-F5, F8, F9, Échap, flèches ; boutons « Fiche et outils »

@@ -16,8 +16,8 @@
 
   <main id="contenu-principal" tabindex="-1">
 
-    <!-- Historique découpé en tours. Pas de région live : le focus est placé
-         au début de chaque nouveau tour (voir narration.js). -->
+    <!-- Historique découpé en tours. Pas de région live : le tour devient le nom
+         du groupe de choix, lu par NVDA quand le focus y entre (voir actions.js). -->
     <section id="section-histoire" aria-labelledby="titre-narration">
       <h2 id="titre-narration" class="sr-seul">Histoire</h2>
       <div id="narration"></div>
@@ -25,7 +25,6 @@
 
     <nav id="zone-actions" aria-label="Actions disponibles" tabindex="-1">
       <h2 class="sr-seul">Actions</h2>
-      <ul id="liste-actions"></ul>
     </nav>
 
     <nav id="zone-outils" aria-label="Fiche et outils">
@@ -50,18 +49,18 @@
 
   <section id="aide" aria-labelledby="titre-aide" tabindex="-1">
     <h2 id="titre-aide">Aide et raccourcis clavier</h2>
-    <p>Le jeu est prévu pour NVDA en mode navigation. Après chaque choix, le curseur se place au début du nouveau texte. Lisez-le avec la flèche bas : les choix suivent juste après. Appuyez sur Entrée pour activer un choix.</p>
+    <p>Le jeu est prévu pour NVDA et fonctionne dans les deux modes : navigation et formulaire. Après chaque choix, NVDA lit le nouveau texte, puis place le focus sur le premier choix suivant. Appuyez sur Entrée pour activer un choix.</p>
     <ul>
-      <li>F9 : revenir au début du dernier tour pour le relire.</li>
-      <li>Échap : revenir en arrière ou annuler, quand c'est possible.</li>
+      <li>F9 : relire le dernier texte, sans quitter le choix en cours.</li>
+      <li>Échap, en mode navigation, ou Retour arrière, dans les deux modes : revenir en arrière ou annuler, quand c'est possible.</li>
       <li>F1 : vos traits.</li>
       <li>F2 : vos états actifs.</li>
       <li>F3 : vos sorts connus.</li>
       <li>F4 : vos amis et rivaux.</li>
       <li>F5 : votre chance et votre expérience.</li>
       <li>F8 : sauvegarder. La partie est aussi sauvegardée après chaque jet.</li>
-      <li>B et Maj+B (commandes de NVDA) : passer d'un bouton à l'autre.</li>
-      <li>En mode formulaire, les flèches haut et bas, Début et Fin parcourent aussi les choix.</li>
+      <li>Mode formulaire : les flèches haut et bas, Début et Fin parcourent les choix.</li>
+      <li>Mode navigation : les flèches lisent l'histoire, et les commandes B et Maj+B de NVDA passent d'un bouton à l'autre. L'historique des derniers tours est juste au-dessus des choix.</li>
     </ul>
     <p>Sur un ordinateur portable, il faut parfois maintenir la touche Fn pour les touches F. Tous ces raccourcis existent aussi en boutons, dans la zone « Fiche et outils », juste après les choix.</p>
   </section>

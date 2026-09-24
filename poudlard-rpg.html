@@ -118,10 +118,6 @@ main {
   color: inherit;
 }
 
-.tour:focus-visible {
-  outline-offset: 6px;
-}
-
 .tour p.nouvel-ecran {
   margin-top: 0.75rem;
 }
@@ -315,8 +311,8 @@ main {
 
   <main id="contenu-principal" tabindex="-1">
 
-    <!-- Historique découpé en tours. Pas de région live : le focus est placé
-         au début de chaque nouveau tour (voir narration.js). -->
+    <!-- Historique découpé en tours. Pas de région live : le tour devient le nom
+         du groupe de choix, lu par NVDA quand le focus y entre (voir actions.js). -->
     <section id="section-histoire" aria-labelledby="titre-narration">
       <h2 id="titre-narration" class="sr-seul">Histoire</h2>
       <div id="narration"></div>
@@ -324,7 +320,6 @@ main {
 
     <nav id="zone-actions" aria-label="Actions disponibles" tabindex="-1">
       <h2 class="sr-seul">Actions</h2>
-      <ul id="liste-actions"></ul>
     </nav>
 
     <nav id="zone-outils" aria-label="Fiche et outils">
@@ -349,18 +344,18 @@ main {
 
   <section id="aide" aria-labelledby="titre-aide" tabindex="-1">
     <h2 id="titre-aide">Aide et raccourcis clavier</h2>
-    <p>Le jeu est prévu pour NVDA en mode navigation. Après chaque choix, le curseur se place au début du nouveau texte. Lisez-le avec la flèche bas : les choix suivent juste après. Appuyez sur Entrée pour activer un choix.</p>
+    <p>Le jeu est prévu pour NVDA et fonctionne dans les deux modes : navigation et formulaire. Après chaque choix, NVDA lit le nouveau texte, puis place le focus sur le premier choix suivant. Appuyez sur Entrée pour activer un choix.</p>
     <ul>
-      <li>F9 : revenir au début du dernier tour pour le relire.</li>
-      <li>Échap : revenir en arrière ou annuler, quand c'est possible.</li>
+      <li>F9 : relire le dernier texte, sans quitter le choix en cours.</li>
+      <li>Échap, en mode navigation, ou Retour arrière, dans les deux modes : revenir en arrière ou annuler, quand c'est possible.</li>
       <li>F1 : vos traits.</li>
       <li>F2 : vos états actifs.</li>
       <li>F3 : vos sorts connus.</li>
       <li>F4 : vos amis et rivaux.</li>
       <li>F5 : votre chance et votre expérience.</li>
       <li>F8 : sauvegarder. La partie est aussi sauvegardée après chaque jet.</li>
-      <li>B et Maj+B (commandes de NVDA) : passer d'un bouton à l'autre.</li>
-      <li>En mode formulaire, les flèches haut et bas, Début et Fin parcourent aussi les choix.</li>
+      <li>Mode formulaire : les flèches haut et bas, Début et Fin parcourent les choix.</li>
+      <li>Mode navigation : les flèches lisent l'histoire, et les commandes B et Maj+B de NVDA passent d'un bouton à l'autre. L'historique des derniers tours est juste au-dessus des choix.</li>
     </ul>
     <p>Sur un ordinateur portable, il faut parfois maintenir la touche Fn pour les touches F. Tous ces raccourcis existent aussi en boutons, dans la zone « Fiche et outils », juste après les choix.</p>
   </section>
@@ -414,16 +409,18 @@ const __RESSOURCES = {"contenu/sorts.json":{"types":{"sortilege":"Sortilège","m
 
 // ===== narration.js =====
 const { narrer, narrerFrais, alerter, terminerTour, relire, annoncer, statuer } = (function() {
-// Module central d'annonces, pensé pour NVDA en mode navigation.
+// Module central de texte, compatible avec les deux modes de NVDA
+// (navigation et formulaire).
 //
 // Le texte du jeu est regroupé en « tours » : tout ce qui est narré entre deux
-// affichages de choix. Quand les choix s'affichent, le focus se place au début
-// du tour : NVDA le lit, puis la flèche bas mène naturellement aux boutons.
-// On évite les régions live pour la narration, car un déplacement de focus
-// coupe la parole de NVDA et le texte serait perdu.
+// affichages de choix. Chaque tour est ajouté à l'historique, lisible en mode
+// navigation. Quand les choix s'affichent, le tour devient le nom du groupe de
+// choix (voir actions.js) : NVDA le lit en entrant dans le groupe, quel que soit
+// le mode. On évite les régions live pour la narration, car un déplacement de
+// focus coupe la parole de NVDA et le texte serait perdu.
 //
 // Les régions live ne servent qu'aux annonces sans changement de focus
-// (fiche F1-F5, sauvegarde, erreurs de saisie).
+// (fiche F1-F5, relecture F9, sauvegarde, erreurs de saisie).
 
 const MAX_TOURS = 50;
 
@@ -451,7 +448,7 @@ function alerter(texte) {
   _ajouterParagraphe(texte, 'important');
 }
 
-// Ferme le tour en cours et le renvoie, pour que actions.js y place le focus.
+// Ferme le tour en cours et le renvoie, pour que actions.js en fasse le nom du groupe.
 function terminerTour() {
   clearTimeout(_verification);
   const tour = _tourCourant;
@@ -460,14 +457,15 @@ function terminerTour() {
   return tour;
 }
 
-// Replace le focus au début du dernier tour (touche F9).
+// Relit le dernier tour sans déplacer le focus (touche F9) :
+// fonctionne en mode formulaire, où les flèches ne lisent pas la page.
 function relire() {
   const cible = _tourCourant ?? _dernierTour;
   if (!cible || !cible.isConnected) {
-    annoncer('Rien à relire pour l\'instant.');
+    annoncer("Rien à relire pour l'instant.");
     return;
   }
-  cible.focus();
+  annoncer(_texteDuTour(cible));
 }
 
 // ---- Annonces sans déplacement de focus ----
@@ -492,7 +490,6 @@ function _ajouterParagraphe(texte, classe) {
   if (!_tourCourant) {
     _tourCourant = document.createElement('div');
     _tourCourant.className = 'tour';
-    _tourCourant.tabIndex = -1;
     $narration.appendChild(_tourCourant);
     _elaguerHistorique();
   }
@@ -511,8 +508,12 @@ function _ajouterParagraphe(texte, classe) {
 
 function _annoncerTourOrphelin() {
   if (!_tourCourant) return;
-  annoncer([..._tourCourant.children].map(p => p.textContent).join(' '));
+  annoncer(_texteDuTour(_tourCourant));
   terminerTour();
+}
+
+function _texteDuTour(tour) {
+  return [...tour.children].map(p => p.textContent).join(' ');
 }
 
 function _elaguerHistorique() {
@@ -711,8 +712,14 @@ const { afficherActions, demanderTexte, declencherRetour, deplacerFocusActions }
 // Format d'une action :
 // { label: string, action: () => void, desactive?: bool, retour?: bool }
 //
-// L'action de retour (touche Échap) est celle marquée `retour: true`,
+// L'action de retour (Échap ou Retour arrière) est celle marquée `retour: true`,
 // ou à défaut celle dont le libellé commence par « Retour » ou « Annuler ».
+//
+// Les choix sont recréés à chaque tour dans un groupe nommé par le texte du tour,
+// et le focus va sur le premier choix. NVDA annonce le nom d'un groupe quand le
+// focus y entre, en mode navigation comme en mode formulaire : le joueur entend
+// le texte du tour, puis le choix. Le groupe doit être un nouvel élément à chaque
+// tour, sinon NVDA ne le réannonce pas.
 
 
 
@@ -726,8 +733,9 @@ function afficherActions(actions) {
   if (!actions || actions.length === 0) {
     const li = document.createElement('li');
     li.textContent = 'Aucune action disponible.';
+    li.tabIndex = -1;
     $liste.appendChild(li);
-    _placerFocus(null);
+    _placerFocus(li);
     return;
   }
 
@@ -741,8 +749,8 @@ function afficherActions(actions) {
     btn.type = 'button';
 
     if (a === _actionRetour) {
-      btn.setAttribute('aria-keyshortcuts', 'Escape');
-      btn.setAttribute('aria-label', `${a.label}, touche Échap`);
+      btn.setAttribute('aria-keyshortcuts', 'Escape Backspace');
+      btn.setAttribute('aria-label', `${a.label}, touche Échap ou Retour arrière`);
       const libelle = document.createElement('span');
       libelle.textContent = a.label;
       const touche = document.createElement('span');
@@ -771,6 +779,7 @@ function afficherActions(actions) {
 function demanderTexte({ question, exemple, onValider, onAnnuler }) {
   const $liste = _viderListe();
   const tour   = terminerTour();
+  if (tour) _nommerGroupe($liste, tour);
 
   const li    = document.createElement('li');
   li.className = 'saisie';
@@ -818,18 +827,12 @@ function demanderTexte({ question, exemple, onValider, onAnnuler }) {
     const btn   = document.createElement('button');
     btn.type = 'button';
     btn.textContent = b.label;
-    if (b.retour) btn.setAttribute('aria-keyshortcuts', 'Escape');
+    if (b.retour) btn.setAttribute('aria-keyshortcuts', 'Escape Backspace');
     btn.addEventListener('click', b.action);
     liBtn.appendChild(btn);
     $liste.appendChild(liBtn);
   });
 
-  // Le texte du tour (résultat de dé, contexte) est lu comme description du champ,
-  // car le focus va directement dans le champ.
-  if (tour) {
-    tour.id = tour.id || `tour-${Date.now()}`;
-    input.setAttribute('aria-describedby', `${tour.id} erreur-saisie`);
-  }
   input.focus();
 }
 
@@ -864,20 +867,35 @@ function deplacerFocusActions(touche) {
 // ---- Interne ----
 
 function _viderListe() {
-  const $liste = document.getElementById('liste-actions');
-  $liste.innerHTML = '';
+  const $zone = document.getElementById('zone-actions');
+  $zone.querySelector('.groupe-choix')?.remove();
+
+  const $groupe = document.createElement('div');
+  $groupe.className = 'groupe-choix';
+  $groupe.setAttribute('role', 'group');
+
+  const $liste = document.createElement('ul');
+  $liste.id = 'liste-actions';
+
+  $groupe.appendChild($liste);
+  $zone.appendChild($groupe);
   _actionRetour = null;
   return $liste;
 }
 
-// Le focus va au début du nouveau texte s'il y en a, sinon au premier bouton.
-function _placerFocus(premierBouton) {
+let _compteurTours = 0;
+
+function _nommerGroupe($liste, tour) {
+  if (!tour.id) tour.id = `tour-${++_compteurTours}`;
+  $liste.parentElement.setAttribute('aria-labelledby', tour.id);
+}
+
+// Le texte du tour sert de nom au groupe ; le focus va sur le premier choix.
+function _placerFocus(premier) {
   const tour = terminerTour();
-  if (tour) {
-    tour.focus();
-  } else if (premierBouton) {
-    premierBouton.focus();
-  }
+  const $liste = document.getElementById('liste-actions');
+  if (tour) _nommerGroupe($liste, tour);
+  premier?.focus();
 }
 
   return { afficherActions, demanderTexte, declencherRetour, deplacerFocusActions };
@@ -1127,10 +1145,12 @@ function _labelOrigine(origine) {
 const { initClavier, initOutils } = (function() {
 // Raccourcis clavier globaux. Enregistrer une seule fois au démarrage.
 //
-// En mode navigation, NVDA garde pour lui les lettres, les chiffres, Espace et
-// les flèches : ces touches n'arrivent jamais à la page. Les raccourcis du jeu
-// utilisent donc des touches que NVDA laisse passer : F1 à F5, F8, F9 et Échap.
-// Les flèches ne servent que dans la liste d'actions, en mode formulaire.
+// Tout doit marcher dans les deux modes de NVDA :
+// - mode navigation : NVDA garde les lettres, chiffres, Espace et flèches ;
+// - mode formulaire : NVDA garde Échap, qui sert à revenir au mode navigation.
+// D'où : touches F pour la fiche et la relecture, et deux touches de retour,
+// Échap (mode navigation) et Retour arrière (mode formulaire).
+// Les flèches parcourent les choix en mode formulaire.
 
 
 
@@ -1165,6 +1185,12 @@ function initClavier({ lireFiche, sauvegarder }) {
         declencherRetour();
         return;
 
+      case 'Backspace':
+        if (_dansUnChamp()) return;
+        e.preventDefault();
+        declencherRetour();
+        return;
+
       case 'ArrowDown':
       case 'ArrowUp':
       case 'Home':
@@ -1173,6 +1199,11 @@ function initClavier({ lireFiche, sauvegarder }) {
         return;
     }
   });
+}
+
+function _dansUnChamp() {
+  const tag = document.activeElement?.tagName;
+  return tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT';
 }
 
 // Branche les boutons de la barre d'outils permanente sur les mêmes fonctions.

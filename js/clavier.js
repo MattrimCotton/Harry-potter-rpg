@@ -1,9 +1,11 @@
 // Raccourcis clavier globaux. Enregistrer une seule fois au démarrage.
 //
-// En mode navigation, NVDA garde pour lui les lettres, les chiffres, Espace et
-// les flèches : ces touches n'arrivent jamais à la page. Les raccourcis du jeu
-// utilisent donc des touches que NVDA laisse passer : F1 à F5, F8, F9 et Échap.
-// Les flèches ne servent que dans la liste d'actions, en mode formulaire.
+// Tout doit marcher dans les deux modes de NVDA :
+// - mode navigation : NVDA garde les lettres, chiffres, Espace et flèches ;
+// - mode formulaire : NVDA garde Échap, qui sert à revenir au mode navigation.
+// D'où : touches F pour la fiche et la relecture, et deux touches de retour,
+// Échap (mode navigation) et Retour arrière (mode formulaire).
+// Les flèches parcourent les choix en mode formulaire.
 
 import { relire } from './narration.js';
 import { declencherRetour, deplacerFocusActions } from './actions.js';
@@ -38,6 +40,12 @@ export function initClavier({ lireFiche, sauvegarder }) {
         declencherRetour();
         return;
 
+      case 'Backspace':
+        if (_dansUnChamp()) return;
+        e.preventDefault();
+        declencherRetour();
+        return;
+
       case 'ArrowDown':
       case 'ArrowUp':
       case 'Home':
@@ -46,6 +54,11 @@ export function initClavier({ lireFiche, sauvegarder }) {
         return;
     }
   });
+}
+
+function _dansUnChamp() {
+  const tag = document.activeElement?.tagName;
+  return tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT';
 }
 
 // Branche les boutons de la barre d'outils permanente sur les mêmes fonctions.

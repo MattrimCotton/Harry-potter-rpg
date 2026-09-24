@@ -3,8 +3,14 @@
 // Format d'une action :
 // { label: string, action: () => void, desactive?: bool, retour?: bool }
 //
-// L'action de retour (touche Échap) est celle marquée `retour: true`,
+// L'action de retour (Échap ou Retour arrière) est celle marquée `retour: true`,
 // ou à défaut celle dont le libellé commence par « Retour » ou « Annuler ».
+//
+// Les choix sont recréés à chaque tour dans un groupe nommé par le texte du tour,
+// et le focus va sur le premier choix. NVDA annonce le nom d'un groupe quand le
+// focus y entre, en mode navigation comme en mode formulaire : le joueur entend
+// le texte du tour, puis le choix. Le groupe doit être un nouvel élément à chaque
+// tour, sinon NVDA ne le réannonce pas.
 
 import { terminerTour, annoncer } from './narration.js';
 
@@ -18,8 +24,9 @@ export function afficherActions(actions) {
   if (!actions || actions.length === 0) {
     const li = document.createElement('li');
     li.textContent = 'Aucune action disponible.';
+    li.tabIndex = -1;
     $liste.appendChild(li);
-    _placerFocus(null);
+    _placerFocus(li);
     return;
   }
 
@@ -33,8 +40,8 @@ export function afficherActions(actions) {
     btn.type = 'button';
 
     if (a === _actionRetour) {
-      btn.setAttribute('aria-keyshortcuts', 'Escape');
-      btn.setAttribute('aria-label', `${a.label}, touche Échap`);
+      btn.setAttribute('aria-keyshortcuts', 'Escape Backspace');
+      btn.setAttribute('aria-label', `${a.label}, touche Échap ou Retour arrière`);
       const libelle = document.createElement('span');
       libelle.textContent = a.label;
       const touche = document.createElement('span');
@@ -63,6 +70,7 @@ export function afficherActions(actions) {
 export function demanderTexte({ question, exemple, onValider, onAnnuler }) {
   const $liste = _viderListe();
   const tour   = terminerTour();
+  if (tour) _nommerGroupe($liste, tour);
 
   const li    = document.createElement('li');
   li.className = 'saisie';
@@ -110,18 +118,12 @@ export function demanderTexte({ question, exemple, onValider, onAnnuler }) {
     const btn   = document.createElement('button');
     btn.type = 'button';
     btn.textContent = b.label;
-    if (b.retour) btn.setAttribute('aria-keyshortcuts', 'Escape');
+    if (b.retour) btn.setAttribute('aria-keyshortcuts', 'Escape Backspace');
     btn.addEventListener('click', b.action);
     liBtn.appendChild(btn);
     $liste.appendChild(liBtn);
   });
 
-  // Le texte du tour (résultat de dé, contexte) est lu comme description du champ,
-  // car le focus va directement dans le champ.
-  if (tour) {
-    tour.id = tour.id || `tour-${Date.now()}`;
-    input.setAttribute('aria-describedby', `${tour.id} erreur-saisie`);
-  }
   input.focus();
 }
 
@@ -156,18 +158,33 @@ export function deplacerFocusActions(touche) {
 // ---- Interne ----
 
 function _viderListe() {
-  const $liste = document.getElementById('liste-actions');
-  $liste.innerHTML = '';
+  const $zone = document.getElementById('zone-actions');
+  $zone.querySelector('.groupe-choix')?.remove();
+
+  const $groupe = document.createElement('div');
+  $groupe.className = 'groupe-choix';
+  $groupe.setAttribute('role', 'group');
+
+  const $liste = document.createElement('ul');
+  $liste.id = 'liste-actions';
+
+  $groupe.appendChild($liste);
+  $zone.appendChild($groupe);
   _actionRetour = null;
   return $liste;
 }
 
-// Le focus va au début du nouveau texte s'il y en a, sinon au premier bouton.
-function _placerFocus(premierBouton) {
+let _compteurTours = 0;
+
+function _nommerGroupe($liste, tour) {
+  if (!tour.id) tour.id = `tour-${++_compteurTours}`;
+  $liste.parentElement.setAttribute('aria-labelledby', tour.id);
+}
+
+// Le texte du tour sert de nom au groupe ; le focus va sur le premier choix.
+function _placerFocus(premier) {
   const tour = terminerTour();
-  if (tour) {
-    tour.focus();
-  } else if (premierBouton) {
-    premierBouton.focus();
-  }
+  const $liste = document.getElementById('liste-actions');
+  if (tour) _nommerGroupe($liste, tour);
+  premier?.focus();
 }

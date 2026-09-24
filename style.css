@@ -111,10 +111,6 @@ main {
   color: inherit;
 }
 
-.tour:focus-visible {
-  outline-offset: 6px;
-}
-
 .tour p.nouvel-ecran {
   margin-top: 0.75rem;
 }

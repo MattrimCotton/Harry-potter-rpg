@@ -1,13 +1,15 @@
-// Module central d'annonces, pensé pour NVDA en mode navigation.
+// Module central de texte, compatible avec les deux modes de NVDA
+// (navigation et formulaire).
 //
 // Le texte du jeu est regroupé en « tours » : tout ce qui est narré entre deux
-// affichages de choix. Quand les choix s'affichent, le focus se place au début
-// du tour : NVDA le lit, puis la flèche bas mène naturellement aux boutons.
-// On évite les régions live pour la narration, car un déplacement de focus
-// coupe la parole de NVDA et le texte serait perdu.
+// affichages de choix. Chaque tour est ajouté à l'historique, lisible en mode
+// navigation. Quand les choix s'affichent, le tour devient le nom du groupe de
+// choix (voir actions.js) : NVDA le lit en entrant dans le groupe, quel que soit
+// le mode. On évite les régions live pour la narration, car un déplacement de
+// focus coupe la parole de NVDA et le texte serait perdu.
 //
 // Les régions live ne servent qu'aux annonces sans changement de focus
-// (fiche F1-F5, sauvegarde, erreurs de saisie).
+// (fiche F1-F5, relecture F9, sauvegarde, erreurs de saisie).
 
 const MAX_TOURS = 50;
 
@@ -35,7 +37,7 @@ export function alerter(texte) {
   _ajouterParagraphe(texte, 'important');
 }
 
-// Ferme le tour en cours et le renvoie, pour que actions.js y place le focus.
+// Ferme le tour en cours et le renvoie, pour que actions.js en fasse le nom du groupe.
 export function terminerTour() {
   clearTimeout(_verification);
   const tour = _tourCourant;
@@ -44,14 +46,15 @@ export function terminerTour() {
   return tour;
 }
 
-// Replace le focus au début du dernier tour (touche F9).
+// Relit le dernier tour sans déplacer le focus (touche F9) :
+// fonctionne en mode formulaire, où les flèches ne lisent pas la page.
 export function relire() {
   const cible = _tourCourant ?? _dernierTour;
   if (!cible || !cible.isConnected) {
-    annoncer('Rien à relire pour l\'instant.');
+    annoncer("Rien à relire pour l'instant.");
     return;
   }
-  cible.focus();
+  annoncer(_texteDuTour(cible));
 }
 
 // ---- Annonces sans déplacement de focus ----
@@ -76,7 +79,6 @@ function _ajouterParagraphe(texte, classe) {
   if (!_tourCourant) {
     _tourCourant = document.createElement('div');
     _tourCourant.className = 'tour';
-    _tourCourant.tabIndex = -1;
     $narration.appendChild(_tourCourant);
     _elaguerHistorique();
   }
@@ -95,8 +97,12 @@ function _ajouterParagraphe(texte, classe) {
 
 function _annoncerTourOrphelin() {
   if (!_tourCourant) return;
-  annoncer([..._tourCourant.children].map(p => p.textContent).join(' '));
+  annoncer(_texteDuTour(_tourCourant));
   terminerTour();
+}
+
+function _texteDuTour(tour) {
+  return [...tour.children].map(p => p.textContent).join(' ');
 }
 
 function _elaguerHistorique() {
