@@ -1,13 +1,12 @@
 // Lecture et affichage de la fiche de personnage.
-// Appelé par les touches F1-F5.
+// Appelé par les touches F1-F5 : annonce sans déplacer le focus, pour ne pas perdre sa place.
 
-import { alerter } from './narration.js';
+import { annoncer } from './narration.js';
 import { NOMS_TRAITS, traitEffectif } from './personnage.js';
 
-// Lit une section de la fiche à voix haute via alerter().
 export function lireFiche(section, personnage) {
   if (!personnage || !personnage.prenom) {
-    alerter('Aucun personnage créé pour l\'instant.');
+    annoncer('Aucun personnage créé pour l\'instant.');
     return;
   }
 
@@ -24,7 +23,6 @@ export function lireFiche(section, personnage) {
         return str;
       });
       texte = 'Vos traits. ' + lignes.join('. ') + '.';
-      _focusSection('section-traits');
       break;
     }
 
@@ -39,7 +37,6 @@ export function lireFiche(section, personnage) {
         });
         texte = `${actifs.length} état${actifs.length > 1 ? 's' : ''} actif${actifs.length > 1 ? 's' : ''} : ` + noms.join('. ') + '.';
       }
-      _focusSection('section-etats');
       break;
     }
 
@@ -50,7 +47,6 @@ export function lireFiche(section, personnage) {
         const liste = personnage.sorts.map(s => `${s.nom} : ${s.description}`).join('. ');
         texte = `Sorts connus, ${personnage.sorts.length} au total. ${liste}.`;
       }
-      _focusSection('section-sorts');
       break;
     }
 
@@ -62,7 +58,6 @@ export function lireFiche(section, personnage) {
         ? `Rivaux : ${personnage.rivaux.join(', ')}.`
         : 'Aucun rival.';
       texte = amis + ' ' + rivaux + ' Rappel : un ami ou un rival vous donne plus un au jet pour l\'aider ou l\'entraver.';
-      _focusSection('section-amis');
       break;
     }
 
@@ -78,12 +73,11 @@ export function lireFiche(section, personnage) {
           ? `Cicatrices : ${personnage.cicatrices.join(', ')}.`
           : ''
       ].filter(Boolean).join(' ');
-      _focusSection('section-chance');
       break;
     }
   }
 
-  if (texte) alerter(texte);
+  if (texte) annoncer(texte);
 }
 
 // Met à jour le DOM de la fiche (appelé après chaque changement d'état).
@@ -158,14 +152,11 @@ function _ajouterLI($parent, texte) {
   $parent.appendChild(li);
 }
 
-function _focusSection(id) {
-  const el = document.getElementById(id);
-  if (el) el.focus();
-}
 
 function _signeParle(val) {
   if (val === -99) return 'hors jeu';
-  if (val >= 0)    return `plus ${val}`;
+  if (val === 0)   return 'zéro';
+  if (val > 0)     return `plus ${val}`;
   return `moins ${Math.abs(val)}`;
 }
 

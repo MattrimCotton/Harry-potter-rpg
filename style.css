@@ -98,8 +98,29 @@ main {
   margin: 0 0 0.5rem;
 }
 
-#narration p:last-child {
-  margin-bottom: 0;
+/* Un tour = le texte entre deux séries de choix. Les anciens tours restent
+   lisibles au lecteur d'écran, mais s'effacent visuellement. */
+.tour {
+  padding: 0.5rem 0;
+  border-bottom: 1px solid #4a3000;
+  color: #a08060;
+}
+
+.tour:last-child {
+  border-bottom: 0;
+  color: inherit;
+}
+
+.tour:focus-visible {
+  outline-offset: 6px;
+}
+
+.tour p.nouvel-ecran {
+  margin-top: 0.75rem;
+}
+
+.tour p.important {
+  font-weight: bold;
 }
 
 /* ---- Zone d'actions ---- */
@@ -120,7 +141,8 @@ main {
   gap: 0.4rem;
 }
 
-#liste-actions button {
+#liste-actions button,
+#zone-outils button {
   width: 100%;
   padding: 0.7rem 1.25rem;
   background: #2a1500;
@@ -136,12 +158,14 @@ main {
   align-items: center;
 }
 
-#liste-actions button:hover {
+#liste-actions button:hover,
+#zone-outils button:hover {
   background: #3a2000;
   border-color: #d4af37;
 }
 
-#liste-actions button:focus-visible {
+#liste-actions button:focus-visible,
+#zone-outils button:focus-visible {
   background: #3a2000;
   border-color: #d4af37;
   outline: 3px solid #d4af37;
@@ -173,8 +197,54 @@ main {
   border-color: #d4af37;
 }
 
-#liste-actions input[type="text"]::placeholder {
-  color: #666;
+
+/* ---- Barre d'outils permanente ---- */
+#zone-outils {
+  margin-top: 2rem;
+  padding-top: 1rem;
+  border-top: 1px solid #4a3000;
+}
+
+#zone-outils ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(14rem, 1fr));
+  gap: 0.4rem;
+}
+
+#zone-outils button {
+  font-size: 0.95rem;
+}
+
+/* ---- Saisie de texte ---- */
+.saisie label {
+  display: block;
+  margin-bottom: 0.4rem;
+}
+
+.erreur {
+  margin: 0 0 0.5rem;
+  color: #ff9f80;
+  font-weight: bold;
+}
+
+.erreur:empty {
+  display: none;
+}
+
+/* ---- Aide ---- */
+#aide {
+  max-width: 800px;
+  margin: 2rem auto;
+  padding: 1.5rem 2rem;
+  border-top: 1px solid #4a3000;
+}
+
+#aide h2 {
+  color: #d4af37;
+  font-size: 1.1rem;
 }
 
 .raccourci {

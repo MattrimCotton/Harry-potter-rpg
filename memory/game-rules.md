@@ -1,5 +1,7 @@
 # Règles du jeu — référence d'implémentation
 
+Implémentation : `js/manoeuvres.js` (ids : `faire-face`, `acquerir-connaissance`, `cacher-faufiler`, `obtenir`, `aider-entraver`, `approcher-creature`, `lancer-sort`, `dueller`, `preparer-potion`, `objet-magique`, `jet`).
+
 Source : *Hogwarts: An RPG* v1.2, `resources-pdf/Hogwarts RPG Full Game.pdf`. Les termes français suivent `termes-reference.md` (lore Gallimard). Adaptation solo : « le Narrateur » = le moteur de scénario.
 
 ## Principes
@@ -51,13 +53,13 @@ Questions types : Qu'est-ce qui n'est pas ce qu'il paraît ? Où est ce que je c
 - Personnage du Narrateur : 10+ vous aidez/entravez comme voulu. 7-9, choisir 1 : vous prenez un État · la personne est blessée par accident · elle vous en veut · elle se méfie de vos motifs. 6- : échec ; Conséquence Grave possible.
 - (Autre personnage principal : ±1 à son jet, empêcher un État, ou offrir 1 XP pour qu'il arrête. Peu utile en solo.)
 
-### Approcher une Créature Magique (+Loyauté) — **non implémenté**
+### Approcher une Créature Magique (+Loyauté)
 Apprivoiser, aider, obtenir l'aide d'une créature.
 - 10+ : elle agit comme vous le voulez.
 - 7-9, choisir 1 : elle obéit mais vous prenez un État · elle obéit mais attire l'attention · elle n'obéit pas mais fait autre chose d'utile.
 - 6- : la créature s'emballe ; Conséquence Grave possible.
 
-### Jet (+trait au choix) — **non implémenté**
+### Jet libre (+trait au choix)
 Quand rien d'autre ne s'applique. 10+ sans problème ; 7-9 avec un coût ; 6- ça empire.
 
 ## Manœuvres magiques
@@ -68,7 +70,7 @@ Il faut connaître le sort, dire la formule et agiter la baguette. Sinon : **dé
 - 7-9, choisir 1 : effet moins puissant · effet moins durable · vous attirez l'attention.
 - 6- : échec ; Conséquence Grave possible.
 
-### Dueller (+Magie) — actuellement fusionné avec Lancer un Sort
+### Dueller (+Magie)
 - 10+ : votre sort touche, le sien rate.
 - 7-9, choisir 1 : les sorts se percutent en plein vol · les deux ratent · les deux touchent.
 - 6- : votre sort rate, le sien touche ; Conséquence Grave **obligatoire**.

@@ -1,8 +1,8 @@
 // Les 12 étapes de création de personnage.
 // Chaque étape annonce ce qu'elle fait et propose des choix accessibles.
 
-import { narrerFrais, narrer, alerter, statuer } from './narration.js';
-import { afficherActions } from './actions.js';
+import { narrerFrais, narrer, alerter } from './narration.js';
+import { afficherActions, demanderTexte } from './actions.js';
 import { d6, deuxD6Independants } from './des.js';
 import { appliquerMaison, appliquerOrigine, NOMS_TRAITS } from './personnage.js';
 import { mettreAJourFiche } from './fiche.js';
@@ -73,7 +73,6 @@ function _etape2_Apparence_Teint() {
     _tables.teints,
     (val) => {
       _p.teint = val;
-      narrer(`Teint : ${val}.`);
       _etape2b_Cheveux();
     }
   );
@@ -86,7 +85,6 @@ function _etape2b_Cheveux() {
     _tables.cheveux,
     (val) => {
       _p.cheveux = val;
-      narrer(`Cheveux : ${val}.`);
       _etape2c_Silhouette();
     }
   );
@@ -99,7 +97,6 @@ function _etape2c_Silhouette() {
     _tables.silhouettes,
     (val) => {
       _p.silhouette = val;
-      narrer(`Silhouette : ${val}.`);
       _etape3_Baguette();
     }
   );
@@ -118,7 +115,6 @@ function _etape3_Baguette() {
     _tables.bois_baguette,
     (val) => {
       _p.baguette.bois = val;
-      narrer(`Bois : ${val}.`);
       _etape3b_Coeur();
     }
   );
@@ -153,7 +149,6 @@ function _etape3c_Aspect() {
     _tables.aspects_baguette,
     (val) => {
       _p.baguette.aspect = val;
-      narrer(`Aspect : ${val}.`);
       _etape3d_Ambition();
     }
   );
@@ -352,7 +347,7 @@ function _etape7_Traits() {
         const annonce = Object.entries(NOMS_TRAITS)
           .map(([c, nom]) => `${nom} : ${_signeParle(_p.traits[c])}`)
           .join('. ');
-        alerter('Traits assignés aléatoirement. ' + annonce);
+        alerter('Traits assignés aléatoirement. ' + annonce + '.');
         _etape8_Nom();
       }
     },
@@ -368,7 +363,7 @@ function _assignerTraitManuellement(traitsDispo, valeursDispo) {
     const annonce = Object.entries(NOMS_TRAITS)
       .map(([c, nom]) => `${nom} : ${_signeParle(_p.traits[c])}`)
       .join('. ');
-    alerter('Traits finaux. ' + annonce);
+    alerter('Traits finaux. ' + annonce + '.');
     _etape8_Nom();
     return;
   }
@@ -417,13 +412,13 @@ function _etape8_Nom() {
       action: () => {
         _demanderTexte(
           'Entrez votre prénom',
-          'ex: Hermione',
+          'Hermione',
           (prenom) => {
             _p.prenom = prenom;
             narrer(`Prénom : ${prenom}. Maintenant le nom de famille.`);
             _demanderTexte(
               'Entrez votre nom de famille',
-              'ex: Granger',
+              'Granger',
               (nom) => {
                 _p.nom = nom;
                 alerter(`Votre nom : ${_p.prenom} ${_p.nom}.`);
@@ -456,7 +451,7 @@ function _etape9_Animal() {
         if (roll <= 2)      { type = 'Hibou';  capacite = 'peut envoyer et recevoir du courrier'; }
         else if (roll <= 4) { type = 'Rat';    capacite = 'ne peut pas envoyer ou recevoir de courrier'; }
         else                { type = 'Chat';   capacite = 'ne daigne pas envoyer ou recevoir de courrier'; }
-        alerter(`Dé : ${roll}. Vous avez un ${type} qui ${capacite}.`);
+        alerter(`Dé : ${roll}. Vous avez un ${type.toLowerCase()}, qui ${capacite}.`);
         _p.animal.type = type;
         _nommerAnimal();
       }
@@ -476,11 +471,11 @@ function _etape9_Animal() {
 
 function _nommerAnimal() {
   _demanderTexte(
-    `Comment s'appelle votre ${_p.animal.type} ?`,
-    'ex: Hedwige',
+    `Comment s'appelle votre ${_p.animal.type.toLowerCase()} ?`,
+    'Hedwige',
     (nom) => {
       _p.animal.nom = nom;
-      alerter(`Votre ${_p.animal.type} s'appelle ${nom}.`);
+      alerter(`Votre ${_p.animal.type.toLowerCase()} s'appelle ${nom}.`);
       _etape10_Maison();
     }
   );
@@ -604,7 +599,6 @@ function _etape12_Patronus() {
       label: 'Lancer deux dés pour mon Patronus',
       action: () => {
         const [d1, d2] = deuxD6Independants();
-        const cat      = _sorts.annees ? null : null; // on utilise _tables
         const categorie = _tables.patronus.categories[String(d1)];
         const animal    = categorie?.animaux[String(d2)] ?? 'inconnu';
         _p.patronus = animal;
@@ -632,21 +626,28 @@ function _etape12_Patronus() {
 }
 
 function _choisirCategoriePatronus() {
-  const categories = Object.entries(_tables.patronus.categories);
-  afficherActions(categories.map(([num, cat]) => ({
-    label: cat.label,
-    action: () => {
-      narrer(`Catégorie : ${cat.label}. Choisissez un animal.`);
-      afficherActions(Object.values(cat.animaux).map(animal => ({
-        label: animal,
-        action: () => {
-          _p.patronus = animal;
-          alerter(`Votre Patronus est un ${animal}.`);
-          _finirCreation();
-        }
-      })));
-    }
-  })));
+  const categories = Object.values(_tables.patronus.categories);
+  narrer("Choisissez une catégorie d'animal.");
+  afficherActions([
+    ...categories.map(cat => ({
+      label: cat.label,
+      action: () => {
+        narrer(`Catégorie : ${cat.label}. Choisissez un animal.`);
+        afficherActions([
+          ...Object.values(cat.animaux).map(animal => ({
+            label: animal,
+            action: () => {
+              _p.patronus = animal;
+              alerter(`Votre Patronus est un ${animal}.`);
+              _finirCreation();
+            }
+          })),
+          { label: 'Retour aux catégories', action: _choisirCategoriePatronus }
+        ]);
+      }
+    })),
+    { label: 'Retour au choix du Patronus', action: _etape12_Patronus }
+  ]);
 }
 
 // ================================================================
@@ -708,35 +709,8 @@ function _choisirOuLancer(titreChoix, table, onChoix) {
   ]);
 }
 
-// Champ texte temporaire dans la zone d'actions
-function _demanderTexte(question, placeholder, onValide) {
-  narrer(question + ' Tapez votre réponse et appuyez sur Entrée.');
-
-  const $liste = document.getElementById('liste-actions');
-  $liste.innerHTML = '';
-
-  const li    = document.createElement('li');
-  const input = document.createElement('input');
-  input.type        = 'text';
-  input.placeholder = placeholder;
-  input.setAttribute('aria-label', question);
-
-  const btn = document.createElement('button');
-  btn.textContent = 'Confirmer';
-
-  const valider = () => {
-    const val = input.value.trim();
-    if (!val) { alerter('Veuillez entrer une valeur.'); input.focus(); return; }
-    onValide(val);
-  };
-
-  btn.addEventListener('click', valider);
-  input.addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); valider(); } });
-
-  li.appendChild(input);
-  li.appendChild(btn);
-  $liste.appendChild(li);
-  input.focus();
+function _demanderTexte(question, exemple, onValider) {
+  demanderTexte({ question, exemple, onValider });
 }
 
 function _tirerAuHasard(tableau) {

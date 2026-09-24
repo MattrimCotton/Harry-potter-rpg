@@ -105,8 +105,29 @@ main {
   margin: 0 0 0.5rem;
 }
 
-#narration p:last-child {
-  margin-bottom: 0;
+/* Un tour = le texte entre deux séries de choix. Les anciens tours restent
+   lisibles au lecteur d'écran, mais s'effacent visuellement. */
+.tour {
+  padding: 0.5rem 0;
+  border-bottom: 1px solid #4a3000;
+  color: #a08060;
+}
+
+.tour:last-child {
+  border-bottom: 0;
+  color: inherit;
+}
+
+.tour:focus-visible {
+  outline-offset: 6px;
+}
+
+.tour p.nouvel-ecran {
+  margin-top: 0.75rem;
+}
+
+.tour p.important {
+  font-weight: bold;
 }
 
 /* ---- Zone d'actions ---- */
@@ -127,7 +148,8 @@ main {
   gap: 0.4rem;
 }
 
-#liste-actions button {
+#liste-actions button,
+#zone-outils button {
   width: 100%;
   padding: 0.7rem 1.25rem;
   background: #2a1500;
@@ -143,12 +165,14 @@ main {
   align-items: center;
 }
 
-#liste-actions button:hover {
+#liste-actions button:hover,
+#zone-outils button:hover {
   background: #3a2000;
   border-color: #d4af37;
 }
 
-#liste-actions button:focus-visible {
+#liste-actions button:focus-visible,
+#zone-outils button:focus-visible {
   background: #3a2000;
   border-color: #d4af37;
   outline: 3px solid #d4af37;
@@ -180,8 +204,54 @@ main {
   border-color: #d4af37;
 }
 
-#liste-actions input[type="text"]::placeholder {
-  color: #666;
+
+/* ---- Barre d'outils permanente ---- */
+#zone-outils {
+  margin-top: 2rem;
+  padding-top: 1rem;
+  border-top: 1px solid #4a3000;
+}
+
+#zone-outils ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(14rem, 1fr));
+  gap: 0.4rem;
+}
+
+#zone-outils button {
+  font-size: 0.95rem;
+}
+
+/* ---- Saisie de texte ---- */
+.saisie label {
+  display: block;
+  margin-bottom: 0.4rem;
+}
+
+.erreur {
+  margin: 0 0 0.5rem;
+  color: #ff9f80;
+  font-weight: bold;
+}
+
+.erreur:empty {
+  display: none;
+}
+
+/* ---- Aide ---- */
+#aide {
+  max-width: 800px;
+  margin: 2rem auto;
+  padding: 1.5rem 2rem;
+  border-top: 1px solid #4a3000;
+}
+
+#aide h2 {
+  color: #d4af37;
+  font-size: 1.1rem;
 }
 
 .raccourci {
@@ -239,70 +309,81 @@ main {
 
   <a href="#zone-actions" class="lien-evitement">Aller aux actions</a>
 
-  <header role="banner">
+  <header>
     <h1>Poudlard — Jeu de Rôle Solo</h1>
   </header>
 
   <main id="contenu-principal" tabindex="-1">
 
-    <!-- Narration principale : polite, non-interruptive, log cumulatif -->
-    <section aria-labelledby="titre-narration">
+    <!-- Historique découpé en tours. Pas de région live : le focus est placé
+         au début de chaque nouveau tour (voir narration.js). -->
+    <section id="section-histoire" aria-labelledby="titre-narration">
       <h2 id="titre-narration" class="sr-seul">Histoire</h2>
-      <div
-        id="narration"
-        role="log"
-        aria-live="polite"
-        aria-atomic="false"
-        aria-relevant="additions"
-        tabindex="-1"
-      ></div>
+      <div id="narration"></div>
     </section>
 
-    <!-- Résultats de dés et alertes : assertive, interrompt immédiatement -->
-    <div
-      id="alerte"
-      role="alert"
-      aria-live="assertive"
-      aria-atomic="true"
-      class="sr-seul"
-    ></div>
-
-    <!-- Statut bref (XP, Chance…) : polite, non-interruptif -->
-    <div
-      id="statut"
-      role="status"
-      aria-live="polite"
-      aria-atomic="true"
-      class="sr-seul"
-    ></div>
-
-    <!-- Zone d'actions du moment -->
     <nav id="zone-actions" aria-label="Actions disponibles" tabindex="-1">
       <h2 class="sr-seul">Actions</h2>
-      <ul role="list" id="liste-actions"></ul>
+      <ul id="liste-actions"></ul>
     </nav>
+
+    <nav id="zone-outils" aria-label="Fiche et outils">
+      <h2 class="sr-seul">Fiche et outils</h2>
+      <ul>
+        <li><button type="button" data-outil="relire"  aria-keyshortcuts="F9">Relire le dernier tour <span class="raccourci">F9</span></button></li>
+        <li><button type="button" data-outil="traits"  aria-keyshortcuts="F1">Traits <span class="raccourci">F1</span></button></li>
+        <li><button type="button" data-outil="etats"   aria-keyshortcuts="F2">États <span class="raccourci">F2</span></button></li>
+        <li><button type="button" data-outil="sorts"   aria-keyshortcuts="F3">Sorts <span class="raccourci">F3</span></button></li>
+        <li><button type="button" data-outil="amis"    aria-keyshortcuts="F4">Amis et rivaux <span class="raccourci">F4</span></button></li>
+        <li><button type="button" data-outil="chance"  aria-keyshortcuts="F5">Chance et expérience <span class="raccourci">F5</span></button></li>
+        <li><button type="button" data-outil="sauver"  aria-keyshortcuts="F8">Sauvegarder <span class="raccourci">F8</span></button></li>
+        <li><button type="button" data-outil="aide">Aide et raccourcis</button></li>
+      </ul>
+    </nav>
+
+    <!-- Annonces sans déplacement de focus : fiche, sauvegarde, erreurs -->
+    <div id="alerte" role="alert" aria-atomic="true" class="sr-seul"></div>
+    <div id="statut" role="status" aria-atomic="true" class="sr-seul"></div>
 
   </main>
 
-  <!-- Fiche personnage — hors flux, lue par F1-F5 -->
+  <section id="aide" aria-labelledby="titre-aide" tabindex="-1">
+    <h2 id="titre-aide">Aide et raccourcis clavier</h2>
+    <p>Le jeu est prévu pour NVDA en mode navigation. Après chaque choix, le curseur se place au début du nouveau texte. Lisez-le avec la flèche bas : les choix suivent juste après. Appuyez sur Entrée pour activer un choix.</p>
+    <ul>
+      <li>F9 : revenir au début du dernier tour pour le relire.</li>
+      <li>Échap : revenir en arrière ou annuler, quand c'est possible.</li>
+      <li>F1 : vos traits.</li>
+      <li>F2 : vos états actifs.</li>
+      <li>F3 : vos sorts connus.</li>
+      <li>F4 : vos amis et rivaux.</li>
+      <li>F5 : votre chance et votre expérience.</li>
+      <li>F8 : sauvegarder. La partie est aussi sauvegardée après chaque jet.</li>
+      <li>B et Maj+B (commandes de NVDA) : passer d'un bouton à l'autre.</li>
+      <li>En mode formulaire, les flèches haut et bas, Début et Fin parcourent aussi les choix.</li>
+    </ul>
+    <p>Sur un ordinateur portable, il faut parfois maintenir la touche Fn pour les touches F. Tous ces raccourcis existent aussi en boutons, dans la zone « Fiche et outils », juste après les choix.</p>
+  </section>
+
+  <!-- Fiche personnage visuelle. Les touches F1-F5 l'annoncent sans déplacer le focus. -->
   <aside id="fiche-personnage" aria-label="Fiche de personnage" hidden>
-    <section id="section-traits" aria-labelledby="titre-traits" tabindex="-1">
+    <section aria-labelledby="titre-traits">
       <h2 id="titre-traits">Traits</h2>
       <dl id="liste-traits"></dl>
     </section>
-    <section id="section-etats" aria-labelledby="titre-etats" tabindex="-1">
+    <section aria-labelledby="titre-etats">
       <h2 id="titre-etats">États actifs</h2>
       <ul id="liste-etats"></ul>
     </section>
-    <section id="section-sorts" aria-labelledby="titre-sorts" tabindex="-1">
+    <section aria-labelledby="titre-sorts">
       <h2 id="titre-sorts">Sorts connus</h2>
       <ul id="liste-sorts"></ul>
     </section>
-    <section id="section-amis" aria-labelledby="titre-amis" tabindex="-1">
+    <section aria-labelledby="titre-amis">
       <h2 id="titre-amis">Amis et Rivaux</h2>
       <ul id="liste-amis"></ul>
     </section>
-    <section id="section-chance" aria-labelledby="titre-chance" tabindex="-1">
+    <section aria-labelledby="titre-chance">
       <h2 id="titre-chance">Chance et Expérience</h2>
       <dl id="liste-chance"></dl>
     </section>
@@ -332,114 +413,114 @@ const __RESSOURCES = {"contenu/sorts.json":{"types":{"sortilege":"Sortilège","m
 })();
 
 // ===== narration.js =====
-const { configurerTTS, ttsEstActif, narrer, narrerFrais, alerter, statuer, relire } = (function() {
-// Module central d'annonces — ARIA live regions + TTS optionnel.
-// TOUT le texte du jeu passe par ce module.
-// Par défaut, le lecteur d'écran (NVDA, VoiceOver…) gère les annonces via ARIA.
-// Le TTS du navigateur est un complément optionnel configurable.
+const { narrer, narrerFrais, alerter, terminerTour, relire, annoncer, statuer } = (function() {
+// Module central d'annonces, pensé pour NVDA en mode navigation.
+//
+// Le texte du jeu est regroupé en « tours » : tout ce qui est narré entre deux
+// affichages de choix. Quand les choix s'affichent, le focus se place au début
+// du tour : NVDA le lit, puis la flèche bas mène naturellement aux boutons.
+// On évite les régions live pour la narration, car un déplacement de focus
+// coupe la parole de NVDA et le texte serait perdu.
+//
+// Les régions live ne servent qu'aux annonces sans changement de focus
+// (fiche F1-F5, sauvegarde, erreurs de saisie).
+
+const MAX_TOURS = 50;
 
 const $narration = document.getElementById('narration');
 const $alerte    = document.getElementById('alerte');
 const $statut    = document.getElementById('statut');
 
-let dernierMessage = '';
-let ttsActif  = false;
-let vitesseTTS = 1.0;
-let volumeTTS  = 1.0;
+let _tourCourant  = null;
+let _dernierTour  = null;
+let _verification = null;
 
-// ---- Configuration ----
+// ---- Contenu du tour ----
 
-function configurerTTS({ actif, vitesse, volume } = {}) {
-  if (actif   !== undefined) ttsActif   = actif;
-  if (vitesse !== undefined) vitesseTTS = vitesse;
-  if (volume  !== undefined) volumeTTS  = volume;
-}
-
-function ttsEstActif() {
-  return ttsActif;
-}
-
-// ---- Fonctions publiques ----
-
-// Ajoute un paragraphe au log narratif (aria-live="polite").
-// Le lecteur d'écran le lit dès qu'il est disponible.
 function narrer(texte) {
-  if (!texte) return;
-  dernierMessage = texte;
-
-  const p = document.createElement('p');
-  p.textContent = texte;
-  $narration.appendChild(p);
-  $narration.scrollTop = $narration.scrollHeight;
-
-  if (ttsActif) _dire(texte);
+  _ajouterParagraphe(texte);
 }
 
-// Efface le log narratif puis pose un nouveau texte.
-// Utile pour les transitions d'écran.
+// Début d'un nouvel écran : même tour, mais séparé visuellement.
 function narrerFrais(texte) {
-  if (!texte) return;
-  dernierMessage = texte;
+  _ajouterParagraphe(texte, 'nouvel-ecran');
+}
 
-  $narration.textContent = '';
+// Information importante du tour (résultat de dés, choix confirmé).
+function alerter(texte) {
+  _ajouterParagraphe(texte, 'important');
+}
+
+// Ferme le tour en cours et le renvoie, pour que actions.js y place le focus.
+function terminerTour() {
+  clearTimeout(_verification);
+  const tour = _tourCourant;
+  _tourCourant = null;
+  if (tour) _dernierTour = tour;
+  return tour;
+}
+
+// Replace le focus au début du dernier tour (touche F9).
+function relire() {
+  const cible = _tourCourant ?? _dernierTour;
+  if (!cible || !cible.isConnected) {
+    annoncer('Rien à relire pour l\'instant.');
+    return;
+  }
+  cible.focus();
+}
+
+// ---- Annonces sans déplacement de focus ----
+
+function annoncer(texte, { urgent = true } = {}) {
+  if (!texte) return;
+  const $region = urgent ? $alerte : $statut;
+  // Vider puis remplir un peu plus tard force la ré-annonce d'un texte identique
+  $region.textContent = '';
+  setTimeout(() => { $region.textContent = texte; }, 50);
+}
+
+function statuer(texte) {
+  annoncer(texte, { urgent: false });
+}
+
+// ---- Interne ----
+
+function _ajouterParagraphe(texte, classe) {
+  if (!texte) return;
+
+  if (!_tourCourant) {
+    _tourCourant = document.createElement('div');
+    _tourCourant.className = 'tour';
+    _tourCourant.tabIndex = -1;
+    $narration.appendChild(_tourCourant);
+    _elaguerHistorique();
+  }
+
   const p = document.createElement('p');
   p.textContent = texte;
-  $narration.appendChild(p);
+  if (classe) p.className = classe;
+  _tourCourant.appendChild(p);
+  _tourCourant.scrollIntoView({ block: 'nearest' });
 
-  if (ttsActif) _dire(texte, true);
+  // Filet de sécurité : si aucun choix ne s'affiche après ce texte
+  // (message d'erreur isolé), l'annoncer pour qu'il ne reste pas muet.
+  clearTimeout(_verification);
+  _verification = setTimeout(_annoncerTourOrphelin, 0);
 }
 
-// Annonce immédiate via aria-live="assertive".
-// Interrompt le lecteur d'écran. Réservé aux résultats de dés et alertes importantes.
-function alerter(texte) {
-  if (!texte) return;
-  dernierMessage = texte;
-
-  // Vider avant de remplir force la ré-annonce même si le texte est identique
-  $alerte.textContent = '';
-  requestAnimationFrame(() => {
-    $alerte.textContent = texte;
-    if (ttsActif) _dire(texte, true);
-  });
+function _annoncerTourOrphelin() {
+  if (!_tourCourant) return;
+  annoncer([..._tourCourant.children].map(p => p.textContent).join(' '));
+  terminerTour();
 }
 
-// Statut bref, non-interruptif (rôle="status").
-function statuer(texte) {
-  $statut.textContent = '';
-  requestAnimationFrame(() => {
-    $statut.textContent = texte;
-  });
+function _elaguerHistorique() {
+  const tours = $narration.querySelectorAll('.tour');
+  for (let i = 0; i < tours.length - MAX_TOURS; i++) tours[i].remove();
 }
 
-// Relit le dernier message annoncé (touche Espace).
-function relire() {
-  if (!dernierMessage) return;
-
-  if (ttsActif) {
-    _dire(dernierMessage, true);
-  } else {
-    // Sans TTS : forcer NVDA/VoiceOver à relire via la région assertive
-    $alerte.textContent = '';
-    requestAnimationFrame(() => {
-      $alerte.textContent = 'Répétition : ' + dernierMessage;
-    });
-  }
-}
-
-// ---- Fonction TTS interne ----
-
-function _dire(texte, interrompre = false) {
-  if (!('speechSynthesis' in window)) return;
-  if (interrompre) speechSynthesis.cancel();
-
-  const u = new SpeechSynthesisUtterance(texte);
-  u.lang   = 'fr-FR';
-  u.rate   = vitesseTTS;
-  u.volume = volumeTTS;
-  speechSynthesis.speak(u);
-}
-
-  return { configurerTTS, ttsEstActif, narrer, narrerFrais, alerter, statuer, relire };
+  return { narrer, narrerFrais, alerter, terminerTour, relire, annoncer, statuer };
 })();
 
 // ===== personnage.js =====
@@ -590,10 +671,12 @@ const { sauvegarder, charger, effacer, aUneSauvegarde } = (function() {
 
 const CLE = 'poudlard_rpg_v1';
 
-function sauvegarder(etat) {
+// Les sauvegardes automatiques sont silencieuses : une annonce à chaque tour
+// se mélangerait à la lecture du texte par NVDA.
+function sauvegarder(etat, { annoncer = false } = {}) {
   try {
     localStorage.setItem(CLE, JSON.stringify(etat));
-    statuer('Partie sauvegardée.');
+    if (annoncer) statuer('Partie sauvegardée.');
     return true;
   } catch {
     statuer('Erreur lors de la sauvegarde.');
@@ -622,63 +705,182 @@ function aUneSauvegarde() {
 })();
 
 // ===== actions.js =====
-const { afficherActions } = (function() {
-// Gestion de la zone d'actions clavier.
-// Chaque action est un <button> dans une <ul> accessible.
-
+const { afficherActions, demanderTexte, declencherRetour, deplacerFocusActions } = (function() {
+// Zone d'actions : les choix du moment, sous forme de vrais boutons dans une liste.
+//
 // Format d'une action :
-// { label: string, action: () => void, raccourci?: string, desactive?: bool }
+// { label: string, action: () => void, desactive?: bool, retour?: bool }
+//
+// L'action de retour (touche Échap) est celle marquée `retour: true`,
+// ou à défaut celle dont le libellé commence par « Retour » ou « Annuler ».
+
+
+
+const RETOUR_PAR_LIBELLE = /^(Retour|Annuler)\b/;
+
+let _actionRetour = null;
 
 function afficherActions(actions) {
-  const $liste = document.getElementById('liste-actions');
-  $liste.innerHTML = '';
+  const $liste = _viderListe();
 
   if (!actions || actions.length === 0) {
     const li = document.createElement('li');
     li.textContent = 'Aucune action disponible.';
     $liste.appendChild(li);
+    _placerFocus(null);
     return;
   }
 
-  actions.forEach(({ label, action, raccourci, desactive }) => {
+  _actionRetour = actions.find(a => a.retour && !a.desactive)
+    ?? actions.find(a => RETOUR_PAR_LIBELLE.test(a.label) && !a.desactive)
+    ?? null;
+
+  actions.forEach((a) => {
     const li  = document.createElement('li');
     const btn = document.createElement('button');
+    btn.type = 'button';
 
-    if (raccourci) {
-      // Label accessible complet sans le span visuel
-      btn.setAttribute('aria-label', `${label}, raccourci ${raccourci}`);
-
-      const spanLabel    = document.createElement('span');
-      spanLabel.textContent = label;
-      spanLabel.setAttribute('aria-hidden', 'true');
-
-      const spanRaccourci = document.createElement('span');
-      spanRaccourci.className   = 'raccourci';
-      spanRaccourci.textContent = raccourci;
-      spanRaccourci.setAttribute('aria-hidden', 'true');
-
-      btn.appendChild(spanLabel);
-      btn.appendChild(spanRaccourci);
+    if (a === _actionRetour) {
+      btn.setAttribute('aria-keyshortcuts', 'Escape');
+      btn.setAttribute('aria-label', `${a.label}, touche Échap`);
+      const libelle = document.createElement('span');
+      libelle.textContent = a.label;
+      const touche = document.createElement('span');
+      touche.className = 'raccourci';
+      touche.textContent = 'Échap';
+      btn.append(libelle, touche);
     } else {
-      btn.textContent = label;
+      btn.textContent = a.label;
     }
 
-    if (desactive) {
+    if (a.desactive) {
       btn.disabled = true;
     } else {
-      btn.addEventListener('click', action);
+      btn.addEventListener('click', a.action);
     }
 
     li.appendChild(btn);
     $liste.appendChild(li);
   });
 
-  // Focus automatique sur le premier bouton actif
-  const premier = $liste.querySelector('button:not([disabled])');
-  if (premier) premier.focus();
+  _placerFocus($liste.querySelector('button:not([disabled])'));
 }
 
-  return { afficherActions };
+// Champ texte accessible : libellé explicite, erreur liée au champ,
+// Entrée pour valider, Échap pour annuler si onAnnuler est fourni.
+function demanderTexte({ question, exemple, onValider, onAnnuler }) {
+  const $liste = _viderListe();
+  const tour   = terminerTour();
+
+  const li    = document.createElement('li');
+  li.className = 'saisie';
+
+  const label = document.createElement('label');
+  label.htmlFor = 'champ-saisie';
+  const phrase = /[.?!:]$/.test(question) ? question : `${question}.`;
+  label.textContent = exemple ? `${phrase} Exemple : ${exemple}.` : phrase;
+
+  const input = document.createElement('input');
+  input.type = 'text';
+  input.id   = 'champ-saisie';
+  input.autocomplete = 'off';
+  input.setAttribute('aria-describedby', 'erreur-saisie');
+
+  const erreur = document.createElement('p');
+  erreur.id = 'erreur-saisie';
+  erreur.className = 'erreur';
+
+  li.append(label, input, erreur);
+  $liste.appendChild(li);
+
+  const valider = () => {
+    const val = input.value.trim();
+    if (!val) {
+      input.setAttribute('aria-invalid', 'true');
+      erreur.textContent = 'Le champ est vide. Écrivez une réponse, puis appuyez sur Entrée.';
+      annoncer(erreur.textContent);
+      input.focus();
+      return;
+    }
+    onValider(val);
+  };
+
+  input.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') { e.preventDefault(); valider(); }
+  });
+
+  const boutons = [{ label: 'Valider', action: valider }];
+  if (onAnnuler) boutons.push({ label: 'Annuler', action: onAnnuler, retour: true });
+  _actionRetour = onAnnuler ? boutons[1] : null;
+
+  boutons.forEach((b) => {
+    const liBtn = document.createElement('li');
+    const btn   = document.createElement('button');
+    btn.type = 'button';
+    btn.textContent = b.label;
+    if (b.retour) btn.setAttribute('aria-keyshortcuts', 'Escape');
+    btn.addEventListener('click', b.action);
+    liBtn.appendChild(btn);
+    $liste.appendChild(liBtn);
+  });
+
+  // Le texte du tour (résultat de dé, contexte) est lu comme description du champ,
+  // car le focus va directement dans le champ.
+  if (tour) {
+    tour.id = tour.id || `tour-${Date.now()}`;
+    input.setAttribute('aria-describedby', `${tour.id} erreur-saisie`);
+  }
+  input.focus();
+}
+
+// Appelé par la touche Échap. Renvoie false s'il n'y a pas de retour possible.
+function declencherRetour() {
+  if (!_actionRetour) {
+    annoncer('Aucun retour possible ici.');
+    return false;
+  }
+  _actionRetour.action();
+  return true;
+}
+
+// Flèches haut/bas, Début, Fin entre les boutons de la liste (mode formulaire de NVDA).
+function deplacerFocusActions(touche) {
+  const boutons = [...document.querySelectorAll('#liste-actions button:not([disabled])')];
+  const index   = boutons.indexOf(document.activeElement);
+  if (index === -1 || boutons.length === 0) return false;
+
+  let cible;
+  switch (touche) {
+    case 'ArrowDown': cible = boutons[(index + 1) % boutons.length]; break;
+    case 'ArrowUp':   cible = boutons[(index - 1 + boutons.length) % boutons.length]; break;
+    case 'Home':      cible = boutons[0]; break;
+    case 'End':       cible = boutons[boutons.length - 1]; break;
+    default:          return false;
+  }
+  cible.focus();
+  return true;
+}
+
+// ---- Interne ----
+
+function _viderListe() {
+  const $liste = document.getElementById('liste-actions');
+  $liste.innerHTML = '';
+  _actionRetour = null;
+  return $liste;
+}
+
+// Le focus va au début du nouveau texte s'il y en a, sinon au premier bouton.
+function _placerFocus(premierBouton) {
+  const tour = terminerTour();
+  if (tour) {
+    tour.focus();
+  } else if (premierBouton) {
+    premierBouton.focus();
+  }
+}
+
+  return { afficherActions, demanderTexte, declencherRetour, deplacerFocusActions };
 })();
 
 // ===== des.js =====
@@ -693,14 +895,13 @@ const SUCCES_COMPLET = 'succes';
 const SUCCES_PARTIEL = 'partiel';
 const ECHEC          = 'echec';
 
-// Lance 2d6 + valeur de trait. Annonce le résultat et le retourne.
-function lancerDes(valeurTrait, nomTrait) {
+// Lance 2d6 + valeur de trait (+ bonus éventuel). Annonce le résultat et le retourne.
+// Annonce courte et orale : les signes sont dits en toutes lettres.
+function lancerDes(valeurTrait, nomTrait, bonus = 0, raisonBonus = null) {
   const d1 = _d6();
   const d2 = _d6();
   const sousTotal = d1 + d2;
-  const total     = sousTotal + valeurTrait;
-
-  const signeTrait = _signeParle(valeurTrait);
+  const total     = sousTotal + valeurTrait + bonus;
 
   let texteOutcome;
   let niveau;
@@ -712,18 +913,15 @@ function lancerDes(valeurTrait, nomTrait) {
     texteOutcome = 'Succès partiel.';
     niveau = SUCCES_PARTIEL;
   } else {
-    texteOutcome = 'Échec. Marquez un point d\'Expérience.';
+    texteOutcome = 'Échec.';
     niveau = ECHEC;
   }
 
-  const annonce = [
-    `Jet de ${nomTrait}.`,
-    `Dé 1 : ${d1}. Dé 2 : ${d2}. Sous-total : ${sousTotal}.`,
-    `${nomTrait} à ${signeTrait}. Total final : ${total}.`,
-    texteOutcome
-  ].join(' ');
+  const modificateur = bonus
+    ? `${nomTrait} ${_signeParle(valeurTrait)}, et ${_signeParle(bonus)} de ${raisonBonus}.`
+    : `${nomTrait} ${_signeParle(valeurTrait)}.`;
 
-  alerter(annonce);
+  alerter(`Jet ${/^[AEIOUYÉÈÊ]/.test(nomTrait) ? "d'" : 'de '}${modificateur} Dés : ${d1} et ${d2}, soit ${sousTotal}. Total : ${total}. ${texteOutcome}`);
 
   return { d1, d2, sousTotal, total, niveau, texteOutcome };
 }
@@ -756,15 +954,14 @@ function _signeParle(valeur) {
 // ===== fiche.js =====
 const { lireFiche, mettreAJourFiche } = (function() {
 // Lecture et affichage de la fiche de personnage.
-// Appelé par les touches F1-F5.
+// Appelé par les touches F1-F5 : annonce sans déplacer le focus, pour ne pas perdre sa place.
 
 
 
 
-// Lit une section de la fiche à voix haute via alerter().
 function lireFiche(section, personnage) {
   if (!personnage || !personnage.prenom) {
-    alerter('Aucun personnage créé pour l\'instant.');
+    annoncer('Aucun personnage créé pour l\'instant.');
     return;
   }
 
@@ -781,7 +978,6 @@ function lireFiche(section, personnage) {
         return str;
       });
       texte = 'Vos traits. ' + lignes.join('. ') + '.';
-      _focusSection('section-traits');
       break;
     }
 
@@ -796,7 +992,6 @@ function lireFiche(section, personnage) {
         });
         texte = `${actifs.length} état${actifs.length > 1 ? 's' : ''} actif${actifs.length > 1 ? 's' : ''} : ` + noms.join('. ') + '.';
       }
-      _focusSection('section-etats');
       break;
     }
 
@@ -807,7 +1002,6 @@ function lireFiche(section, personnage) {
         const liste = personnage.sorts.map(s => `${s.nom} : ${s.description}`).join('. ');
         texte = `Sorts connus, ${personnage.sorts.length} au total. ${liste}.`;
       }
-      _focusSection('section-sorts');
       break;
     }
 
@@ -819,7 +1013,6 @@ function lireFiche(section, personnage) {
         ? `Rivaux : ${personnage.rivaux.join(', ')}.`
         : 'Aucun rival.';
       texte = amis + ' ' + rivaux + ' Rappel : un ami ou un rival vous donne plus un au jet pour l\'aider ou l\'entraver.';
-      _focusSection('section-amis');
       break;
     }
 
@@ -835,12 +1028,11 @@ function lireFiche(section, personnage) {
           ? `Cicatrices : ${personnage.cicatrices.join(', ')}.`
           : ''
       ].filter(Boolean).join(' ');
-      _focusSection('section-chance');
       break;
     }
   }
 
-  if (texte) alerter(texte);
+  if (texte) annoncer(texte);
 }
 
 // Met à jour le DOM de la fiche (appelé après chaque changement d'état).
@@ -915,14 +1107,11 @@ function _ajouterLI($parent, texte) {
   $parent.appendChild(li);
 }
 
-function _focusSection(id) {
-  const el = document.getElementById(id);
-  if (el) el.focus();
-}
 
 function _signeParle(val) {
   if (val === -99) return 'hors jeu';
-  if (val >= 0)    return `plus ${val}`;
+  if (val === 0)   return 'zéro';
+  if (val > 0)     return `plus ${val}`;
   return `moins ${Math.abs(val)}`;
 }
 
@@ -935,78 +1124,86 @@ function _labelOrigine(origine) {
 })();
 
 // ===== clavier.js =====
-const { initClavier } = (function() {
-// Raccourcis clavier globaux.
-// Enregistrer une seule fois au démarrage.
+const { initClavier, initOutils } = (function() {
+// Raccourcis clavier globaux. Enregistrer une seule fois au démarrage.
+//
+// En mode navigation, NVDA garde pour lui les lettres, les chiffres, Espace et
+// les flèches : ces touches n'arrivent jamais à la page. Les raccourcis du jeu
+// utilisent donc des touches que NVDA laisse passer : F1 à F5, F8, F9 et Échap.
+// Les flèches ne servent que dans la liste d'actions, en mode formulaire.
 
 
 
-// cbLireFiche(section) : 'traits' | 'etats' | 'sorts' | 'amis' | 'chance'
-// cbSauvegarder()
-// cbRelancerDes()
-function initClavier({ lireFiche, sauvegarder, relancerDes }) {
+
+const SECTIONS_FICHE = { F1: 'traits', F2: 'etats', F3: 'sorts', F4: 'amis', F5: 'chance' };
+
+function initClavier({ lireFiche, sauvegarder }) {
   document.addEventListener('keydown', (e) => {
-    // Ne pas capturer les touches dans un champ de texte
-    const tag = document.activeElement?.tagName;
-    if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT') return;
+    if (e.altKey || e.ctrlKey || e.metaKey) return;
+
+    // Les touches F sont traitées même dans un champ texte :
+    // sinon F5 rechargerait la page et F1 ouvrirait l'aide du navigateur.
+    if (SECTIONS_FICHE[e.key]) {
+      e.preventDefault();
+      lireFiche(SECTIONS_FICHE[e.key]);
+      return;
+    }
 
     switch (e.key) {
-      case ' ':
-        // Espace sur un bouton = clic navigateur — ne capturer que hors bouton
-        if (document.activeElement?.tagName === 'BUTTON') return;
+      case 'F8':
+        e.preventDefault();
+        sauvegarder();
+        return;
+
+      case 'F9':
         e.preventDefault();
         relire();
-        break;
+        return;
 
-      case 'F1':
+      case 'Escape':
         e.preventDefault();
-        lireFiche('traits');
-        break;
+        declencherRetour();
+        return;
 
-      case 'F2':
-        e.preventDefault();
-        lireFiche('etats');
-        break;
-
-      case 'F3':
-        e.preventDefault();
-        lireFiche('sorts');
-        break;
-
-      case 'F4':
-        e.preventDefault();
-        lireFiche('amis');
-        break;
-
-      case 'F5':
-        e.preventDefault();
-        lireFiche('chance');
-        break;
-
-      case 'r':
-      case 'R':
-        if (relancerDes) relancerDes();
-        break;
-
-      case 's':
-      case 'S':
-        if (sauvegarder) sauvegarder();
-        break;
+      case 'ArrowDown':
+      case 'ArrowUp':
+      case 'Home':
+      case 'End':
+        if (deplacerFocusActions(e.key)) e.preventDefault();
+        return;
     }
   });
 }
 
-  return { initClavier };
+// Branche les boutons de la barre d'outils permanente sur les mêmes fonctions.
+function initOutils({ lireFiche, sauvegarder, afficherAide }) {
+  document.getElementById('zone-outils').addEventListener('click', (e) => {
+    const outil = e.target.closest('button')?.dataset.outil;
+    if (!outil) return;
+    if (outil === 'relire')      relire();
+    else if (outil === 'sauver') sauvegarder();
+    else if (outil === 'aide')   afficherAide();
+    else                         lireFiche(outil);
+  });
+}
+
+  return { initClavier, initOutils };
 })();
 
 // ===== manoeuvres.js =====
 const { resoudreManoeuvre, MANOEUVRES } = (function() {
-// Les 8 manœuvres de base — définition et résolution complète.
+// Les manœuvres de base et magiques — définition et résolution complète.
+// Textes alignés sur Hogwarts: An RPG v1.2 (voir memory/game-rules.md).
+//
+// Une option peut être une chaîne, ou { texte, etat: true } quand elle
+// fait prendre un État : le joueur choisit alors lequel cocher.
 
 
 
 
 
+
+const TOUS_LES_TRAITS = Object.keys(NOMS_TRAITS);
 
 // ================================================================
 // Catalogue des manœuvres
@@ -1016,135 +1213,161 @@ const MANOEUVRES = [
   {
     id: 'faire-face',
     nom: 'Faire Face au Danger',
-    trait: 'bravoure',
-    description: 'Affronter un danger physique ou autre. Tenir bon face à une menace.',
+    traits: ['bravoure'],
+    description: 'Affronter un danger, physique ou non.',
     options10: [
       'Vous tenez bon et personne n\'est blessé.',
-      'Vous repoussez la menace sans vous faire toucher.'
+      'Vous n\'êtes pas blessé, et vous blessez la menace en retour.'
     ],
     options79: [
-      'Vous blessez la menace, mais elle vous touche aussi.',
+      { texte: 'Vous blessez la menace, mais elle vous blesse aussi.', etat: true },
       'Vous ne pouvez pas agir, mais la menace recule.',
-      'Vous évitez les Conséquences Graves, mais quelqu\'un d\'autre en subit.',
-      'Vous évitez les Conséquences Graves, mais vous laissez une trace ou des preuves.'
+      'Vous fuyez, sans subir de Conséquence Grave.',
+      'Vous évitez la Conséquence Grave, mais quelqu\'un d\'autre la subit.'
     ],
-    mode10: 'choisir-un',
-    mode79: 'choisir-un'
+    texte6: 'Vous n\'arrivez pas à faire face au danger.'
   },
   {
     id: 'acquerir-connaissance',
     nom: 'Acquérir des Connaissances',
-    trait: 'intellect',
-    description: 'Apprendre quelque chose sur une personne, un objet, une situation ou un lieu.',
-    questions10: [
-      'Qu\'est-ce qui ne va pas ici ?',
+    traits: ['intellect'],
+    description: 'Apprendre quelque chose sur une personne, un objet, une situation ou un lieu, par une conversation, un document ou votre mémoire.',
+    questions: [
+      'Qu\'est-ce qui n\'est pas ce qu\'il paraît ici ?',
       'Où est ce que je cherche ?',
-      'Quelle est l\'histoire de cet objet ou lieu ?',
-      'Comment puis-je utiliser ceci à mon avantage ?',
+      'Quelle est l\'histoire de ceci ?',
+      'Comment puis-je m\'en servir ?',
       'Cette personne dit-elle la vérité ?',
       'Que veut vraiment cette personne ?',
-      'Que puis-je me rappeler à ce sujet ?'
+      'De quoi est-ce que je me souviens à ce sujet ?'
     ],
-    options10: null,
-    options79: null,
-    mode10: 'question',
-    mode79: 'question-partielle'
+    texte10: 'Vous obtenez l\'information voulue. Posez une question : la réponse sera vraie et complète.',
+    texte79: 'Vous obtenez une partie de l\'information. Posez une question : la réponse sera vraie, mais peut-être incomplète.',
+    texte6:  'Vous n\'êtes pas sûr de ce que vous avez appris. Vous pouvez poser une question, mais la réponse peut être incomplète, ou fausse.'
   },
   {
     id: 'cacher-faufiler',
     nom: 'Se Cacher et se Faufiler',
-    trait: 'ruse',
-    description: 'Se déplacer sans être vu, dissimuler quelque chose ou quelqu\'un.',
-    options10: null,
+    traits: ['ruse'],
+    description: 'Vous cacher, cacher quelque chose, ou vous déplacer sans être remarqué.',
+    texte10: 'Personne ne vous remarque, ni vous ni ce que vous cachez.',
     options79: [
-      'Quelqu\'un vous cherche activement.',
-      'Quelqu\'un sait que vous êtes là, mais pas où exactement.',
-      'Vous laissez une trace ou une preuve de votre passage.'
+      'Quelqu\'un ou quelque chose vous cherche, ou cherche ce que vous avez caché.',
+      'Quelqu\'un sait que vous êtes là, ou que vous avez caché quelque chose, mais pas où.',
+      'Vous laissez une trace ou une preuve derrière vous.'
     ],
-    mode10: 'succes-total',
-    mode79: 'choisir-un'
+    texte6: 'Vous êtes découvert, ou ce que vous cachiez est trouvé.'
   },
   {
     id: 'obtenir',
     nom: 'Obtenir ce que l\'on Cherche',
-    trait: null,
-    traitHonnete: 'bravoure',
-    traitRuse: 'ruse',
-    description: 'Obtenir un objet ou convaincre quelqu\'un. Par l\'honnêteté : Bravoure. Par la tromperie : Ruse.',
-    options10: null,
+    traits: ['bravoure', 'ruse'],
+    libellesTraits: {
+      bravoure: 'Par l\'honnêteté, la négociation, le charisme ou l\'humilité',
+      ruse:     'Par la ruse, la tricherie ou le vol'
+    },
+    description: 'Obtenir un objet, ou convaincre quelqu\'un de faire ou de penser quelque chose.',
+    texte10: 'Vous obtenez ce que vous vouliez, sans problème.',
     options79: [
-      'La personne devient méfiante envers vous.',
-      'Vous devez donner quelque chose en retour.',
-      'La personne change d\'attitude à votre égard.'
+      'Vous l\'obtenez, mais la personne devient méfiante.',
+      'Vous l\'obtenez, mais vous devez donner ou promettre quelque chose en retour.',
+      'Vous l\'obtenez, mais l\'attitude de la personne envers vous change.'
     ],
-    mode10: 'succes-total',
-    mode79: 'choisir-un'
+    texte6: 'Vous n\'obtenez pas ce que vous vouliez.'
   },
   {
     id: 'aider-entraver',
     nom: 'Aider ou Entraver quelqu\'un',
-    trait: 'loyaute',
-    description: 'Aider ou gêner un autre personnage. Un Ami ou un Rival donne plus 1 au jet.',
-    options10: [
-      'Donnez plus 1 ou moins 1 à leur prochain jet.',
-      'Empêchez-les de prendre un État.',
-      'Offrez-leur 1 point d\'Expérience pour qu\'ils arrêtent ce qu\'ils font.'
-    ],
+    traits: ['loyaute'],
+    bonusRelation: true,
+    description: 'Aider, défendre ou soutenir quelqu\'un, ou au contraire le gêner. Plus 1 si c\'est un Ami ou un Rival.',
+    texte10: 'Vous aidez ou entravez la personne comme vous le vouliez.',
     options79: [
-      'Vous aidez ou entravez, mais vous prenez un État.',
-      'Vous aidez ou entravez, mais vous les blessez accidentellement.',
-      'Vous aidez ou entravez, mais ils vous en veulent.',
-      'Vous aidez ou entravez, mais ils se méfient de vos intentions.'
+      { texte: 'Vous y arrivez, mais vous prenez un État dans l\'effort.', etat: true },
+      'Vous y arrivez, mais la personne est blessée par accident.',
+      'Vous y arrivez, mais la personne vous en veut.',
+      'Vous y arrivez, mais la personne se méfie de vos intentions.'
     ],
-    mode10: 'choisir-un',
-    mode79: 'choisir-un'
+    texte6: 'Vous n\'arrivez ni à l\'aider ni à l\'entraver.'
+  },
+  {
+    id: 'approcher-creature',
+    nom: 'Approcher une Créature Magique',
+    traits: ['loyaute'],
+    description: 'Apprivoiser, aider ou obtenir l\'aide d\'une créature magique.',
+    texte10: 'La créature agit comme vous le voulez.',
+    options79: [
+      { texte: 'La créature obéit, mais vous prenez un État dans l\'effort.', etat: true },
+      'La créature obéit, mais cela attire une attention indésirable.',
+      'La créature n\'obéit pas, mais elle fait autre chose d\'utile.'
+    ],
+    texte6: 'La créature s\'emballe.'
   },
   {
     id: 'lancer-sort',
-    nom: 'Lancer un Sort ou Dueller',
-    trait: 'magie',
-    description: 'Utiliser la magie offensive, défensive ou utilitaire. Vous devez connaître le sort.',
-    options10: null,
+    nom: 'Lancer un Sort',
+    traits: ['magie'],
+    prealable: 'sort',
+    description: 'Dire la formule et agiter la baguette. Un sort inconnu coûte 1 point de Chance.',
+    texte10: 'Le sort fonctionne exactement comme vous le vouliez.',
     options79: [
-      'Le sort fonctionne, mais vous prenez l\'État Ensorcelé.',
-      'Le sort fonctionne, mais quelqu\'un d\'autre est touché accidentellement.',
-      'Le sort fonctionne de façon imparfaite — effet réduit ou inattendu.',
-      'Le sort fonctionne, mais votre baguette est endommagée ou épuisée.'
+      'Le sort fonctionne, mais son effet est moins puissant que prévu.',
+      'Le sort fonctionne, mais son effet dure moins longtemps que prévu.',
+      'Le sort fonctionne, mais vous attirez une attention indésirable.'
     ],
-    mode10: 'succes-total',
-    mode79: 'choisir-un',
-    necessite_sort: true
+    texte6: 'Le sort échoue.'
+  },
+  {
+    id: 'dueller',
+    nom: 'Dueller',
+    traits: ['magie'],
+    prealable: 'sort',
+    consequenceObligatoire: true,
+    description: 'Échanger des sorts avec un autre sorcier. Si votre sort est défensif ou de soin, « toucher » veut dire bloquer ou réussir.',
+    texte10: 'Votre sort touche votre adversaire, et le sien vous rate !',
+    options79: [
+      'Vos deux sorts se percutent en plein vol !',
+      'Votre sort rate, mais le sien aussi.',
+      'Les deux sorts touchent !'
+    ],
+    texte6: 'Votre sort rate, et le sien vous touche !'
   },
   {
     id: 'preparer-potion',
     nom: 'Préparer une Potion',
-    trait: 'magie',
-    description: 'Préparer une potion. Vous devez connaître la recette et avoir les ingrédients.',
-    options10: null,
+    traits: ['magie'],
+    prealable: 'potion',
+    description: 'Il faut les ingrédients, de quoi les assembler et une baguette. Une potion inconnue coûte 1 point de Chance.',
+    texte10: 'Vous préparez correctement la potion voulue.',
     options79: [
-      'La potion est prête mais moins puissante qu\'attendu.',
-      'La potion est prête mais elle a un effet secondaire inattendu.',
-      'La potion prend plus de temps que prévu.',
-      'Vous gaspillez des ingrédients rares dans le processus.'
+      'La potion est prête, mais elle a un effet secondaire imprévu.',
+      { texte: 'La préparation tourne mal et vous prenez un État.', etat: true },
+      'Vous préparez par erreur une autre potion. Le Narrateur dit laquelle.'
     ],
-    mode10: 'succes-total',
-    mode79: 'choisir-un',
-    necessite_sort: true
+    texte6: 'La potion est ratée.'
   },
   {
     id: 'objet-magique',
     nom: 'Utiliser un Objet Magique',
-    trait: 'magie',
-    description: 'Activer ou manier un objet à propriétés magiques.',
-    options10: null,
+    traits: ['magie'],
+    description: 'Activer ou manier un objet aux propriétés magiques.',
+    texte10: 'L\'objet fonctionne exactement comme prévu, et vous en tirez le meilleur parti.',
     options79: [
-      'L\'objet fonctionne, mais il perd une charge ou se détériore.',
-      'L\'objet fonctionne, mais produit un effet secondaire étrange.',
-      'L\'objet fonctionne, mais attire l\'attention indésirable.',
-      'L\'objet fonctionne partiellement — vous devez réessayer.'
+      'L\'objet fait quelque chose d\'inattendu, mais d\'utile.',
+      'L\'effet de l\'objet est moins puissant que prévu.',
+      { texte: 'L\'objet fonctionne, mais vous prenez un État en l\'utilisant.', etat: true },
+      'L\'objet fonctionne, mais il se casse.'
     ],
-    mode10: 'succes-total',
-    mode79: 'choisir-un'
+    texte6: 'L\'objet ne fonctionne pas correctement.'
+  },
+  {
+    id: 'jet',
+    nom: 'Jet libre',
+    traits: TOUS_LES_TRAITS,
+    description: 'Quand aucune autre manœuvre ne convient. Choisissez le trait qui correspond le mieux à ce que vous faites.',
+    texte10: 'Vous y arrivez sans problème. Génial !',
+    texte79: 'Vous y arrivez, mais cela a un coût. Décidez lequel en fonction de la scène.',
+    texte6:  'Vous n\'y arrivez pas, et la situation empire.'
   }
 ];
 
@@ -1153,210 +1376,295 @@ const MANOEUVRES = [
 // ================================================================
 
 // onFin({ niveau, personnage }) est appelé une fois les choix faits.
-function resoudreManoeuvre(manoeuvre, personnage, onFin) {
-  // Cas spécial : Obtenir — choisir d'abord honnête ou ruse
-  if (manoeuvre.id === 'obtenir') {
-    _choisirApproche(manoeuvre, personnage, onFin);
+// onAnnuler() est appelé si le joueur revient en arrière avant le jet.
+function resoudreManoeuvre(manoeuvre, personnage, onFin, onAnnuler) {
+  if (personnage.etats.some(e => e.id === 'inconscient' && e.actif)) {
+    alerter('Vous êtes Inconscient. Vous ne pouvez pas agir avant d\'être ranimé.');
+    onFin({ niveau: ECHEC, personnage, sansJet: true });
     return;
   }
 
-  const nomTrait  = manoeuvre.trait;
-  const valTrait  = traitEffectif(personnage, nomTrait);
-  const labelTrait = NOMS_TRAITS[nomTrait];
+  const ctx = { manoeuvre, personnage, onFin, onAnnuler };
 
-  // Vérifier l'inconscience
-  if (valTrait === -99) {
-    alerter('Vous êtes Inconscient. Vous ne pouvez pas agir.');
-    onFin({ niveau: ECHEC, personnage });
-    return;
+  if (manoeuvre.traits.length > 1) {
+    _choisirTrait(ctx);
+  } else {
+    ctx.trait = manoeuvre.traits[0];
+    _etapePrealable(ctx);
   }
-
-  narrer(`${manoeuvre.nom}. Jet de ${labelTrait}. Valeur : ${_signeParle(valTrait)}.`);
-
-  // Option : dépenser la Chance avant de lancer
-  const actionsDAvant = [
-    {
-      label: `Lancer ${labelTrait} (${_signeParle(valTrait)})`,
-      action: () => _effectuerJet(manoeuvre, personnage, nomTrait, valTrait, onFin)
-    }
-  ];
-
-  if (personnage.chance > 0) {
-    actionsDAvant.push({
-      label: `Dépenser 1 point de Chance pour un succès complet automatique (Chance restante : ${personnage.chance})`,
-      action: () => {
-        personnage.chance--;
-        alerter(`Chance dépensée. Reste : ${personnage.chance} sur 3. Succès complet automatique.`);
-        _presenterResultat(manoeuvre, { niveau: SUCCES_COMPLET, total: 10 }, personnage, onFin);
-      }
-    });
-  }
-
-  afficherActions(actionsDAvant);
 }
 
 // ================================================================
-// Interne
+// Avant le jet
 // ================================================================
 
-function _choisirApproche(manoeuvre, personnage, onFin) {
-  narrer('Obtenir ce que l\'on Cherche. Par quel moyen ?');
+function _choisirTrait(ctx) {
+  const { manoeuvre, personnage } = ctx;
+  narrer(manoeuvre.id === 'obtenir' ? 'Par quel moyen ?' : 'Quel trait utilisez-vous ?');
+
   afficherActions([
-    {
-      label: `Par l'honnêteté ou le charisme (Bravoure : ${_signeParle(traitEffectif(personnage, 'bravoure'))})`,
-      action: () => {
-        const val = traitEffectif(personnage, 'bravoure');
-        _effectuerJet({ ...manoeuvre, trait: 'bravoure' }, personnage, 'bravoure', val, onFin);
-      }
-    },
-    {
-      label: `Par la tromperie ou le vol (Ruse : ${_signeParle(traitEffectif(personnage, 'ruse'))})`,
-      action: () => {
-        const val = traitEffectif(personnage, 'ruse');
-        _effectuerJet({ ...manoeuvre, trait: 'ruse' }, personnage, 'ruse', val, onFin);
-      }
-    }
+    ...manoeuvre.traits.map(t => {
+      const base = manoeuvre.libellesTraits?.[t];
+      const val  = `${NOMS_TRAITS[t]} ${_signeParle(traitEffectif(personnage, t))}`;
+      return {
+        label: base ? `${base}. ${val}.` : `${val}.`,
+        action: () => { ctx.trait = t; _etapePrealable(ctx); }
+      };
+    }),
+    _actionAnnuler(ctx)
   ]);
 }
 
-function _effectuerJet(manoeuvre, personnage, nomTrait, valTrait, onFin) {
-  const resultat = lancerDes(valTrait, NOMS_TRAITS[nomTrait]);
-  _presenterResultat(manoeuvre, resultat, personnage, onFin);
-}
+// Sort ou potion : il faut le connaître, sinon dépenser 1 point de Chance.
+function _etapePrealable(ctx) {
+  const { manoeuvre, personnage } = ctx;
+  if (!manoeuvre.prealable) { _menuDuJet(ctx); return; }
 
-function _presenterResultat(manoeuvre, resultat, personnage, onFin) {
-  const { niveau, total } = resultat;
+  const estPotion = manoeuvre.prealable === 'potion';
+  const connus = personnage.sorts.filter(s => (s.type === 'potion') === estPotion);
+  const mot    = estPotion ? 'potion' : 'sort';
 
-  if (niveau === SUCCES_COMPLET) {
-    _succes10(manoeuvre, personnage, onFin);
-  } else if (niveau === SUCCES_PARTIEL) {
-    _succes79(manoeuvre, personnage, onFin);
-  } else {
-    _echec6(manoeuvre, personnage, onFin);
-  }
-}
+  narrer(
+    estPotion
+      ? 'Quelle potion préparez-vous ?'
+      : `Quel sort lancez-vous ? Vous en connaissez ${connus.length}.`
+  );
 
-function _succes10(manoeuvre, personnage, onFin) {
-  switch (manoeuvre.mode10) {
-    case 'succes-total':
-      narrer('Succès complet. Vous obtenez exactement ce que vous vouliez, sans compromis.');
-      _proposeRelancerOuContinuer(onFin, SUCCES_COMPLET, personnage);
-      break;
-
-    case 'choisir-un':
-      narrer('Succès complet. Choisissez un avantage :');
-      afficherActions(manoeuvre.options10.map(opt => ({
-        label: opt,
-        action: () => {
-          alerter(`Vous choisissez : ${opt}`);
-          _proposeRelancerOuContinuer(onFin, SUCCES_COMPLET, personnage);
-        }
-      })));
-      break;
-
-    case 'question':
-    case 'question-partielle':
-      narrer(
-        'Succès complet. Vous obtenez l\'information. ' +
-        'Choisissez une question à poser. En mode solo, vous y répondez vous-même ' +
-        'en vous basant sur le contexte de la scène.'
-      );
-      afficherActions(manoeuvre.questions10.map(q => ({
-        label: q,
-        action: () => {
-          alerter(`Question posée : "${q}" La réponse doit être vraie et utile.`);
-          _proposeRelancerOuContinuer(onFin, SUCCES_COMPLET, personnage);
-        }
-      })));
-      break;
-  }
-}
-
-function _succes79(manoeuvre, personnage, onFin) {
-  switch (manoeuvre.mode79) {
-    case 'choisir-un':
-      narrer('Succès partiel. Vous y arrivez, mais avec un coût. Choisissez ce qui se passe :');
-      afficherActions([
-        ...manoeuvre.options79.map(opt => ({
-          label: opt,
-          action: () => {
-            alerter(`Coût choisi : ${opt}`);
-            _proposeRelancerOuContinuer(onFin, SUCCES_PARTIEL, personnage);
-          }
-        })),
-        ...(personnage.chance > 0 ? [{
-          label: `Dépenser 1 point de Chance pour éviter tout coût (Chance : ${personnage.chance})`,
-          action: () => {
-            personnage.chance--;
-            alerter(`Chance dépensée. Reste : ${personnage.chance}. Succès complet, pas de coût.`);
-            _proposeRelancerOuContinuer(onFin, SUCCES_COMPLET, personnage);
-          }
-        }] : [])
-      ]);
-      break;
-
-    case 'question-partielle':
-      narrer(
-        'Succès partiel. Vous obtenez une information partielle. ' +
-        'Choisissez une question. En mode solo, la réponse est vraie mais incomplète.'
-      );
-      afficherActions(manoeuvre.questions10.map(q => ({
-        label: q,
-        action: () => {
-          alerter(`Question posée : "${q}" La réponse est vraie mais le Narrateur n'a pas à tout révéler.`);
-          _proposeRelancerOuContinuer(onFin, SUCCES_PARTIEL, personnage);
-        }
-      })));
-      break;
-  }
-}
-
-function _echec6(manoeuvre, personnage, onFin) {
-  personnage.experience++;
-  const versProgression = 4 - personnage.experience;
-
-  let msg = `Échec. Vous marquez 1 point d'Expérience. Total : ${personnage.experience} sur 4. `;
-  if (personnage.experience >= 4) {
-    msg += 'Vous pouvez prendre une Progression !';
-  } else {
-    msg += `Encore ${versProgression} point${versProgression > 1 ? 's' : ''} pour une Progression.`;
-  }
-  msg += ' Le Narrateur peut annoncer une Conséquence Grave.';
-
-  alerter(msg);
-
-  const actions = [];
-
-  if (personnage.chance > 0) {
-    actions.push({
-      label: `Dépenser 1 point de Chance pour transformer l'échec en succès complet (Chance : ${personnage.chance})`,
-      action: () => {
-        personnage.experience = Math.max(0, personnage.experience - 1); // annuler le XP gagné
-        personnage.chance--;
-        alerter(`Chance dépensée. Reste : ${personnage.chance}. L'échec devient un succès complet. Expérience annulée.`);
-        _presenterResultat(manoeuvre, { niveau: SUCCES_COMPLET, total: 10 }, personnage, onFin);
-      }
-    });
-  }
+  const actions = connus.map(s => ({
+    label: `${s.nom}, ${s.description}.`,
+    action: () => { alerter(`${estPotion ? 'Potion' : 'Sort'} : ${s.nom}.`); _menuDuJet(ctx); }
+  }));
 
   actions.push({
-    label: 'Continuer — subir la Conséquence Grave et avancer',
-    action: () => onFin({ niveau: ECHEC, personnage })
+    label: personnage.chance > 0
+      ? `Un${estPotion ? 'e' : ''} ${mot} que vous ne connaissez pas. Coûte 1 point de Chance, il vous en reste ${personnage.chance}.`
+      : `Un${estPotion ? 'e' : ''} ${mot} inconnu${estPotion ? 'e' : ''} : impossible, vous n'avez plus de Chance.`,
+    desactive: personnage.chance <= 0,
+    action: () => {
+      personnage.chance--;
+      alerter(`1 point de Chance dépensé. Il vous en reste ${personnage.chance} sur 3.`);
+      _menuDuJet(ctx);
+    }
   });
 
+  actions.push(_actionAnnuler(ctx));
   afficherActions(actions);
 }
 
-function _proposeRelancerOuContinuer(onFin, niveau, personnage) {
-  onFin({ niveau, personnage });
+// Dernier écran avant le jet : trait seul, ou avec un bonus de plus 1.
+function _menuDuJet(ctx) {
+  const { manoeuvre, personnage, trait } = ctx;
+  const val = traitEffectif(personnage, trait);
+  const nom = NOMS_TRAITS[trait];
+
+  narrer(`Jet ${_de(nom)}${nom}, à ${_signeParle(val)}.`);
+
+  const actions = [{
+    label: `Lancer les dés, ${nom} ${_signeParle(val)}.`,
+    action: () => _lancer(ctx, val, 0, null)
+  }];
+
+  for (const matiere of personnage.matieresPreferees ?? []) {
+    actions.push({
+      label: `Lancer avec plus 1, si ce jet concerne votre matière préférée, ${matiere}. Total ${_signeParle(val + 1)}.`,
+      action: () => _lancer(ctx, val, 1, `bonus de matière préférée, ${matiere}`)
+    });
+  }
+
+  if (manoeuvre.bonusRelation) {
+    for (const nomAmi of personnage.amis ?? []) {
+      actions.push({
+        label: `Lancer avec plus 1, s'il s'agit de votre ami ${nomAmi}. Total ${_signeParle(val + 1)}.`,
+        action: () => _lancer(ctx, val, 1, `bonus d'ami, ${nomAmi}`)
+      });
+    }
+    for (const nomRival of personnage.rivaux ?? []) {
+      actions.push({
+        label: `Lancer avec plus 1, s'il s'agit de votre rival ${nomRival}. Total ${_signeParle(val + 1)}.`,
+        action: () => _lancer(ctx, val, 1, `bonus de rival, ${nomRival}`)
+      });
+    }
+  }
+
+  actions.push(_actionAnnuler(ctx));
+  afficherActions(actions);
+}
+
+function _lancer(ctx, valTrait, bonus, raisonBonus) {
+  const resultat = lancerDes(valTrait, NOMS_TRAITS[ctx.trait], bonus, raisonBonus);
+  if (resultat.niveau === SUCCES_COMPLET)      _succes10(ctx);
+  else if (resultat.niveau === SUCCES_PARTIEL) _succes79(ctx);
+  else                                         _echec6(ctx);
+}
+
+// ================================================================
+// Résultats
+// ================================================================
+
+function _succes10(ctx) {
+  const { manoeuvre } = ctx;
+
+  if (manoeuvre.questions) {
+    narrer(manoeuvre.texte10 + ' En solo, répondez-y vous-même d\'après la scène.');
+    _choisirQuestion(ctx, SUCCES_COMPLET);
+  } else if (manoeuvre.options10) {
+    narrer('Succès complet. Choisissez ce qui se passe.');
+    _choisirOption(ctx, manoeuvre.options10, SUCCES_COMPLET, []);
+  } else {
+    narrer(manoeuvre.texte10);
+    _finir(ctx, SUCCES_COMPLET);
+  }
+}
+
+function _succes79(ctx) {
+  const { manoeuvre } = ctx;
+  const chance = _actionChance(ctx, 'Dépenser 1 point de Chance pour obtenir un succès complet');
+
+  if (manoeuvre.questions) {
+    narrer(manoeuvre.texte79);
+    _choisirQuestion(ctx, SUCCES_PARTIEL, chance);
+  } else if (manoeuvre.options79) {
+    narrer('Succès partiel : vous y arrivez, mais avec un coût. Choisissez ce qui se passe.');
+    _choisirOption(ctx, manoeuvre.options79, SUCCES_PARTIEL, chance);
+  } else {
+    narrer(manoeuvre.texte79);
+    afficherActions([
+      { label: 'Accepter le coût et continuer.', action: () => _finir(ctx, SUCCES_PARTIEL) },
+      ...chance
+    ]);
+  }
+}
+
+function _echec6(ctx) {
+  const { manoeuvre, personnage } = ctx;
+  personnage.experience++;
+
+  const reste = 4 - personnage.experience;
+  narrer(
+    `${manoeuvre.texte6} Vous marquez 1 point d'Expérience, ${personnage.experience} sur 4. ` +
+    (reste <= 0
+      ? 'Vous pouvez prendre une Progression.'
+      : `Encore ${reste} pour une Progression.`)
+  );
+  narrer(
+    manoeuvre.consequenceObligatoire
+      ? 'Le Narrateur vous inflige une Conséquence Grave.'
+      : 'Le Narrateur peut vous infliger une Conséquence Grave.'
+  );
+
+  const chance = _actionChance(ctx, 'Dépenser 1 point de Chance pour transformer l\'échec en succès complet', () => {
+    personnage.experience = Math.max(0, personnage.experience - 1);
+  });
+
+  if (manoeuvre.questions) {
+    _choisirQuestion(ctx, ECHEC, chance);
+    return;
+  }
+
+  afficherActions([
+    { label: 'Accepter l\'échec et continuer.', action: () => _finir(ctx, ECHEC) },
+    ...chance
+  ]);
+}
+
+// ================================================================
+// Choix après le jet
+// ================================================================
+
+function _choisirOption(ctx, options, niveau, extra) {
+  afficherActions([
+    ...options.map(opt => {
+      const texte = typeof opt === 'string' ? opt : opt.texte;
+      return {
+        label: texte,
+        action: () => {
+          alerter(`Vous choisissez : ${texte}`);
+          if (opt.etat) _prendreEtat(ctx, niveau);
+          else          _finir(ctx, niveau);
+        }
+      };
+    }),
+    ...extra
+  ]);
+}
+
+function _choisirQuestion(ctx, niveau, extra = []) {
+  const avertissement = {
+    [SUCCES_COMPLET]: 'La réponse doit être vraie et complète.',
+    [SUCCES_PARTIEL]: 'La réponse est vraie, mais peut rester incomplète.',
+    [ECHEC]:          'La réponse peut être incomplète, ou fausse.'
+  }[niveau];
+
+  afficherActions([
+    ...ctx.manoeuvre.questions.map(q => ({
+      label: q,
+      action: () => {
+        alerter(`Question posée : ${q} ${avertissement}`);
+        _finir(ctx, niveau);
+      }
+    })),
+    ...extra
+  ]);
+}
+
+function _prendreEtat(ctx, niveau) {
+  const libres = ctx.personnage.etats.filter(e => !e.actif && e.id !== 'inconscient');
+  if (libres.length === 0) { _finir(ctx, niveau); return; }
+
+  narrer('Quel État prenez-vous ?');
+  afficherActions(libres.map(e => ({
+    label: `${e.nom}, ${_effetEtat(e)}.`,
+    action: () => {
+      e.actif = true;
+      alerter(`État ${e.nom} coché : ${_effetEtat(e)}.`);
+      _finir(ctx, niveau);
+    }
+  })));
+}
+
+// Dépenser la Chance transforme le jet en 10 ou plus (règle de la Chance).
+function _actionChance(ctx, label, avant) {
+  const { personnage } = ctx;
+  if (personnage.chance <= 0) return [];
+  return [{
+    label: `${label}. Il vous reste ${personnage.chance} point${personnage.chance > 1 ? 's' : ''} de Chance.`,
+    action: () => {
+      avant?.();
+      personnage.chance--;
+      alerter(`1 point de Chance dépensé, il vous en reste ${personnage.chance} sur 3. Le jet devient un succès complet.`);
+      _succes10(ctx);
+    }
+  }];
+}
+
+function _actionAnnuler(ctx) {
+  return {
+    label: 'Annuler la manœuvre',
+    retour: true,
+    action: () => (ctx.onAnnuler ?? (() => ctx.onFin({ niveau: null, personnage: ctx.personnage, sansJet: true })))()
+  };
+}
+
+function _finir(ctx, niveau) {
+  ctx.onFin({ niveau, personnage: ctx.personnage });
 }
 
 // ---- Helpers ----
 
+function _effetEtat(e) {
+  if (e.id === 'ensorcele') return 'moins 1 à un trait choisi par le Narrateur';
+  if (e.trait === 'tous')   return 'moins 1 à tous les traits';
+  return `moins 2 en ${NOMS_TRAITS[e.trait]}`;
+}
+
+// « de » ou « d' » devant un nom de trait : Jet de Magie, Jet d'Intellect.
+function _de(mot) {
+  return /^[AEIOUYÉÈÊaeiouyéèê]/.test(mot) ? "d'" : 'de ';
+}
+
 function _signeParle(val) {
-  if (val === -99) return 'Inconscient';
-  if (val === 0)   return 'zéro';
-  if (val > 0)     return `plus ${val}`;
+  if (val === 0) return 'zéro';
+  if (val > 0)   return `plus ${val}`;
   return `moins ${Math.abs(val)}`;
 }
 
@@ -1440,7 +1748,6 @@ function _etape2_Apparence_Teint() {
     _tables.teints,
     (val) => {
       _p.teint = val;
-      narrer(`Teint : ${val}.`);
       _etape2b_Cheveux();
     }
   );
@@ -1453,7 +1760,6 @@ function _etape2b_Cheveux() {
     _tables.cheveux,
     (val) => {
       _p.cheveux = val;
-      narrer(`Cheveux : ${val}.`);
       _etape2c_Silhouette();
     }
   );
@@ -1466,7 +1772,6 @@ function _etape2c_Silhouette() {
     _tables.silhouettes,
     (val) => {
       _p.silhouette = val;
-      narrer(`Silhouette : ${val}.`);
       _etape3_Baguette();
     }
   );
@@ -1485,7 +1790,6 @@ function _etape3_Baguette() {
     _tables.bois_baguette,
     (val) => {
       _p.baguette.bois = val;
-      narrer(`Bois : ${val}.`);
       _etape3b_Coeur();
     }
   );
@@ -1520,7 +1824,6 @@ function _etape3c_Aspect() {
     _tables.aspects_baguette,
     (val) => {
       _p.baguette.aspect = val;
-      narrer(`Aspect : ${val}.`);
       _etape3d_Ambition();
     }
   );
@@ -1719,7 +2022,7 @@ function _etape7_Traits() {
         const annonce = Object.entries(NOMS_TRAITS)
           .map(([c, nom]) => `${nom} : ${_signeParle(_p.traits[c])}`)
           .join('. ');
-        alerter('Traits assignés aléatoirement. ' + annonce);
+        alerter('Traits assignés aléatoirement. ' + annonce + '.');
         _etape8_Nom();
       }
     },
@@ -1735,7 +2038,7 @@ function _assignerTraitManuellement(traitsDispo, valeursDispo) {
     const annonce = Object.entries(NOMS_TRAITS)
       .map(([c, nom]) => `${nom} : ${_signeParle(_p.traits[c])}`)
       .join('. ');
-    alerter('Traits finaux. ' + annonce);
+    alerter('Traits finaux. ' + annonce + '.');
     _etape8_Nom();
     return;
   }
@@ -1784,13 +2087,13 @@ function _etape8_Nom() {
       action: () => {
         _demanderTexte(
           'Entrez votre prénom',
-          'ex: Hermione',
+          'Hermione',
           (prenom) => {
             _p.prenom = prenom;
             narrer(`Prénom : ${prenom}. Maintenant le nom de famille.`);
             _demanderTexte(
               'Entrez votre nom de famille',
-              'ex: Granger',
+              'Granger',
               (nom) => {
                 _p.nom = nom;
                 alerter(`Votre nom : ${_p.prenom} ${_p.nom}.`);
@@ -1823,7 +2126,7 @@ function _etape9_Animal() {
         if (roll <= 2)      { type = 'Hibou';  capacite = 'peut envoyer et recevoir du courrier'; }
         else if (roll <= 4) { type = 'Rat';    capacite = 'ne peut pas envoyer ou recevoir de courrier'; }
         else                { type = 'Chat';   capacite = 'ne daigne pas envoyer ou recevoir de courrier'; }
-        alerter(`Dé : ${roll}. Vous avez un ${type} qui ${capacite}.`);
+        alerter(`Dé : ${roll}. Vous avez un ${type.toLowerCase()}, qui ${capacite}.`);
         _p.animal.type = type;
         _nommerAnimal();
       }
@@ -1843,11 +2146,11 @@ function _etape9_Animal() {
 
 function _nommerAnimal() {
   _demanderTexte(
-    `Comment s'appelle votre ${_p.animal.type} ?`,
-    'ex: Hedwige',
+    `Comment s'appelle votre ${_p.animal.type.toLowerCase()} ?`,
+    'Hedwige',
     (nom) => {
       _p.animal.nom = nom;
-      alerter(`Votre ${_p.animal.type} s'appelle ${nom}.`);
+      alerter(`Votre ${_p.animal.type.toLowerCase()} s'appelle ${nom}.`);
       _etape10_Maison();
     }
   );
@@ -1971,7 +2274,6 @@ function _etape12_Patronus() {
       label: 'Lancer deux dés pour mon Patronus',
       action: () => {
         const [d1, d2] = deuxD6Independants();
-        const cat      = _sorts.annees ? null : null; // on utilise _tables
         const categorie = _tables.patronus.categories[String(d1)];
         const animal    = categorie?.animaux[String(d2)] ?? 'inconnu';
         _p.patronus = animal;
@@ -1999,21 +2301,28 @@ function _etape12_Patronus() {
 }
 
 function _choisirCategoriePatronus() {
-  const categories = Object.entries(_tables.patronus.categories);
-  afficherActions(categories.map(([num, cat]) => ({
-    label: cat.label,
-    action: () => {
-      narrer(`Catégorie : ${cat.label}. Choisissez un animal.`);
-      afficherActions(Object.values(cat.animaux).map(animal => ({
-        label: animal,
-        action: () => {
-          _p.patronus = animal;
-          alerter(`Votre Patronus est un ${animal}.`);
-          _finirCreation();
-        }
-      })));
-    }
-  })));
+  const categories = Object.values(_tables.patronus.categories);
+  narrer("Choisissez une catégorie d'animal.");
+  afficherActions([
+    ...categories.map(cat => ({
+      label: cat.label,
+      action: () => {
+        narrer(`Catégorie : ${cat.label}. Choisissez un animal.`);
+        afficherActions([
+          ...Object.values(cat.animaux).map(animal => ({
+            label: animal,
+            action: () => {
+              _p.patronus = animal;
+              alerter(`Votre Patronus est un ${animal}.`);
+              _finirCreation();
+            }
+          })),
+          { label: 'Retour aux catégories', action: _choisirCategoriePatronus }
+        ]);
+      }
+    })),
+    { label: 'Retour au choix du Patronus', action: _etape12_Patronus }
+  ]);
 }
 
 // ================================================================
@@ -2075,35 +2384,8 @@ function _choisirOuLancer(titreChoix, table, onChoix) {
   ]);
 }
 
-// Champ texte temporaire dans la zone d'actions
-function _demanderTexte(question, placeholder, onValide) {
-  narrer(question + ' Tapez votre réponse et appuyez sur Entrée.');
-
-  const $liste = document.getElementById('liste-actions');
-  $liste.innerHTML = '';
-
-  const li    = document.createElement('li');
-  const input = document.createElement('input');
-  input.type        = 'text';
-  input.placeholder = placeholder;
-  input.setAttribute('aria-label', question);
-
-  const btn = document.createElement('button');
-  btn.textContent = 'Confirmer';
-
-  const valider = () => {
-    const val = input.value.trim();
-    if (!val) { alerter('Veuillez entrer une valeur.'); input.focus(); return; }
-    onValide(val);
-  };
-
-  btn.addEventListener('click', valider);
-  input.addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); valider(); } });
-
-  li.appendChild(input);
-  li.appendChild(btn);
-  $liste.appendChild(li);
-  input.focus();
+function _demanderTexte(question, exemple, onValider) {
+  demanderTexte({ question, exemple, onValider });
 }
 
 function _tirerAuHasard(tableau) {
@@ -2249,7 +2531,7 @@ function _executerAction(action) {
       if (action.effet_apres) _appliquerEffet(action.effet_apres[niveau] ?? action.effet_apres.defaut);
 
       _allerScene(prochaine);
-    });
+    }, () => _allerScene(_etat.sceneActuelle));
 
   } else if (action.lien) {
     _allerScene(action.lien);
@@ -2417,7 +2699,7 @@ function _afficherEcranJeu() {
       ? `États actifs : ${etats.join(', ')}.`
       : 'Aucun état actif.') +
     ` Chance : ${_personnage.chance} sur 3. Expérience : ${_personnage.experience} sur 4. ` +
-    'Appuyez sur F1 à F5 pour consulter votre fiche. Choisissez une manœuvre ou une action.'
+    'Que voulez-vous faire ?'
   );
 
   // Vérifier si tous les états sont cochés
@@ -2430,32 +2712,34 @@ function _afficherEcranJeu() {
 }
 
 function _afficherMenuJeu() {
-  const actions = [
-    // Manœuvres de base
-    ...MANOEUVRES.map(m => {
-      const nomTrait = m.trait ?? m.traitHonnete;
-      const val = nomTrait ? traitEffectif(_personnage, nomTrait) : null;
-      const label = val !== null
-        ? `${m.nom} (${NOMS_TRAITS[nomTrait]} : ${_signeParle(val)})`
-        : m.nom;
-      return {
-        label,
-        action: () => _lancerManoeuvre(m)
-      };
-    }),
-
-    // Scénarios
+  afficherActions([
     { label: 'Jouer un scénario', action: _afficherScenarios },
-
-    // Actions de gestion
+    { label: 'Faire une manœuvre libre', action: _afficherManoeuvres },
     { label: 'Gérer les États', action: _gererEtats },
-    { label: 'Gérer les Amis et Rivaux', action: _gererRelations },
-    { label: 'Prendre une Progression (si 4 XP)', action: _prendreProgression, desactive: _personnage.experience < 4 },
+    { label: 'Voir les Amis et Rivaux', action: _gererRelations },
+    {
+      label: _personnage.experience >= 4
+        ? 'Prendre une Progression'
+        : `Prendre une Progression : indisponible, ${_personnage.experience} Expérience sur 4`,
+      action: _prendreProgression,
+      desactive: _personnage.experience < 4
+    },
     { label: 'Fin de session', action: _finSession },
     { label: 'Menu principal', action: () => _onRetourMenu?.() }
-  ];
+  ]);
+}
 
-  afficherActions(actions);
+function _afficherManoeuvres() {
+  narrer('Quelle manœuvre ? Le trait utilisé et sa valeur sont indiqués.');
+  afficherActions([
+    ...MANOEUVRES.map(m => ({
+      label: m.traits.length === 1
+        ? `${m.nom}, ${NOMS_TRAITS[m.traits[0]]} ${_signeParle(traitEffectif(_personnage, m.traits[0]))}`
+        : `${m.nom}, ${m.traits.length === 2 ? m.traits.map(t => NOMS_TRAITS[t]).join(' ou ') : 'trait au choix'}`,
+      action: () => _lancerManoeuvre(m)
+    })),
+    { label: 'Retour au jeu', action: _afficherMenuJeu }
+  ]);
 }
 
 // ================================================================
@@ -2463,26 +2747,30 @@ function _afficherMenuJeu() {
 // ================================================================
 
 function _lancerManoeuvre(manoeuvre) {
-  narrerFrais(
-    `${manoeuvre.nom}. ${manoeuvre.description} ` +
-    (manoeuvre.necessite_sort ? 'Attention : vous devez connaître le sort ou la recette.' : '')
-  );
+  narrerFrais(`${manoeuvre.nom}. ${manoeuvre.description}`);
 
-  resoudreManoeuvre(manoeuvre, _personnage, ({ niveau, personnage }) => {
+  resoudreManoeuvre(manoeuvre, _personnage, ({ niveau, personnage, sansJet }) => {
     _personnage = personnage;
     mettreAJourFiche(_personnage);
     sauvegarder({ personnage: _personnage });
 
-    if (niveau === ECHEC) {
-      narrer('Réfléchissez aux conséquences de cet échec sur l\'histoire. Puis choisissez votre prochaine action.');
-    } else if (niveau === SUCCES_PARTIEL) {
-      narrer('Réfléchissez aux implications de ce succès partiel. Puis choisissez votre prochaine action.');
-    } else {
-      narrer('Succès complet. Que se passe-t-il ensuite dans l\'histoire ?');
+    if (tousEtatsActifs(_personnage)) {
+      _jetDeSurvie();
+      return;
+    }
+
+    if (!sansJet) {
+      if (niveau === ECHEC) {
+        narrer("Imaginez les conséquences de cet échec dans l'histoire, puis choisissez la suite.");
+      } else if (niveau === SUCCES_PARTIEL) {
+        narrer("Imaginez le prix de ce succès dans l'histoire, puis choisissez la suite.");
+      } else {
+        narrer("Que se passe-t-il ensuite dans l'histoire ?");
+      }
     }
 
     _afficherMenuJeu();
-  });
+  }, _afficherManoeuvres);
 }
 
 // ================================================================
@@ -2552,31 +2840,17 @@ function _refusCicatrice() {
 }
 
 function _noterCicatrice() {
-  narrer('Décrivez votre cicatrice physique ou mentale. Tapez une courte description.');
-  const $liste = document.getElementById('liste-actions');
-  $liste.innerHTML = '';
-  const li = document.createElement('li');
-  const input = document.createElement('input');
-  input.type = 'text';
-  input.placeholder = 'ex: Brûlure sur la main gauche';
-  input.setAttribute('aria-label', 'Description de la cicatrice');
-  const btn = document.createElement('button');
-  btn.textContent = 'Confirmer';
-  const valider = () => {
-    const val = input.value.trim();
-    if (!val) { alerter('Entrez une description.'); input.focus(); return; }
-    _personnage.cicatrices.push(val);
-    alerter(`Cicatrice notée : ${val}.`);
-    mettreAJourFiche(_personnage);
-    sauvegarder({ personnage: _personnage });
-    _afficherEcranJeu();
-  };
-  btn.addEventListener('click', valider);
-  input.addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); valider(); } });
-  li.appendChild(input);
-  li.appendChild(btn);
-  $liste.appendChild(li);
-  input.focus();
+  demanderTexte({
+    question: 'Décrivez votre cicatrice, physique ou mentale.',
+    exemple: 'une brûlure sur la main gauche',
+    onValider: (val) => {
+      _personnage.cicatrices.push(val);
+      alerter(`Cicatrice notée : ${val}.`);
+      mettreAJourFiche(_personnage);
+      sauvegarder({ personnage: _personnage });
+      _afficherEcranJeu();
+    }
+  });
 }
 
 // ================================================================
@@ -2746,39 +3020,26 @@ function _prendreProgression() {
     {
       label: 'Acquérir un objet magique',
       action: () => {
-        _personnage.experience -= 4;
-        narrer('Vous acquérez un objet magique. Décrivez-le ou notez son nom.');
-        // Champ texte pour nommer l'objet
-        const $liste = document.getElementById('liste-actions');
-        $liste.innerHTML = '';
-        const li = document.createElement('li');
-        const input = document.createElement('input');
-        input.type = 'text';
-        input.placeholder = 'ex: Cape d\'invisibilité';
-        input.setAttribute('aria-label', 'Nom de l\'objet magique');
-        const btn = document.createElement('button');
-        btn.textContent = 'Confirmer';
-        const valider = () => {
-          const val = input.value.trim();
-          if (!val) { alerter('Entrez un nom.'); input.focus(); return; }
-          _personnage.objetsMagiques.push(val);
-          alerter(`Objet acquis : ${val}. Expérience remise à zéro.`);
-          mettreAJourFiche(_personnage);
-          sauvegarder({ personnage: _personnage });
-          _afficherMenuJeu();
-        };
-        btn.addEventListener('click', valider);
-        input.addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); valider(); } });
-        li.appendChild(input);
-        li.appendChild(btn);
-        $liste.appendChild(li);
-        input.focus();
+        narrer('Vous acquérez un objet magique.');
+        demanderTexte({
+          question: 'Quel est le nom de votre objet magique ?',
+          exemple: "une Cape d'invisibilité",
+          onAnnuler: _prendreProgression,
+          onValider: (val) => {
+            _personnage.objetsMagiques.push(val);
+            _personnage.experience = 0;
+            alerter(`Objet acquis : ${val}. Expérience remise à zéro.`);
+            mettreAJourFiche(_personnage);
+            sauvegarder({ personnage: _personnage });
+            _afficherMenuJeu();
+          }
+        });
       }
     },
     {
       label: `Récupérer 1 point de Chance (actuellement : ${_personnage.chance} sur 3)`,
       action: () => {
-        _personnage.experience -= 4;
+        _personnage.experience = 0;
         _personnage.chance = Math.min(3, _personnage.chance + 1);
         alerter(`Chance récupérée. Chance : ${_personnage.chance} sur 3. Expérience remise à zéro.`);
         mettreAJourFiche(_personnage);
@@ -2800,7 +3061,7 @@ function _choisirTraitAAmeliorer() {
       action: () => {
         _personnage.traits[cle]++;
         _personnage.progressions.traitsAmeliores++;
-        _personnage.experience -= 4;
+        _personnage.experience = 0;
         alerter(`${nom} amélioré à ${_signeParle(_personnage.traits[cle])}. Expérience remise à zéro.`);
         mettreAJourFiche(_personnage);
         sauvegarder({ personnage: _personnage });
@@ -2828,7 +3089,7 @@ function _choisirDeuxiemeMatiere() {
           action: () => {
             _personnage.matieresPreferees.push(m);
             _personnage.progressions.deuxiemeMatiere = true;
-            _personnage.experience -= 4;
+            _personnage.experience = 0;
             alerter(`Deuxième Matière Préférée : ${m}. Expérience remise à zéro.`);
             mettreAJourFiche(_personnage);
             sauvegarder({ personnage: _personnage });
@@ -2861,7 +3122,7 @@ function _apprendreSortProgression() {
           label: `${s.nom} — ${s.description}`,
           action: () => {
             _personnage.sorts.push(s);
-            _personnage.experience -= 4;
+            _personnage.experience = 0;
             alerter(`Sort appris : ${s.nom}. Expérience remise à zéro.`);
             mettreAJourFiche(_personnage);
             sauvegarder({ personnage: _personnage });
@@ -2925,29 +3186,17 @@ function _mettreAJourRelation(type) {
     actions.push({
       label: `Ajouter un ${type}`,
       action: () => {
-        const $liste = document.getElementById('liste-actions');
-        $liste.innerHTML = '';
-        const li = document.createElement('li');
-        const input = document.createElement('input');
-        input.type = 'text';
-        input.placeholder = `Nom du ${type}`;
-        input.setAttribute('aria-label', `Nom du ${type}`);
-        const btn = document.createElement('button');
-        btn.textContent = 'Confirmer';
-        const valider = () => {
-          const val = input.value.trim();
-          if (!val) { alerter('Entrez un nom.'); input.focus(); return; }
-          liste.push(val);
-          alerter(`${type === 'ami' ? 'Ami' : 'Rival'} ajouté : ${val}.`);
-          sauvegarder({ personnage: _personnage });
-          _finSession();
-        };
-        btn.addEventListener('click', valider);
-        input.addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); valider(); } });
-        li.appendChild(input);
-        li.appendChild(btn);
-        $liste.appendChild(li);
-        input.focus();
+        demanderTexte({
+          question: `Nom du nouvel ${type === 'ami' ? 'ami' : 'rival'} ?`,
+          onAnnuler: () => _mettreAJourRelation(type),
+          onValider: (val) => {
+            liste.push(val);
+            alerter(`${type === 'ami' ? 'Ami' : 'Rival'} ajouté : ${val}.`);
+            mettreAJourFiche(_personnage);
+            sauvegarder({ personnage: _personnage });
+            _finSession();
+          }
+        });
       }
     });
   }
@@ -3004,18 +3253,19 @@ const { etat } = (function() {
 
 // État global de la session
 const etat = {
-  personnage: null,
-  derniereAction: null  // pour la touche R (relancer les dés)
+  personnage: null
 };
 
 // ---- Démarrage ----
 
-document.addEventListener('DOMContentLoaded', async () => {
-  initClavier({
+document.addEventListener('DOMContentLoaded', () => {
+  const raccourcis = {
     lireFiche:    (section) => lireFiche(section, etat.personnage),
-    sauvegarder:  () => _sauvegarder(),
-    relancerDes:  () => etat.derniereAction?.()
-  });
+    sauvegarder:  _sauvegarder,
+    afficherAide: _allerAide
+  };
+  initClavier(raccourcis);
+  initOutils(raccourcis);
 
   const sauvegarde = charger();
   if (sauvegarde?.personnage) {
@@ -3033,7 +3283,8 @@ function afficherMenuPrincipal(aUneSauvegarde) {
   narrerFrais(
     aUneSauvegarde
       ? `Bienvenue à Poudlard, ${etat.personnage.prenom}. Votre aventure vous attend.`
-      : 'Bienvenue à Poudlard. Aucune partie en cours. Créez votre sorcière ou sorcier pour commencer.'
+      : 'Bienvenue à Poudlard. Aucune partie en cours. Créez votre sorcière ou sorcier pour commencer. ' +
+        'Pour l\'aide et les raccourcis clavier, choisissez « Aide » ci-dessous.'
   );
 
   const actions = [];
@@ -3045,7 +3296,7 @@ function afficherMenuPrincipal(aUneSauvegarde) {
     actions.push({ label: 'Créer votre sorcière ou sorcier', action: demarrerCreation });
   }
 
-  actions.push({ label: 'Aide et raccourcis clavier', action: afficherAide });
+  actions.push({ label: 'Aide et raccourcis clavier', action: _allerAide });
 
   afficherActions(actions);
 }
@@ -3057,10 +3308,10 @@ function reprendrePartie() {
 }
 
 function demanderConfirmationNouvelle() {
-  narrerFrais('Attention : cela effacera votre partie en cours. Êtes-vous certain ?');
+  narrerFrais('Attention : cela effacera votre partie en cours. Voulez-vous vraiment recommencer ?');
   afficherActions([
-    { label: 'Oui, commencer une nouvelle partie',  action: demarrerCreation },
-    { label: 'Non, retourner au menu',              action: () => afficherMenuPrincipal(true) }
+    { label: 'Oui, commencer une nouvelle partie', action: demarrerCreation },
+    { label: 'Non, retourner au menu', action: () => afficherMenuPrincipal(true), retour: true }
   ]);
 }
 
@@ -3077,35 +3328,22 @@ function demarrerCreation() {
   });
 }
 
-function afficherAide() {
-  narrerFrais([
-    'Aide et raccourcis clavier.',
-    'Espace : relire le dernier message.',
-    'F1 : lire vos traits.',
-    'F2 : lire vos états actifs.',
-    'F3 : lire vos sorts connus.',
-    'F4 : lire vos amis et rivaux.',
-    'F5 : lire votre chance et expérience.',
-    'R : relancer les dés.',
-    'S : sauvegarder la partie.',
-    'Tabulation et flèches : naviguer entre les actions.',
-    'Entrée : confirmer.',
-    'Échappement : retour en arrière.'
-  ].join(' '));
-
-  afficherActions([
-    { label: 'Retour au menu principal', action: () => afficherMenuPrincipal(!!etat.personnage?.prenom) }
-  ]);
+// L'aide est une section fixe de la page : on y place le focus,
+// et F9 ramène au dernier tour.
+function _allerAide() {
+  const $aide = document.getElementById('aide');
+  $aide.focus();
+  $aide.scrollIntoView();
 }
 
 // ---- Helpers ----
 
 function _sauvegarder() {
-  if (!etat.personnage) {
+  if (!etat.personnage?.prenom) {
     statuer('Aucun personnage à sauvegarder.');
     return;
   }
-  sauvegarder({ personnage: etat.personnage });
+  sauvegarder({ personnage: etat.personnage }, { annoncer: true });
 }
 
 function _assureProgressions(personnage) {

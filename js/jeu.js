@@ -1,9 +1,9 @@
 // Écran de jeu principal — boucle narrative et sélection des manœuvres.
 
-import { narrerFrais, narrer, alerter, statuer } from './narration.js';
-import { afficherActions } from './actions.js';
+import { narrerFrais, narrer, alerter } from './narration.js';
+import { afficherActions, demanderTexte } from './actions.js';
 import { MANOEUVRES, resoudreManoeuvre } from './manoeuvres.js';
-import { mettreAJourFiche, lireFiche } from './fiche.js';
+import { mettreAJourFiche } from './fiche.js';
 import { sauvegarder } from './sauvegarde.js';
 import { tousEtatsActifs, traitEffectif, NOMS_TRAITS } from './personnage.js';
 import { lancerDes, SUCCES_COMPLET, SUCCES_PARTIEL, ECHEC } from './des.js';
@@ -37,7 +37,7 @@ function _afficherEcranJeu() {
       ? `États actifs : ${etats.join(', ')}.`
       : 'Aucun état actif.') +
     ` Chance : ${_personnage.chance} sur 3. Expérience : ${_personnage.experience} sur 4. ` +
-    'Appuyez sur F1 à F5 pour consulter votre fiche. Choisissez une manœuvre ou une action.'
+    'Que voulez-vous faire ?'
   );
 
   // Vérifier si tous les états sont cochés
@@ -50,32 +50,34 @@ function _afficherEcranJeu() {
 }
 
 function _afficherMenuJeu() {
-  const actions = [
-    // Manœuvres de base
-    ...MANOEUVRES.map(m => {
-      const nomTrait = m.trait ?? m.traitHonnete;
-      const val = nomTrait ? traitEffectif(_personnage, nomTrait) : null;
-      const label = val !== null
-        ? `${m.nom} (${NOMS_TRAITS[nomTrait]} : ${_signeParle(val)})`
-        : m.nom;
-      return {
-        label,
-        action: () => _lancerManoeuvre(m)
-      };
-    }),
-
-    // Scénarios
+  afficherActions([
     { label: 'Jouer un scénario', action: _afficherScenarios },
-
-    // Actions de gestion
+    { label: 'Faire une manœuvre libre', action: _afficherManoeuvres },
     { label: 'Gérer les États', action: _gererEtats },
-    { label: 'Gérer les Amis et Rivaux', action: _gererRelations },
-    { label: 'Prendre une Progression (si 4 XP)', action: _prendreProgression, desactive: _personnage.experience < 4 },
+    { label: 'Voir les Amis et Rivaux', action: _gererRelations },
+    {
+      label: _personnage.experience >= 4
+        ? 'Prendre une Progression'
+        : `Prendre une Progression : indisponible, ${_personnage.experience} Expérience sur 4`,
+      action: _prendreProgression,
+      desactive: _personnage.experience < 4
+    },
     { label: 'Fin de session', action: _finSession },
     { label: 'Menu principal', action: () => _onRetourMenu?.() }
-  ];
+  ]);
+}
 
-  afficherActions(actions);
+function _afficherManoeuvres() {
+  narrer('Quelle manœuvre ? Le trait utilisé et sa valeur sont indiqués.');
+  afficherActions([
+    ...MANOEUVRES.map(m => ({
+      label: m.traits.length === 1
+        ? `${m.nom}, ${NOMS_TRAITS[m.traits[0]]} ${_signeParle(traitEffectif(_personnage, m.traits[0]))}`
+        : `${m.nom}, ${m.traits.length === 2 ? m.traits.map(t => NOMS_TRAITS[t]).join(' ou ') : 'trait au choix'}`,
+      action: () => _lancerManoeuvre(m)
+    })),
+    { label: 'Retour au jeu', action: _afficherMenuJeu }
+  ]);
 }
 
 // ================================================================
@@ -83,26 +85,30 @@ function _afficherMenuJeu() {
 // ================================================================
 
 function _lancerManoeuvre(manoeuvre) {
-  narrerFrais(
-    `${manoeuvre.nom}. ${manoeuvre.description} ` +
-    (manoeuvre.necessite_sort ? 'Attention : vous devez connaître le sort ou la recette.' : '')
-  );
+  narrerFrais(`${manoeuvre.nom}. ${manoeuvre.description}`);
 
-  resoudreManoeuvre(manoeuvre, _personnage, ({ niveau, personnage }) => {
+  resoudreManoeuvre(manoeuvre, _personnage, ({ niveau, personnage, sansJet }) => {
     _personnage = personnage;
     mettreAJourFiche(_personnage);
     sauvegarder({ personnage: _personnage });
 
-    if (niveau === ECHEC) {
-      narrer('Réfléchissez aux conséquences de cet échec sur l\'histoire. Puis choisissez votre prochaine action.');
-    } else if (niveau === SUCCES_PARTIEL) {
-      narrer('Réfléchissez aux implications de ce succès partiel. Puis choisissez votre prochaine action.');
-    } else {
-      narrer('Succès complet. Que se passe-t-il ensuite dans l\'histoire ?');
+    if (tousEtatsActifs(_personnage)) {
+      _jetDeSurvie();
+      return;
+    }
+
+    if (!sansJet) {
+      if (niveau === ECHEC) {
+        narrer("Imaginez les conséquences de cet échec dans l'histoire, puis choisissez la suite.");
+      } else if (niveau === SUCCES_PARTIEL) {
+        narrer("Imaginez le prix de ce succès dans l'histoire, puis choisissez la suite.");
+      } else {
+        narrer("Que se passe-t-il ensuite dans l'histoire ?");
+      }
     }
 
     _afficherMenuJeu();
-  });
+  }, _afficherManoeuvres);
 }
 
 // ================================================================
@@ -172,31 +178,17 @@ function _refusCicatrice() {
 }
 
 function _noterCicatrice() {
-  narrer('Décrivez votre cicatrice physique ou mentale. Tapez une courte description.');
-  const $liste = document.getElementById('liste-actions');
-  $liste.innerHTML = '';
-  const li = document.createElement('li');
-  const input = document.createElement('input');
-  input.type = 'text';
-  input.placeholder = 'ex: Brûlure sur la main gauche';
-  input.setAttribute('aria-label', 'Description de la cicatrice');
-  const btn = document.createElement('button');
-  btn.textContent = 'Confirmer';
-  const valider = () => {
-    const val = input.value.trim();
-    if (!val) { alerter('Entrez une description.'); input.focus(); return; }
-    _personnage.cicatrices.push(val);
-    alerter(`Cicatrice notée : ${val}.`);
-    mettreAJourFiche(_personnage);
-    sauvegarder({ personnage: _personnage });
-    _afficherEcranJeu();
-  };
-  btn.addEventListener('click', valider);
-  input.addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); valider(); } });
-  li.appendChild(input);
-  li.appendChild(btn);
-  $liste.appendChild(li);
-  input.focus();
+  demanderTexte({
+    question: 'Décrivez votre cicatrice, physique ou mentale.',
+    exemple: 'une brûlure sur la main gauche',
+    onValider: (val) => {
+      _personnage.cicatrices.push(val);
+      alerter(`Cicatrice notée : ${val}.`);
+      mettreAJourFiche(_personnage);
+      sauvegarder({ personnage: _personnage });
+      _afficherEcranJeu();
+    }
+  });
 }
 
 // ================================================================
@@ -366,39 +358,26 @@ function _prendreProgression() {
     {
       label: 'Acquérir un objet magique',
       action: () => {
-        _personnage.experience -= 4;
-        narrer('Vous acquérez un objet magique. Décrivez-le ou notez son nom.');
-        // Champ texte pour nommer l'objet
-        const $liste = document.getElementById('liste-actions');
-        $liste.innerHTML = '';
-        const li = document.createElement('li');
-        const input = document.createElement('input');
-        input.type = 'text';
-        input.placeholder = 'ex: Cape d\'invisibilité';
-        input.setAttribute('aria-label', 'Nom de l\'objet magique');
-        const btn = document.createElement('button');
-        btn.textContent = 'Confirmer';
-        const valider = () => {
-          const val = input.value.trim();
-          if (!val) { alerter('Entrez un nom.'); input.focus(); return; }
-          _personnage.objetsMagiques.push(val);
-          alerter(`Objet acquis : ${val}. Expérience remise à zéro.`);
-          mettreAJourFiche(_personnage);
-          sauvegarder({ personnage: _personnage });
-          _afficherMenuJeu();
-        };
-        btn.addEventListener('click', valider);
-        input.addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); valider(); } });
-        li.appendChild(input);
-        li.appendChild(btn);
-        $liste.appendChild(li);
-        input.focus();
+        narrer('Vous acquérez un objet magique.');
+        demanderTexte({
+          question: 'Quel est le nom de votre objet magique ?',
+          exemple: "une Cape d'invisibilité",
+          onAnnuler: _prendreProgression,
+          onValider: (val) => {
+            _personnage.objetsMagiques.push(val);
+            _personnage.experience = 0;
+            alerter(`Objet acquis : ${val}. Expérience remise à zéro.`);
+            mettreAJourFiche(_personnage);
+            sauvegarder({ personnage: _personnage });
+            _afficherMenuJeu();
+          }
+        });
       }
     },
     {
       label: `Récupérer 1 point de Chance (actuellement : ${_personnage.chance} sur 3)`,
       action: () => {
-        _personnage.experience -= 4;
+        _personnage.experience = 0;
         _personnage.chance = Math.min(3, _personnage.chance + 1);
         alerter(`Chance récupérée. Chance : ${_personnage.chance} sur 3. Expérience remise à zéro.`);
         mettreAJourFiche(_personnage);
@@ -420,7 +399,7 @@ function _choisirTraitAAmeliorer() {
       action: () => {
         _personnage.traits[cle]++;
         _personnage.progressions.traitsAmeliores++;
-        _personnage.experience -= 4;
+        _personnage.experience = 0;
         alerter(`${nom} amélioré à ${_signeParle(_personnage.traits[cle])}. Expérience remise à zéro.`);
         mettreAJourFiche(_personnage);
         sauvegarder({ personnage: _personnage });
@@ -448,7 +427,7 @@ function _choisirDeuxiemeMatiere() {
           action: () => {
             _personnage.matieresPreferees.push(m);
             _personnage.progressions.deuxiemeMatiere = true;
-            _personnage.experience -= 4;
+            _personnage.experience = 0;
             alerter(`Deuxième Matière Préférée : ${m}. Expérience remise à zéro.`);
             mettreAJourFiche(_personnage);
             sauvegarder({ personnage: _personnage });
@@ -481,7 +460,7 @@ function _apprendreSortProgression() {
           label: `${s.nom} — ${s.description}`,
           action: () => {
             _personnage.sorts.push(s);
-            _personnage.experience -= 4;
+            _personnage.experience = 0;
             alerter(`Sort appris : ${s.nom}. Expérience remise à zéro.`);
             mettreAJourFiche(_personnage);
             sauvegarder({ personnage: _personnage });
@@ -545,29 +524,17 @@ function _mettreAJourRelation(type) {
     actions.push({
       label: `Ajouter un ${type}`,
       action: () => {
-        const $liste = document.getElementById('liste-actions');
-        $liste.innerHTML = '';
-        const li = document.createElement('li');
-        const input = document.createElement('input');
-        input.type = 'text';
-        input.placeholder = `Nom du ${type}`;
-        input.setAttribute('aria-label', `Nom du ${type}`);
-        const btn = document.createElement('button');
-        btn.textContent = 'Confirmer';
-        const valider = () => {
-          const val = input.value.trim();
-          if (!val) { alerter('Entrez un nom.'); input.focus(); return; }
-          liste.push(val);
-          alerter(`${type === 'ami' ? 'Ami' : 'Rival'} ajouté : ${val}.`);
-          sauvegarder({ personnage: _personnage });
-          _finSession();
-        };
-        btn.addEventListener('click', valider);
-        input.addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); valider(); } });
-        li.appendChild(input);
-        li.appendChild(btn);
-        $liste.appendChild(li);
-        input.focus();
+        demanderTexte({
+          question: `Nom du nouvel ${type === 'ami' ? 'ami' : 'rival'} ?`,
+          onAnnuler: () => _mettreAJourRelation(type),
+          onValider: (val) => {
+            liste.push(val);
+            alerter(`${type === 'ami' ? 'Ami' : 'Rival'} ajouté : ${val}.`);
+            mettreAJourFiche(_personnage);
+            sauvegarder({ personnage: _personnage });
+            _finSession();
+          }
+        });
       }
     });
   }

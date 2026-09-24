@@ -1,76 +1,86 @@
 # Spécifications accessibilité
 
-Public : personnes entièrement aveugles. Lecteur d'écran prioritaire : **NVDA + Firefox/Chrome**, puis VoiceOver + Safari, Orca + Firefox, JAWS + Chrome. Référence : WCAG 2.2 niveau AA au minimum.
+Public : personnes entièrement aveugles. **Référence absolue : NVDA en mode navigation**, avec Firefox ou Chrome. Puis VoiceOver + Safari, Orca + Firefox, JAWS + Chrome. WCAG 2.2 niveau AA au minimum.
 
-## Structure de la page (`index.html`)
+**Pas de synthèse vocale intégrée** (retirée le 2026-09-24, décision de l'utilisateur) : le jeu se joue avec NVDA, qui lit tout.
 
-- `<html lang="fr">`, un seul `<h1>`, lien d'évitement « Aller aux actions » → `#zone-actions`.
-- `<main id="contenu-principal" tabindex="-1">`.
-- `#narration` : `role="log"`, `aria-live="polite"`, `aria-relevant="additions"`, `aria-atomic="false"`, `tabindex="-1"`. Histoire cumulative.
-- `#alerte` : `role="alert"`, `aria-live="assertive"`, `aria-atomic="true"`, visuellement masqué. Résultats de dés et alertes.
-- `#statut` : `role="status"`, `aria-live="polite"`, `aria-atomic="true"`, masqué. Messages brefs (sauvegarde, XP…).
-- `<nav id="zone-actions" aria-label="Actions disponibles">` contenant `<ul id="liste-actions">` de `<button>`.
-- `<aside id="fiche-personnage" hidden>` : sections Traits, États, Sorts, Amis, Chance. Lue via F1-F5.
+## Contrainte de base : le mode navigation de NVDA
 
-## Règles d'annonce (`narration.js`)
+En mode navigation, NVDA garde pour lui les lettres (navigation rapide), les chiffres, Espace, Entrée et les flèches. Ces touches **n'arrivent jamais à la page**. Conséquences :
+- Pas de raccourci à une lettre (et WCAG 2.1.4 les déconseille de toute façon).
+- Raccourcis uniquement sur les touches F et Échap, que NVDA laisse passer.
+- Chaque raccourci existe aussi en bouton (zone « Fiche et outils »), car sur un portable il faut souvent Fn.
+- Les flèches ne sont gérées par le jeu que dans la liste d'actions, quand NVDA est en mode formulaire.
 
-Tout le texte passe par ce module, jamais d'écriture directe dans le DOM ailleurs.
-- `narrer(texte)` : ajoute un `<p>` au log (polite).
-- `narrerFrais(texte)` : vide le log puis écrit (changement d'écran).
-- `alerter(texte)` : région assertive, vidée puis remplie au frame suivant pour forcer la ré-annonce d'un texte identique. **Réservé aux dés et aux événements importants** — trop d'assertif coupe la narration.
-- `statuer(texte)` : région status, même technique de vidage.
-- `relire()` : Espace ; rejoue le dernier message (TTS ou région assertive préfixée « Répétition : »).
-- Mémorise `dernierMessage` pour la relecture.
+## Modèle de lecture : les « tours » (`narration.js`)
 
-## Annonce des dés (`des.js`)
+Un tour = tout le texte produit entre deux affichages de choix. Il est ajouté à l'historique `#narration` dans un `<div class="tour" tabindex="-1">`.
 
-Format oral complet, sans symbole : « Jet de Bravoure. Dé 1 : 4. Dé 2 : 5. Sous-total : 9. Bravoure à plus 1. Total final : 10. Succès complet. » Les signes sont dits en toutes lettres (« plus 1 », « moins 1 », « zéro ») car « +1 »/« -1 » sont mal lus par certaines synthèses.
+Quand `afficherActions()` affiche les choix, le focus va **au début du nouveau tour**. NVDA le lit, et la flèche bas mène au reste du texte puis aux boutons, qui suivent dans le DOM. S'il n'y a pas de nouveau texte, le focus va sur le premier bouton actif.
+
+**Pourquoi pas de région live pour la narration** : un déplacement de focus coupe la parole de NVDA. Remplir une région live puis déplacer le focus fait perdre le texte, et laisser le focus en place est impossible puisque les boutons sont remplacés.
+
+API :
+- `narrer(texte)` : paragraphe dans le tour.
+- `narrerFrais(texte)` : idem, marqué comme début d'écran (séparation visuelle seulement). Ne coupe **pas** le tour : un résultat annoncé juste avant reste lu.
+- `alerter(texte)` : paragraphe important (en gras). Plus de région assertive.
+- `terminerTour()` : ferme le tour et le renvoie (utilisé par `actions.js`).
+- `relire()` : F9, remet le focus au début du dernier tour.
+- `annoncer(texte, { urgent })` / `statuer(texte)` : régions `#alerte` (role alert) et `#statut` (role status), **seulement quand le focus ne bouge pas** (fiche F1-F5, sauvegarde F8, champ vide, « Aucun retour possible »). Vidage puis remplissage 50 ms plus tard pour forcer la ré-annonce.
+- Filet de sécurité : si du texte est narré sans être suivi de choix (message d'erreur isolé), il est annoncé par la région alert.
+- L'historique est limité aux 50 derniers tours.
+
+Règle pour les chargements JSON : **charger d'abord, narrer ensuite**. Sinon le filet de sécurité annonce le texte avant l'arrivée des choix, et il est lu deux fois.
 
 ## Boutons (`actions.js`)
 
-- Chaque action est un vrai `<button>` dans un `<li>`.
-- Avec raccourci : `aria-label="<label>, raccourci <touche>"`, les `<span>` visuels sont en `aria-hidden`.
-- Après chaque rendu, **focus sur le premier bouton actif**. Le rendu remplace toute la liste.
+- Vrais `<button type="button">` dans `<ul id="liste-actions">`.
+- Action de retour (Échap) : `retour: true`, ou libellé commençant par « Retour » ou « Annuler ». Le bouton porte `aria-keyshortcuts="Escape"` et le libellé « …, touche Échap ».
+- Sans retour possible, Échap annonce « Aucun retour possible ici ».
+- Flèches haut/bas (en boucle), Début, Fin entre les boutons actifs.
 
-## Clavier (`clavier.js`)
+## Saisie de texte (`demanderTexte`)
 
-Ignoré quand le focus est dans `INPUT`, `TEXTAREA`, `SELECT`.
+Un seul composant pour tout le jeu : `<label for>` explicite avec phrase complète et exemple, erreur dans `#erreur-saisie` liée par `aria-describedby`, `aria-invalid`, Entrée pour valider, bouton Valider, Annuler optionnel (Échap). Le focus va directement dans le champ. Le tour en cours (résultat de dé, contexte) est ajouté à `aria-describedby` pour être lu avec le libellé. Pas de `placeholder`.
 
-| Touche | Action | État |
-|---|---|---|
-| Tab / Maj+Tab | naviguer | natif |
-| Entrée / Espace sur bouton | activer | natif |
-| Espace hors bouton | relire | fait |
-| F1-F5 | fiche : traits, états, sorts, amis, chance | fait |
-| R | relancer (`etat.derniereAction`) | fait |
-| S | sauvegarder | fait |
-| Échap | retour / annuler | **annoncé dans l'aide, non implémenté** |
-| Flèches | naviguer dans les listes | **annoncé dans l'aide, non implémenté** |
+## Raccourcis (`clavier.js`)
 
-## Synthèse vocale (Web Speech API)
+| Touche | Action |
+|---|---|
+| F1 à F5 | Traits, États, Sorts, Amis et rivaux, Chance et expérience (annonce, focus inchangé) |
+| F8 | Sauvegarder (annoncé) |
+| F9 | Revenir au début du dernier tour |
+| Échap | Retour / annuler |
+| Flèches, Début, Fin | Parcourir les choix (mode formulaire) |
 
-`lang='fr-FR'`, vitesse et volume réglables via `configurerTTS({ actif, vitesse, volume })`. Désactivée par défaut : le lecteur d'écran fait déjà le travail, et parler en double est gênant. Le TTS sert aux joueurs sans lecteur d'écran (malvoyants, dyslexiques).
+Les touches F sont interceptées même dans un champ texte, pour que F5 ne recharge jamais la page. Les combinaisons avec Alt, Ctrl ou Méta sont ignorées.
 
-## Style (`style.css`)
+## Sauvegarde
 
-Classe `.sr-seul` pour le texte réservé aux lecteurs d'écran, focus visible, lien d'évitement visible au focus.
+Automatique et **silencieuse** après chaque jet et chaque changement. Une annonce à chaque tour se mêlerait à la lecture. Seule F8 annonce « Partie sauvegardée ».
 
-## Dette d'accessibilité (à traiter en priorité)
+## Rédaction pour l'oreille
 
-1. **Échap et flèches** promis dans l'aide mais non gérés. Flèches : mettre en place un *roving tabindex* sur `#liste-actions` (Haut/Bas, Début/Fin). Échap : pile de retour par écran.
-2. **Réglages TTS sans interface** : `configurerTTS` n'est jamais appelé. Ajouter un écran Options (activer, vitesse, volume, voix) et le sauvegarder.
-3. **Raccourcis à une lettre (R, S)** : en mode navigation, NVDA/JAWS interceptent déjà R (région) et S (séparateur) ; et WCAG 2.1.4 demande qu'on puisse les désactiver ou les remapper. Proposer des alternatives avec modificateur (Alt+R, Alt+S) et une option pour couper les raccourcis simples.
-4. **F1 et F5** : F1 ouvre l'aide du navigateur dans certains contextes, F5 recharge la page si `preventDefault` échoue (par exemple focus dans un champ, où `clavier.js` sort tôt). Risque de perte de partie : sauvegarder avant `beforeunload` et envisager des alternatives (Alt+1 à Alt+5).
-5. **Mode application** : vérifier qu'NVDA passe bien en mode formulaire sur les boutons. Ne pas mettre `role="application"` sur toute la page.
-6. **Log qui grossit** : `#narration` n'est jamais tronqué en jeu. Prévoir un historique consultable (titres par scène `<h3>`) pour que le joueur puisse relire avec les flèches du lecteur d'écran.
-7. **Focus après `narrerFrais`** : quand il n'y a pas de bouton (écran vide), le focus peut se perdre sur `body`. Replacer le focus sur `#narration` ou `#contenu-principal`.
-8. **Champs texte de la création** : vérifier `<label>` explicite, message d'erreur lié via `aria-describedby`, et soumission à Entrée.
+- Nombres et signes en toutes lettres : « plus 1 », « moins 2 », « zéro ».
+- Élision : « Jet d'Intellect », « Jet de Magie » (helper `_de()`).
+- Dés : « Jet de Ruse plus 2, et plus 1 de bonus de matière préférée, Potions. Dés : 4 et 5, soit 9. Total : 12. Succès complet. »
+- Pas de redite : ne pas annoncer deux fois le même résultat dans un tour.
+- Libellés de boutons autonomes : ils doivent se comprendre seuls (valeur du trait, coût en Chance, ce qui est indisponible et pourquoi).
+- Listes longues : les regrouper en sous-menus (le menu de jeu a un sous-menu « Faire une manœuvre libre »).
 
-## Checklist avant chaque fonctionnalité d'interface
+## Page (`index.html`)
 
-- Tout est annoncé en texte, rien n'est seulement visuel ni seulement sonore.
-- Focus explicite après chaque action, jamais perdu sur `body`.
-- Aucun délai ni temporisation.
-- Phrases courtes, pas d'abréviations, nombres et signes écrits pour l'oral.
-- Tester avec NVDA + Firefox, en mode navigation et en mode formulaire.
-- Outils automatiques disponibles dans l'environnement : serveurs MCP `a11y-accessibility` (axe) et `web-a11y`. Ils ne remplacent pas un test au lecteur d'écran.
+`<main>` : section Histoire (`#narration`), `nav#zone-actions`, `nav#zone-outils`, régions `#alerte` et `#statut`. Hors `<main>` : `section#aide` (focusable, atteinte par le bouton Aide), `aside#fiche-personnage` (visuel).
+
+## Vérifications
+
+- axe-core (serveur MCP `a11y-accessibility`) : 0 violation le 2026-09-24 (WCAG 2.2 AA + bonnes pratiques).
+- Test automatisé du focus dans le navigateur intégré : création complète, manœuvres, Échap, F1, F9, flèches, scénario. OK.
+- **À faire : test réel avec NVDA + Firefox.** Point à vérifier en priorité : quand le focus arrive sur un tour de plusieurs paragraphes, NVDA lit-il tout le tour ou seulement le premier paragraphe ? Si seulement le premier, envisager un seul paragraphe par tour.
+
+## Dette restante
+
+- Tours de plusieurs paragraphes : voir ci-dessus.
+- Listes de sorts longues (jusqu'à 30 boutons en 3e année) : envisager un regroupement par Année ou par type.
+- Création de personnage : Échap ne revient pas à l'étape précédente (sauf au Patronus).
+- Le moteur de scénario ne lance pas le jet de survie quand les 8 États sont cochés (le menu de jeu, oui).

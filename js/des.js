@@ -8,14 +8,13 @@ export const SUCCES_COMPLET = 'succes';
 export const SUCCES_PARTIEL = 'partiel';
 export const ECHEC          = 'echec';
 
-// Lance 2d6 + valeur de trait. Annonce le résultat et le retourne.
-export function lancerDes(valeurTrait, nomTrait) {
+// Lance 2d6 + valeur de trait (+ bonus éventuel). Annonce le résultat et le retourne.
+// Annonce courte et orale : les signes sont dits en toutes lettres.
+export function lancerDes(valeurTrait, nomTrait, bonus = 0, raisonBonus = null) {
   const d1 = _d6();
   const d2 = _d6();
   const sousTotal = d1 + d2;
-  const total     = sousTotal + valeurTrait;
-
-  const signeTrait = _signeParle(valeurTrait);
+  const total     = sousTotal + valeurTrait + bonus;
 
   let texteOutcome;
   let niveau;
@@ -27,18 +26,15 @@ export function lancerDes(valeurTrait, nomTrait) {
     texteOutcome = 'Succès partiel.';
     niveau = SUCCES_PARTIEL;
   } else {
-    texteOutcome = 'Échec. Marquez un point d\'Expérience.';
+    texteOutcome = 'Échec.';
     niveau = ECHEC;
   }
 
-  const annonce = [
-    `Jet de ${nomTrait}.`,
-    `Dé 1 : ${d1}. Dé 2 : ${d2}. Sous-total : ${sousTotal}.`,
-    `${nomTrait} à ${signeTrait}. Total final : ${total}.`,
-    texteOutcome
-  ].join(' ');
+  const modificateur = bonus
+    ? `${nomTrait} ${_signeParle(valeurTrait)}, et ${_signeParle(bonus)} de ${raisonBonus}.`
+    : `${nomTrait} ${_signeParle(valeurTrait)}.`;
 
-  alerter(annonce);
+  alerter(`Jet ${/^[AEIOUYÉÈÊ]/.test(nomTrait) ? "d'" : 'de '}${modificateur} Dés : ${d1} et ${d2}, soit ${sousTotal}. Total : ${total}. ${texteOutcome}`);
 
   return { d1, d2, sousTotal, total, niveau, texteOutcome };
 }

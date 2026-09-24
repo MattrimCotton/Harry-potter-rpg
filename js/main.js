@@ -1,8 +1,8 @@
 // Point d'entrée — initialise le jeu et gère les écrans.
 
-import { narrer, narrerFrais, alerter, statuer } from './narration.js';
+import { narrer, narrerFrais, statuer } from './narration.js';
 import { afficherActions } from './actions.js';
-import { initClavier } from './clavier.js';
+import { initClavier, initOutils } from './clavier.js';
 import { lireFiche, mettreAJourFiche } from './fiche.js';
 import { charger, sauvegarder, effacer } from './sauvegarde.js';
 import { creerPersonnageVide } from './personnage.js';
@@ -11,18 +11,19 @@ import { lancerJeu } from './jeu.js';
 
 // État global de la session
 const etat = {
-  personnage: null,
-  derniereAction: null  // pour la touche R (relancer les dés)
+  personnage: null
 };
 
 // ---- Démarrage ----
 
-document.addEventListener('DOMContentLoaded', async () => {
-  initClavier({
+document.addEventListener('DOMContentLoaded', () => {
+  const raccourcis = {
     lireFiche:    (section) => lireFiche(section, etat.personnage),
-    sauvegarder:  () => _sauvegarder(),
-    relancerDes:  () => etat.derniereAction?.()
-  });
+    sauvegarder:  _sauvegarder,
+    afficherAide: _allerAide
+  };
+  initClavier(raccourcis);
+  initOutils(raccourcis);
 
   const sauvegarde = charger();
   if (sauvegarde?.personnage) {
@@ -40,7 +41,8 @@ function afficherMenuPrincipal(aUneSauvegarde) {
   narrerFrais(
     aUneSauvegarde
       ? `Bienvenue à Poudlard, ${etat.personnage.prenom}. Votre aventure vous attend.`
-      : 'Bienvenue à Poudlard. Aucune partie en cours. Créez votre sorcière ou sorcier pour commencer.'
+      : 'Bienvenue à Poudlard. Aucune partie en cours. Créez votre sorcière ou sorcier pour commencer. ' +
+        'Pour l\'aide et les raccourcis clavier, choisissez « Aide » ci-dessous.'
   );
 
   const actions = [];
@@ -52,7 +54,7 @@ function afficherMenuPrincipal(aUneSauvegarde) {
     actions.push({ label: 'Créer votre sorcière ou sorcier', action: demarrerCreation });
   }
 
-  actions.push({ label: 'Aide et raccourcis clavier', action: afficherAide });
+  actions.push({ label: 'Aide et raccourcis clavier', action: _allerAide });
 
   afficherActions(actions);
 }
@@ -64,10 +66,10 @@ function reprendrePartie() {
 }
 
 function demanderConfirmationNouvelle() {
-  narrerFrais('Attention : cela effacera votre partie en cours. Êtes-vous certain ?');
+  narrerFrais('Attention : cela effacera votre partie en cours. Voulez-vous vraiment recommencer ?');
   afficherActions([
-    { label: 'Oui, commencer une nouvelle partie',  action: demarrerCreation },
-    { label: 'Non, retourner au menu',              action: () => afficherMenuPrincipal(true) }
+    { label: 'Oui, commencer une nouvelle partie', action: demarrerCreation },
+    { label: 'Non, retourner au menu', action: () => afficherMenuPrincipal(true), retour: true }
   ]);
 }
 
@@ -84,35 +86,22 @@ function demarrerCreation() {
   });
 }
 
-function afficherAide() {
-  narrerFrais([
-    'Aide et raccourcis clavier.',
-    'Espace : relire le dernier message.',
-    'F1 : lire vos traits.',
-    'F2 : lire vos états actifs.',
-    'F3 : lire vos sorts connus.',
-    'F4 : lire vos amis et rivaux.',
-    'F5 : lire votre chance et expérience.',
-    'R : relancer les dés.',
-    'S : sauvegarder la partie.',
-    'Tabulation et flèches : naviguer entre les actions.',
-    'Entrée : confirmer.',
-    'Échappement : retour en arrière.'
-  ].join(' '));
-
-  afficherActions([
-    { label: 'Retour au menu principal', action: () => afficherMenuPrincipal(!!etat.personnage?.prenom) }
-  ]);
+// L'aide est une section fixe de la page : on y place le focus,
+// et F9 ramène au dernier tour.
+function _allerAide() {
+  const $aide = document.getElementById('aide');
+  $aide.focus();
+  $aide.scrollIntoView();
 }
 
 // ---- Helpers ----
 
 function _sauvegarder() {
-  if (!etat.personnage) {
+  if (!etat.personnage?.prenom) {
     statuer('Aucun personnage à sauvegarder.');
     return;
   }
-  sauvegarder({ personnage: etat.personnage });
+  sauvegarder({ personnage: etat.personnage }, { annoncer: true });
 }
 
 function _assureProgressions(personnage) {

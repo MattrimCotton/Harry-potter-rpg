@@ -1,59 +1,61 @@
-// Raccourcis clavier globaux.
-// Enregistrer une seule fois au démarrage.
+// Raccourcis clavier globaux. Enregistrer une seule fois au démarrage.
+//
+// En mode navigation, NVDA garde pour lui les lettres, les chiffres, Espace et
+// les flèches : ces touches n'arrivent jamais à la page. Les raccourcis du jeu
+// utilisent donc des touches que NVDA laisse passer : F1 à F5, F8, F9 et Échap.
+// Les flèches ne servent que dans la liste d'actions, en mode formulaire.
 
 import { relire } from './narration.js';
+import { declencherRetour, deplacerFocusActions } from './actions.js';
 
-// cbLireFiche(section) : 'traits' | 'etats' | 'sorts' | 'amis' | 'chance'
-// cbSauvegarder()
-// cbRelancerDes()
-export function initClavier({ lireFiche, sauvegarder, relancerDes }) {
+const SECTIONS_FICHE = { F1: 'traits', F2: 'etats', F3: 'sorts', F4: 'amis', F5: 'chance' };
+
+export function initClavier({ lireFiche, sauvegarder }) {
   document.addEventListener('keydown', (e) => {
-    // Ne pas capturer les touches dans un champ de texte
-    const tag = document.activeElement?.tagName;
-    if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT') return;
+    if (e.altKey || e.ctrlKey || e.metaKey) return;
+
+    // Les touches F sont traitées même dans un champ texte :
+    // sinon F5 rechargerait la page et F1 ouvrirait l'aide du navigateur.
+    if (SECTIONS_FICHE[e.key]) {
+      e.preventDefault();
+      lireFiche(SECTIONS_FICHE[e.key]);
+      return;
+    }
 
     switch (e.key) {
-      case ' ':
-        // Espace sur un bouton = clic navigateur — ne capturer que hors bouton
-        if (document.activeElement?.tagName === 'BUTTON') return;
+      case 'F8':
+        e.preventDefault();
+        sauvegarder();
+        return;
+
+      case 'F9':
         e.preventDefault();
         relire();
-        break;
+        return;
 
-      case 'F1':
+      case 'Escape':
         e.preventDefault();
-        lireFiche('traits');
-        break;
+        declencherRetour();
+        return;
 
-      case 'F2':
-        e.preventDefault();
-        lireFiche('etats');
-        break;
-
-      case 'F3':
-        e.preventDefault();
-        lireFiche('sorts');
-        break;
-
-      case 'F4':
-        e.preventDefault();
-        lireFiche('amis');
-        break;
-
-      case 'F5':
-        e.preventDefault();
-        lireFiche('chance');
-        break;
-
-      case 'r':
-      case 'R':
-        if (relancerDes) relancerDes();
-        break;
-
-      case 's':
-      case 'S':
-        if (sauvegarder) sauvegarder();
-        break;
+      case 'ArrowDown':
+      case 'ArrowUp':
+      case 'Home':
+      case 'End':
+        if (deplacerFocusActions(e.key)) e.preventDefault();
+        return;
     }
+  });
+}
+
+// Branche les boutons de la barre d'outils permanente sur les mêmes fonctions.
+export function initOutils({ lireFiche, sauvegarder, afficherAide }) {
+  document.getElementById('zone-outils').addEventListener('click', (e) => {
+    const outil = e.target.closest('button')?.dataset.outil;
+    if (!outil) return;
+    if (outil === 'relire')      relire();
+    else if (outil === 'sauver') sauvegarder();
+    else if (outil === 'aide')   afficherAide();
+    else                         lireFiche(outil);
   });
 }

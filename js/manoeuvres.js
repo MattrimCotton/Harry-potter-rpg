@@ -1,9 +1,15 @@
-// Les 8 manœuvres de base — définition et résolution complète.
+// Les manœuvres de base et magiques — définition et résolution complète.
+// Textes alignés sur Hogwarts: An RPG v1.2 (voir memory/game-rules.md).
+//
+// Une option peut être une chaîne, ou { texte, etat: true } quand elle
+// fait prendre un État : le joueur choisit alors lequel cocher.
 
-import { narrerFrais, narrer, alerter, statuer } from './narration.js';
+import { narrer, alerter } from './narration.js';
 import { afficherActions } from './actions.js';
 import { lancerDes, SUCCES_COMPLET, SUCCES_PARTIEL, ECHEC } from './des.js';
 import { traitEffectif, NOMS_TRAITS } from './personnage.js';
+
+const TOUS_LES_TRAITS = Object.keys(NOMS_TRAITS);
 
 // ================================================================
 // Catalogue des manœuvres
@@ -13,135 +19,161 @@ export const MANOEUVRES = [
   {
     id: 'faire-face',
     nom: 'Faire Face au Danger',
-    trait: 'bravoure',
-    description: 'Affronter un danger physique ou autre. Tenir bon face à une menace.',
+    traits: ['bravoure'],
+    description: 'Affronter un danger, physique ou non.',
     options10: [
       'Vous tenez bon et personne n\'est blessé.',
-      'Vous repoussez la menace sans vous faire toucher.'
+      'Vous n\'êtes pas blessé, et vous blessez la menace en retour.'
     ],
     options79: [
-      'Vous blessez la menace, mais elle vous touche aussi.',
+      { texte: 'Vous blessez la menace, mais elle vous blesse aussi.', etat: true },
       'Vous ne pouvez pas agir, mais la menace recule.',
-      'Vous évitez les Conséquences Graves, mais quelqu\'un d\'autre en subit.',
-      'Vous évitez les Conséquences Graves, mais vous laissez une trace ou des preuves.'
+      'Vous fuyez, sans subir de Conséquence Grave.',
+      'Vous évitez la Conséquence Grave, mais quelqu\'un d\'autre la subit.'
     ],
-    mode10: 'choisir-un',
-    mode79: 'choisir-un'
+    texte6: 'Vous n\'arrivez pas à faire face au danger.'
   },
   {
     id: 'acquerir-connaissance',
     nom: 'Acquérir des Connaissances',
-    trait: 'intellect',
-    description: 'Apprendre quelque chose sur une personne, un objet, une situation ou un lieu.',
-    questions10: [
-      'Qu\'est-ce qui ne va pas ici ?',
+    traits: ['intellect'],
+    description: 'Apprendre quelque chose sur une personne, un objet, une situation ou un lieu, par une conversation, un document ou votre mémoire.',
+    questions: [
+      'Qu\'est-ce qui n\'est pas ce qu\'il paraît ici ?',
       'Où est ce que je cherche ?',
-      'Quelle est l\'histoire de cet objet ou lieu ?',
-      'Comment puis-je utiliser ceci à mon avantage ?',
+      'Quelle est l\'histoire de ceci ?',
+      'Comment puis-je m\'en servir ?',
       'Cette personne dit-elle la vérité ?',
       'Que veut vraiment cette personne ?',
-      'Que puis-je me rappeler à ce sujet ?'
+      'De quoi est-ce que je me souviens à ce sujet ?'
     ],
-    options10: null,
-    options79: null,
-    mode10: 'question',
-    mode79: 'question-partielle'
+    texte10: 'Vous obtenez l\'information voulue. Posez une question : la réponse sera vraie et complète.',
+    texte79: 'Vous obtenez une partie de l\'information. Posez une question : la réponse sera vraie, mais peut-être incomplète.',
+    texte6:  'Vous n\'êtes pas sûr de ce que vous avez appris. Vous pouvez poser une question, mais la réponse peut être incomplète, ou fausse.'
   },
   {
     id: 'cacher-faufiler',
     nom: 'Se Cacher et se Faufiler',
-    trait: 'ruse',
-    description: 'Se déplacer sans être vu, dissimuler quelque chose ou quelqu\'un.',
-    options10: null,
+    traits: ['ruse'],
+    description: 'Vous cacher, cacher quelque chose, ou vous déplacer sans être remarqué.',
+    texte10: 'Personne ne vous remarque, ni vous ni ce que vous cachez.',
     options79: [
-      'Quelqu\'un vous cherche activement.',
-      'Quelqu\'un sait que vous êtes là, mais pas où exactement.',
-      'Vous laissez une trace ou une preuve de votre passage.'
+      'Quelqu\'un ou quelque chose vous cherche, ou cherche ce que vous avez caché.',
+      'Quelqu\'un sait que vous êtes là, ou que vous avez caché quelque chose, mais pas où.',
+      'Vous laissez une trace ou une preuve derrière vous.'
     ],
-    mode10: 'succes-total',
-    mode79: 'choisir-un'
+    texte6: 'Vous êtes découvert, ou ce que vous cachiez est trouvé.'
   },
   {
     id: 'obtenir',
     nom: 'Obtenir ce que l\'on Cherche',
-    trait: null,
-    traitHonnete: 'bravoure',
-    traitRuse: 'ruse',
-    description: 'Obtenir un objet ou convaincre quelqu\'un. Par l\'honnêteté : Bravoure. Par la tromperie : Ruse.',
-    options10: null,
+    traits: ['bravoure', 'ruse'],
+    libellesTraits: {
+      bravoure: 'Par l\'honnêteté, la négociation, le charisme ou l\'humilité',
+      ruse:     'Par la ruse, la tricherie ou le vol'
+    },
+    description: 'Obtenir un objet, ou convaincre quelqu\'un de faire ou de penser quelque chose.',
+    texte10: 'Vous obtenez ce que vous vouliez, sans problème.',
     options79: [
-      'La personne devient méfiante envers vous.',
-      'Vous devez donner quelque chose en retour.',
-      'La personne change d\'attitude à votre égard.'
+      'Vous l\'obtenez, mais la personne devient méfiante.',
+      'Vous l\'obtenez, mais vous devez donner ou promettre quelque chose en retour.',
+      'Vous l\'obtenez, mais l\'attitude de la personne envers vous change.'
     ],
-    mode10: 'succes-total',
-    mode79: 'choisir-un'
+    texte6: 'Vous n\'obtenez pas ce que vous vouliez.'
   },
   {
     id: 'aider-entraver',
     nom: 'Aider ou Entraver quelqu\'un',
-    trait: 'loyaute',
-    description: 'Aider ou gêner un autre personnage. Un Ami ou un Rival donne plus 1 au jet.',
-    options10: [
-      'Donnez plus 1 ou moins 1 à leur prochain jet.',
-      'Empêchez-les de prendre un État.',
-      'Offrez-leur 1 point d\'Expérience pour qu\'ils arrêtent ce qu\'ils font.'
-    ],
+    traits: ['loyaute'],
+    bonusRelation: true,
+    description: 'Aider, défendre ou soutenir quelqu\'un, ou au contraire le gêner. Plus 1 si c\'est un Ami ou un Rival.',
+    texte10: 'Vous aidez ou entravez la personne comme vous le vouliez.',
     options79: [
-      'Vous aidez ou entravez, mais vous prenez un État.',
-      'Vous aidez ou entravez, mais vous les blessez accidentellement.',
-      'Vous aidez ou entravez, mais ils vous en veulent.',
-      'Vous aidez ou entravez, mais ils se méfient de vos intentions.'
+      { texte: 'Vous y arrivez, mais vous prenez un État dans l\'effort.', etat: true },
+      'Vous y arrivez, mais la personne est blessée par accident.',
+      'Vous y arrivez, mais la personne vous en veut.',
+      'Vous y arrivez, mais la personne se méfie de vos intentions.'
     ],
-    mode10: 'choisir-un',
-    mode79: 'choisir-un'
+    texte6: 'Vous n\'arrivez ni à l\'aider ni à l\'entraver.'
+  },
+  {
+    id: 'approcher-creature',
+    nom: 'Approcher une Créature Magique',
+    traits: ['loyaute'],
+    description: 'Apprivoiser, aider ou obtenir l\'aide d\'une créature magique.',
+    texte10: 'La créature agit comme vous le voulez.',
+    options79: [
+      { texte: 'La créature obéit, mais vous prenez un État dans l\'effort.', etat: true },
+      'La créature obéit, mais cela attire une attention indésirable.',
+      'La créature n\'obéit pas, mais elle fait autre chose d\'utile.'
+    ],
+    texte6: 'La créature s\'emballe.'
   },
   {
     id: 'lancer-sort',
-    nom: 'Lancer un Sort ou Dueller',
-    trait: 'magie',
-    description: 'Utiliser la magie offensive, défensive ou utilitaire. Vous devez connaître le sort.',
-    options10: null,
+    nom: 'Lancer un Sort',
+    traits: ['magie'],
+    prealable: 'sort',
+    description: 'Dire la formule et agiter la baguette. Un sort inconnu coûte 1 point de Chance.',
+    texte10: 'Le sort fonctionne exactement comme vous le vouliez.',
     options79: [
-      'Le sort fonctionne, mais vous prenez l\'État Ensorcelé.',
-      'Le sort fonctionne, mais quelqu\'un d\'autre est touché accidentellement.',
-      'Le sort fonctionne de façon imparfaite — effet réduit ou inattendu.',
-      'Le sort fonctionne, mais votre baguette est endommagée ou épuisée.'
+      'Le sort fonctionne, mais son effet est moins puissant que prévu.',
+      'Le sort fonctionne, mais son effet dure moins longtemps que prévu.',
+      'Le sort fonctionne, mais vous attirez une attention indésirable.'
     ],
-    mode10: 'succes-total',
-    mode79: 'choisir-un',
-    necessite_sort: true
+    texte6: 'Le sort échoue.'
+  },
+  {
+    id: 'dueller',
+    nom: 'Dueller',
+    traits: ['magie'],
+    prealable: 'sort',
+    consequenceObligatoire: true,
+    description: 'Échanger des sorts avec un autre sorcier. Si votre sort est défensif ou de soin, « toucher » veut dire bloquer ou réussir.',
+    texte10: 'Votre sort touche votre adversaire, et le sien vous rate !',
+    options79: [
+      'Vos deux sorts se percutent en plein vol !',
+      'Votre sort rate, mais le sien aussi.',
+      'Les deux sorts touchent !'
+    ],
+    texte6: 'Votre sort rate, et le sien vous touche !'
   },
   {
     id: 'preparer-potion',
     nom: 'Préparer une Potion',
-    trait: 'magie',
-    description: 'Préparer une potion. Vous devez connaître la recette et avoir les ingrédients.',
-    options10: null,
+    traits: ['magie'],
+    prealable: 'potion',
+    description: 'Il faut les ingrédients, de quoi les assembler et une baguette. Une potion inconnue coûte 1 point de Chance.',
+    texte10: 'Vous préparez correctement la potion voulue.',
     options79: [
-      'La potion est prête mais moins puissante qu\'attendu.',
-      'La potion est prête mais elle a un effet secondaire inattendu.',
-      'La potion prend plus de temps que prévu.',
-      'Vous gaspillez des ingrédients rares dans le processus.'
+      'La potion est prête, mais elle a un effet secondaire imprévu.',
+      { texte: 'La préparation tourne mal et vous prenez un État.', etat: true },
+      'Vous préparez par erreur une autre potion. Le Narrateur dit laquelle.'
     ],
-    mode10: 'succes-total',
-    mode79: 'choisir-un',
-    necessite_sort: true
+    texte6: 'La potion est ratée.'
   },
   {
     id: 'objet-magique',
     nom: 'Utiliser un Objet Magique',
-    trait: 'magie',
-    description: 'Activer ou manier un objet à propriétés magiques.',
-    options10: null,
+    traits: ['magie'],
+    description: 'Activer ou manier un objet aux propriétés magiques.',
+    texte10: 'L\'objet fonctionne exactement comme prévu, et vous en tirez le meilleur parti.',
     options79: [
-      'L\'objet fonctionne, mais il perd une charge ou se détériore.',
-      'L\'objet fonctionne, mais produit un effet secondaire étrange.',
-      'L\'objet fonctionne, mais attire l\'attention indésirable.',
-      'L\'objet fonctionne partiellement — vous devez réessayer.'
+      'L\'objet fait quelque chose d\'inattendu, mais d\'utile.',
+      'L\'effet de l\'objet est moins puissant que prévu.',
+      { texte: 'L\'objet fonctionne, mais vous prenez un État en l\'utilisant.', etat: true },
+      'L\'objet fonctionne, mais il se casse.'
     ],
-    mode10: 'succes-total',
-    mode79: 'choisir-un'
+    texte6: 'L\'objet ne fonctionne pas correctement.'
+  },
+  {
+    id: 'jet',
+    nom: 'Jet libre',
+    traits: TOUS_LES_TRAITS,
+    description: 'Quand aucune autre manœuvre ne convient. Choisissez le trait qui correspond le mieux à ce que vous faites.',
+    texte10: 'Vous y arrivez sans problème. Génial !',
+    texte79: 'Vous y arrivez, mais cela a un coût. Décidez lequel en fonction de la scène.',
+    texte6:  'Vous n\'y arrivez pas, et la situation empire.'
   }
 ];
 
@@ -150,209 +182,294 @@ export const MANOEUVRES = [
 // ================================================================
 
 // onFin({ niveau, personnage }) est appelé une fois les choix faits.
-export function resoudreManoeuvre(manoeuvre, personnage, onFin) {
-  // Cas spécial : Obtenir — choisir d'abord honnête ou ruse
-  if (manoeuvre.id === 'obtenir') {
-    _choisirApproche(manoeuvre, personnage, onFin);
+// onAnnuler() est appelé si le joueur revient en arrière avant le jet.
+export function resoudreManoeuvre(manoeuvre, personnage, onFin, onAnnuler) {
+  if (personnage.etats.some(e => e.id === 'inconscient' && e.actif)) {
+    alerter('Vous êtes Inconscient. Vous ne pouvez pas agir avant d\'être ranimé.');
+    onFin({ niveau: ECHEC, personnage, sansJet: true });
     return;
   }
 
-  const nomTrait  = manoeuvre.trait;
-  const valTrait  = traitEffectif(personnage, nomTrait);
-  const labelTrait = NOMS_TRAITS[nomTrait];
+  const ctx = { manoeuvre, personnage, onFin, onAnnuler };
 
-  // Vérifier l'inconscience
-  if (valTrait === -99) {
-    alerter('Vous êtes Inconscient. Vous ne pouvez pas agir.');
-    onFin({ niveau: ECHEC, personnage });
-    return;
+  if (manoeuvre.traits.length > 1) {
+    _choisirTrait(ctx);
+  } else {
+    ctx.trait = manoeuvre.traits[0];
+    _etapePrealable(ctx);
   }
-
-  narrer(`${manoeuvre.nom}. Jet de ${labelTrait}. Valeur : ${_signeParle(valTrait)}.`);
-
-  // Option : dépenser la Chance avant de lancer
-  const actionsDAvant = [
-    {
-      label: `Lancer ${labelTrait} (${_signeParle(valTrait)})`,
-      action: () => _effectuerJet(manoeuvre, personnage, nomTrait, valTrait, onFin)
-    }
-  ];
-
-  if (personnage.chance > 0) {
-    actionsDAvant.push({
-      label: `Dépenser 1 point de Chance pour un succès complet automatique (Chance restante : ${personnage.chance})`,
-      action: () => {
-        personnage.chance--;
-        alerter(`Chance dépensée. Reste : ${personnage.chance} sur 3. Succès complet automatique.`);
-        _presenterResultat(manoeuvre, { niveau: SUCCES_COMPLET, total: 10 }, personnage, onFin);
-      }
-    });
-  }
-
-  afficherActions(actionsDAvant);
 }
 
 // ================================================================
-// Interne
+// Avant le jet
 // ================================================================
 
-function _choisirApproche(manoeuvre, personnage, onFin) {
-  narrer('Obtenir ce que l\'on Cherche. Par quel moyen ?');
+function _choisirTrait(ctx) {
+  const { manoeuvre, personnage } = ctx;
+  narrer(manoeuvre.id === 'obtenir' ? 'Par quel moyen ?' : 'Quel trait utilisez-vous ?');
+
   afficherActions([
-    {
-      label: `Par l'honnêteté ou le charisme (Bravoure : ${_signeParle(traitEffectif(personnage, 'bravoure'))})`,
-      action: () => {
-        const val = traitEffectif(personnage, 'bravoure');
-        _effectuerJet({ ...manoeuvre, trait: 'bravoure' }, personnage, 'bravoure', val, onFin);
-      }
-    },
-    {
-      label: `Par la tromperie ou le vol (Ruse : ${_signeParle(traitEffectif(personnage, 'ruse'))})`,
-      action: () => {
-        const val = traitEffectif(personnage, 'ruse');
-        _effectuerJet({ ...manoeuvre, trait: 'ruse' }, personnage, 'ruse', val, onFin);
-      }
-    }
+    ...manoeuvre.traits.map(t => {
+      const base = manoeuvre.libellesTraits?.[t];
+      const val  = `${NOMS_TRAITS[t]} ${_signeParle(traitEffectif(personnage, t))}`;
+      return {
+        label: base ? `${base}. ${val}.` : `${val}.`,
+        action: () => { ctx.trait = t; _etapePrealable(ctx); }
+      };
+    }),
+    _actionAnnuler(ctx)
   ]);
 }
 
-function _effectuerJet(manoeuvre, personnage, nomTrait, valTrait, onFin) {
-  const resultat = lancerDes(valTrait, NOMS_TRAITS[nomTrait]);
-  _presenterResultat(manoeuvre, resultat, personnage, onFin);
-}
+// Sort ou potion : il faut le connaître, sinon dépenser 1 point de Chance.
+function _etapePrealable(ctx) {
+  const { manoeuvre, personnage } = ctx;
+  if (!manoeuvre.prealable) { _menuDuJet(ctx); return; }
 
-function _presenterResultat(manoeuvre, resultat, personnage, onFin) {
-  const { niveau, total } = resultat;
+  const estPotion = manoeuvre.prealable === 'potion';
+  const connus = personnage.sorts.filter(s => (s.type === 'potion') === estPotion);
+  const mot    = estPotion ? 'potion' : 'sort';
 
-  if (niveau === SUCCES_COMPLET) {
-    _succes10(manoeuvre, personnage, onFin);
-  } else if (niveau === SUCCES_PARTIEL) {
-    _succes79(manoeuvre, personnage, onFin);
-  } else {
-    _echec6(manoeuvre, personnage, onFin);
-  }
-}
+  narrer(
+    estPotion
+      ? 'Quelle potion préparez-vous ?'
+      : `Quel sort lancez-vous ? Vous en connaissez ${connus.length}.`
+  );
 
-function _succes10(manoeuvre, personnage, onFin) {
-  switch (manoeuvre.mode10) {
-    case 'succes-total':
-      narrer('Succès complet. Vous obtenez exactement ce que vous vouliez, sans compromis.');
-      _proposeRelancerOuContinuer(onFin, SUCCES_COMPLET, personnage);
-      break;
-
-    case 'choisir-un':
-      narrer('Succès complet. Choisissez un avantage :');
-      afficherActions(manoeuvre.options10.map(opt => ({
-        label: opt,
-        action: () => {
-          alerter(`Vous choisissez : ${opt}`);
-          _proposeRelancerOuContinuer(onFin, SUCCES_COMPLET, personnage);
-        }
-      })));
-      break;
-
-    case 'question':
-    case 'question-partielle':
-      narrer(
-        'Succès complet. Vous obtenez l\'information. ' +
-        'Choisissez une question à poser. En mode solo, vous y répondez vous-même ' +
-        'en vous basant sur le contexte de la scène.'
-      );
-      afficherActions(manoeuvre.questions10.map(q => ({
-        label: q,
-        action: () => {
-          alerter(`Question posée : "${q}" La réponse doit être vraie et utile.`);
-          _proposeRelancerOuContinuer(onFin, SUCCES_COMPLET, personnage);
-        }
-      })));
-      break;
-  }
-}
-
-function _succes79(manoeuvre, personnage, onFin) {
-  switch (manoeuvre.mode79) {
-    case 'choisir-un':
-      narrer('Succès partiel. Vous y arrivez, mais avec un coût. Choisissez ce qui se passe :');
-      afficherActions([
-        ...manoeuvre.options79.map(opt => ({
-          label: opt,
-          action: () => {
-            alerter(`Coût choisi : ${opt}`);
-            _proposeRelancerOuContinuer(onFin, SUCCES_PARTIEL, personnage);
-          }
-        })),
-        ...(personnage.chance > 0 ? [{
-          label: `Dépenser 1 point de Chance pour éviter tout coût (Chance : ${personnage.chance})`,
-          action: () => {
-            personnage.chance--;
-            alerter(`Chance dépensée. Reste : ${personnage.chance}. Succès complet, pas de coût.`);
-            _proposeRelancerOuContinuer(onFin, SUCCES_COMPLET, personnage);
-          }
-        }] : [])
-      ]);
-      break;
-
-    case 'question-partielle':
-      narrer(
-        'Succès partiel. Vous obtenez une information partielle. ' +
-        'Choisissez une question. En mode solo, la réponse est vraie mais incomplète.'
-      );
-      afficherActions(manoeuvre.questions10.map(q => ({
-        label: q,
-        action: () => {
-          alerter(`Question posée : "${q}" La réponse est vraie mais le Narrateur n'a pas à tout révéler.`);
-          _proposeRelancerOuContinuer(onFin, SUCCES_PARTIEL, personnage);
-        }
-      })));
-      break;
-  }
-}
-
-function _echec6(manoeuvre, personnage, onFin) {
-  personnage.experience++;
-  const versProgression = 4 - personnage.experience;
-
-  let msg = `Échec. Vous marquez 1 point d'Expérience. Total : ${personnage.experience} sur 4. `;
-  if (personnage.experience >= 4) {
-    msg += 'Vous pouvez prendre une Progression !';
-  } else {
-    msg += `Encore ${versProgression} point${versProgression > 1 ? 's' : ''} pour une Progression.`;
-  }
-  msg += ' Le Narrateur peut annoncer une Conséquence Grave.';
-
-  alerter(msg);
-
-  const actions = [];
-
-  if (personnage.chance > 0) {
-    actions.push({
-      label: `Dépenser 1 point de Chance pour transformer l'échec en succès complet (Chance : ${personnage.chance})`,
-      action: () => {
-        personnage.experience = Math.max(0, personnage.experience - 1); // annuler le XP gagné
-        personnage.chance--;
-        alerter(`Chance dépensée. Reste : ${personnage.chance}. L'échec devient un succès complet. Expérience annulée.`);
-        _presenterResultat(manoeuvre, { niveau: SUCCES_COMPLET, total: 10 }, personnage, onFin);
-      }
-    });
-  }
+  const actions = connus.map(s => ({
+    label: `${s.nom}, ${s.description}.`,
+    action: () => { alerter(`${estPotion ? 'Potion' : 'Sort'} : ${s.nom}.`); _menuDuJet(ctx); }
+  }));
 
   actions.push({
-    label: 'Continuer — subir la Conséquence Grave et avancer',
-    action: () => onFin({ niveau: ECHEC, personnage })
+    label: personnage.chance > 0
+      ? `Un${estPotion ? 'e' : ''} ${mot} que vous ne connaissez pas. Coûte 1 point de Chance, il vous en reste ${personnage.chance}.`
+      : `Un${estPotion ? 'e' : ''} ${mot} inconnu${estPotion ? 'e' : ''} : impossible, vous n'avez plus de Chance.`,
+    desactive: personnage.chance <= 0,
+    action: () => {
+      personnage.chance--;
+      alerter(`1 point de Chance dépensé. Il vous en reste ${personnage.chance} sur 3.`);
+      _menuDuJet(ctx);
+    }
   });
 
+  actions.push(_actionAnnuler(ctx));
   afficherActions(actions);
 }
 
-function _proposeRelancerOuContinuer(onFin, niveau, personnage) {
-  onFin({ niveau, personnage });
+// Dernier écran avant le jet : trait seul, ou avec un bonus de plus 1.
+function _menuDuJet(ctx) {
+  const { manoeuvre, personnage, trait } = ctx;
+  const val = traitEffectif(personnage, trait);
+  const nom = NOMS_TRAITS[trait];
+
+  narrer(`Jet ${_de(nom)}${nom}, à ${_signeParle(val)}.`);
+
+  const actions = [{
+    label: `Lancer les dés, ${nom} ${_signeParle(val)}.`,
+    action: () => _lancer(ctx, val, 0, null)
+  }];
+
+  for (const matiere of personnage.matieresPreferees ?? []) {
+    actions.push({
+      label: `Lancer avec plus 1, si ce jet concerne votre matière préférée, ${matiere}. Total ${_signeParle(val + 1)}.`,
+      action: () => _lancer(ctx, val, 1, `bonus de matière préférée, ${matiere}`)
+    });
+  }
+
+  if (manoeuvre.bonusRelation) {
+    for (const nomAmi of personnage.amis ?? []) {
+      actions.push({
+        label: `Lancer avec plus 1, s'il s'agit de votre ami ${nomAmi}. Total ${_signeParle(val + 1)}.`,
+        action: () => _lancer(ctx, val, 1, `bonus d'ami, ${nomAmi}`)
+      });
+    }
+    for (const nomRival of personnage.rivaux ?? []) {
+      actions.push({
+        label: `Lancer avec plus 1, s'il s'agit de votre rival ${nomRival}. Total ${_signeParle(val + 1)}.`,
+        action: () => _lancer(ctx, val, 1, `bonus de rival, ${nomRival}`)
+      });
+    }
+  }
+
+  actions.push(_actionAnnuler(ctx));
+  afficherActions(actions);
+}
+
+function _lancer(ctx, valTrait, bonus, raisonBonus) {
+  const resultat = lancerDes(valTrait, NOMS_TRAITS[ctx.trait], bonus, raisonBonus);
+  if (resultat.niveau === SUCCES_COMPLET)      _succes10(ctx);
+  else if (resultat.niveau === SUCCES_PARTIEL) _succes79(ctx);
+  else                                         _echec6(ctx);
+}
+
+// ================================================================
+// Résultats
+// ================================================================
+
+function _succes10(ctx) {
+  const { manoeuvre } = ctx;
+
+  if (manoeuvre.questions) {
+    narrer(manoeuvre.texte10 + ' En solo, répondez-y vous-même d\'après la scène.');
+    _choisirQuestion(ctx, SUCCES_COMPLET);
+  } else if (manoeuvre.options10) {
+    narrer('Succès complet. Choisissez ce qui se passe.');
+    _choisirOption(ctx, manoeuvre.options10, SUCCES_COMPLET, []);
+  } else {
+    narrer(manoeuvre.texte10);
+    _finir(ctx, SUCCES_COMPLET);
+  }
+}
+
+function _succes79(ctx) {
+  const { manoeuvre } = ctx;
+  const chance = _actionChance(ctx, 'Dépenser 1 point de Chance pour obtenir un succès complet');
+
+  if (manoeuvre.questions) {
+    narrer(manoeuvre.texte79);
+    _choisirQuestion(ctx, SUCCES_PARTIEL, chance);
+  } else if (manoeuvre.options79) {
+    narrer('Succès partiel : vous y arrivez, mais avec un coût. Choisissez ce qui se passe.');
+    _choisirOption(ctx, manoeuvre.options79, SUCCES_PARTIEL, chance);
+  } else {
+    narrer(manoeuvre.texte79);
+    afficherActions([
+      { label: 'Accepter le coût et continuer.', action: () => _finir(ctx, SUCCES_PARTIEL) },
+      ...chance
+    ]);
+  }
+}
+
+function _echec6(ctx) {
+  const { manoeuvre, personnage } = ctx;
+  personnage.experience++;
+
+  const reste = 4 - personnage.experience;
+  narrer(
+    `${manoeuvre.texte6} Vous marquez 1 point d'Expérience, ${personnage.experience} sur 4. ` +
+    (reste <= 0
+      ? 'Vous pouvez prendre une Progression.'
+      : `Encore ${reste} pour une Progression.`)
+  );
+  narrer(
+    manoeuvre.consequenceObligatoire
+      ? 'Le Narrateur vous inflige une Conséquence Grave.'
+      : 'Le Narrateur peut vous infliger une Conséquence Grave.'
+  );
+
+  const chance = _actionChance(ctx, 'Dépenser 1 point de Chance pour transformer l\'échec en succès complet', () => {
+    personnage.experience = Math.max(0, personnage.experience - 1);
+  });
+
+  if (manoeuvre.questions) {
+    _choisirQuestion(ctx, ECHEC, chance);
+    return;
+  }
+
+  afficherActions([
+    { label: 'Accepter l\'échec et continuer.', action: () => _finir(ctx, ECHEC) },
+    ...chance
+  ]);
+}
+
+// ================================================================
+// Choix après le jet
+// ================================================================
+
+function _choisirOption(ctx, options, niveau, extra) {
+  afficherActions([
+    ...options.map(opt => {
+      const texte = typeof opt === 'string' ? opt : opt.texte;
+      return {
+        label: texte,
+        action: () => {
+          alerter(`Vous choisissez : ${texte}`);
+          if (opt.etat) _prendreEtat(ctx, niveau);
+          else          _finir(ctx, niveau);
+        }
+      };
+    }),
+    ...extra
+  ]);
+}
+
+function _choisirQuestion(ctx, niveau, extra = []) {
+  const avertissement = {
+    [SUCCES_COMPLET]: 'La réponse doit être vraie et complète.',
+    [SUCCES_PARTIEL]: 'La réponse est vraie, mais peut rester incomplète.',
+    [ECHEC]:          'La réponse peut être incomplète, ou fausse.'
+  }[niveau];
+
+  afficherActions([
+    ...ctx.manoeuvre.questions.map(q => ({
+      label: q,
+      action: () => {
+        alerter(`Question posée : ${q} ${avertissement}`);
+        _finir(ctx, niveau);
+      }
+    })),
+    ...extra
+  ]);
+}
+
+function _prendreEtat(ctx, niveau) {
+  const libres = ctx.personnage.etats.filter(e => !e.actif && e.id !== 'inconscient');
+  if (libres.length === 0) { _finir(ctx, niveau); return; }
+
+  narrer('Quel État prenez-vous ?');
+  afficherActions(libres.map(e => ({
+    label: `${e.nom}, ${_effetEtat(e)}.`,
+    action: () => {
+      e.actif = true;
+      alerter(`État ${e.nom} coché : ${_effetEtat(e)}.`);
+      _finir(ctx, niveau);
+    }
+  })));
+}
+
+// Dépenser la Chance transforme le jet en 10 ou plus (règle de la Chance).
+function _actionChance(ctx, label, avant) {
+  const { personnage } = ctx;
+  if (personnage.chance <= 0) return [];
+  return [{
+    label: `${label}. Il vous reste ${personnage.chance} point${personnage.chance > 1 ? 's' : ''} de Chance.`,
+    action: () => {
+      avant?.();
+      personnage.chance--;
+      alerter(`1 point de Chance dépensé, il vous en reste ${personnage.chance} sur 3. Le jet devient un succès complet.`);
+      _succes10(ctx);
+    }
+  }];
+}
+
+function _actionAnnuler(ctx) {
+  return {
+    label: 'Annuler la manœuvre',
+    retour: true,
+    action: () => (ctx.onAnnuler ?? (() => ctx.onFin({ niveau: null, personnage: ctx.personnage, sansJet: true })))()
+  };
+}
+
+function _finir(ctx, niveau) {
+  ctx.onFin({ niveau, personnage: ctx.personnage });
 }
 
 // ---- Helpers ----
 
+function _effetEtat(e) {
+  if (e.id === 'ensorcele') return 'moins 1 à un trait choisi par le Narrateur';
+  if (e.trait === 'tous')   return 'moins 1 à tous les traits';
+  return `moins 2 en ${NOMS_TRAITS[e.trait]}`;
+}
+
+// « de » ou « d' » devant un nom de trait : Jet de Magie, Jet d'Intellect.
+function _de(mot) {
+  return /^[AEIOUYÉÈÊaeiouyéèê]/.test(mot) ? "d'" : 'de ';
+}
+
 function _signeParle(val) {
-  if (val === -99) return 'Inconscient';
-  if (val === 0)   return 'zéro';
-  if (val > 0)     return `plus ${val}`;
+  if (val === 0) return 'zéro';
+  if (val > 0)   return `plus ${val}`;
   return `moins ${Math.abs(val)}`;
 }

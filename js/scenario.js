@@ -1,6 +1,6 @@
 // Moteur de scénario — charge, affiche et orchestre les scènes JSON.
 
-import { narrerFrais, narrer, alerter, statuer } from './narration.js';
+import { narrerFrais, narrer, alerter } from './narration.js';
 import { afficherActions } from './actions.js';
 import { resoudreManoeuvre, MANOEUVRES } from './manoeuvres.js';
 import { mettreAJourFiche } from './fiche.js';
@@ -119,7 +119,7 @@ function _executerAction(action) {
       if (action.effet_apres) _appliquerEffet(action.effet_apres[niveau] ?? action.effet_apres.defaut);
 
       _allerScene(prochaine);
-    });
+    }, () => _allerScene(_etat.sceneActuelle));
 
   } else if (action.lien) {
     _allerScene(action.lien);

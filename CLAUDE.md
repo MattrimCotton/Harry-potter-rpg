@@ -20,7 +20,7 @@ Au début de chaque session, tu dois :
 - **`memory/user-profile.md`** — Profil développeur & expertise
 - **`memory/project-context.md`** — Objectifs, stack technique, architecture, état d'avancement
 - **`memory/game-rules.md`** — Règles complètes du système PbtA pour implémentation (traits, jets, manœuvres, états, progression, sorts, patronus) — **lire avant d'implémenter la mécanique de jeu**
-- **`memory/accessibility-specs.md`** — Spécifications techniques détaillées (ARIA, Web Speech API, raccourcis clavier) — **lire avant toute implémentation d'interface**
+- **`memory/accessibility-specs.md`** — Spécifications techniques détaillées (ARIA, focus management, raccourcis clavier) — **lire avant toute implémentation d'interface**
 
 ---
 
@@ -43,14 +43,15 @@ Au début de chaque session, tu dois :
 - **HTML sémantique** — structure accessible, landmarks ARIA
 - **CSS** — mise en forme (secondaire pour les non-voyants)
 - **JavaScript vanille** — aucun framework, aucune dépendance, modules ES6 bundlés
-- **ARIA Live Regions** — annonces dynamiques (`aria-live="polite"` et `assertive"`)
-- **Web Speech API** — TTS hors-ligne natif du navigateur (`lang: 'fr-FR'`)
+- **Modèle des tours** (`narration.js`) — le texte du jeu est groupé en « tours » (écrans narratifs), chaque tour est un `<div class="tour" tabindex="-1">` dans `#narration` ; le focus y va au début du tour pour NVDA le lise complet, puis les flèches permettent d'accéder aux choix qui suivent dans le DOM
+- **ARIA Regions** — `role="alert"` (assertive) et `role="status"` (polite) **uniquement** pour annonces sans déplacement de focus (fiche F1-F5, sauvegarde F8, erreurs de saisie) ; **pas de région live pour la narration** (qui couperait NVDA)
+- **Pas de synthèse vocale intégrée** — le jeu se joue avec NVDA, qui lit tout (décision du 2026-09-24)
 - **localStorage** — sauvegarde des parties
 - **JSON** — contenu du jeu (sorts, tables, scénarios)
 - **Build** — `build.js` (Node.js) → genère `poudlard-rpg.html` standalone (aucun serveur requis)
 
 ### Compatibilité lecteurs d'écran cible
-- NVDA + Firefox/Chrome (Windows) — priorité 1
+- NVDA + Firefox/Chrome (Windows) — **référence** : l'interface est conçue pour le mode navigation de NVDA
 - VoiceOver + Safari (macOS/iOS)
 - Orca + Firefox (Linux)
 - JAWS + Chrome (Windows)
@@ -78,11 +79,14 @@ Au début de chaque session, tu dois :
 1. Faire Face au Danger → Bravoure
 2. Acquérir des Connaissances → Intellect
 3. Se Cacher et se Faufiler → Ruse
-4. Obtenir ce que l'on Cherche → Bravoure (honnêteté) ou Ruse (tromperie)
-5. Aider ou Entraver quelqu'un → Loyauté
-6. Lancer un Sort / Dueller → Magie
-7. Préparer une Potion → Magie
-8. Utiliser un Objet Magique → Magie
+4. Obtenir ce que l'on Cherche → Bravoure ou Ruse (choix du joueur)
+5. Aider ou Entraver quelqu'un → Loyauté (bonus +1 si Ami/Rival)
+6. Approcher une Créature Magique → Loyauté
+7. Lancer un Sort → Magie (requiert connaître le sort ou dépenser 1 Chance)
+8. Dueller → Magie (échange de sorts; Conséquence Grave obligatoire)
+9. Préparer une Potion → Magie (requiert connaître la potion ou dépenser 1 Chance)
+10. Utiliser un Objet Magique → Magie
+11. Jet libre → n'importe quel trait (quand aucune autre manœuvre ne convient)
 
 ### États (Conditions)
 Apeuré (-2 Bravoure), Furieux (-2 Ruse), Stressé (-2 Intellect),
@@ -108,30 +112,28 @@ Ensorcelé (-1 trait au choix Narrateur), Inconscient (hors jeu)
 
 ## Exigences accessibilité (non-négociables)
 
-1. **Navigation 100% clavier** — Tab, Flèches, Entrée, Échap, F1-F5, Espace
+1. **Navigation 100% clavier, compatible mode navigation NVDA** — seules les touches F et Échap servent de raccourcis (NVDA garde pour lui lettres, chiffres, Espace, Entrée et flèches)
 2. **Aucune information visuelle exclusive** — tout est dans le texte
-3. **ARIA Live Regions** pour toutes les annonces dynamiques
-4. **Focus management** explicite après chaque action
-5. **Pas de délais** sur les interactions (pas de timeout)
-6. **Langage clair** — phrases courtes, pas d'abréviations
-7. **Répétition** — Espace pour relire le dernier message
-8. **Web Speech API** — TTS en `fr-FR` avec contrôle vitesse/volume
+3. **Modèle des tours** — chaque écran narratif groupe du texte dans un `<div class="tour" tabindex="-1">`, le focus y va au début du tour pour NVDA le lise complet avant accès aux choix
+4. **ARIA Live Regions** (`role="alert"` et `role="status"`) **uniquement** pour les annonces isolées sans déplacement de focus (fiche F1-F5, sauvegarde F8, erreurs, jet de dés)
+5. **Pas de synthèse vocale intégrée** — le jeu se joue avec NVDA, qui lit tout (décision du 2026-09-24)
+6. **Pas de délais** sur les interactions (pas de timeout)
+7. **Langage clair** — phrases courtes, pas d'abréviations, nombres et signes en toutes lettres (« plus 1 »)
+8. **Répétition** — F9 replace le focus au début du dernier tour
+9. **Chaque raccourci existe aussi en bouton** — zone « Fiche et outils »
+10. **Sauvegarde automatique silencieuse** — seule F8 annonce « Partie sauvegardée »
 
-### Raccourcis clavier standard du jeu
-```
-Tab / Shift+Tab  → naviguer entre les éléments
-Flèches          → naviguer dans les listes d'options
-Entrée           → confirmer / lancer les dés
-Échap            → retour / annuler
-Espace           → relire le dernier message du Narrateur
-F1               → lire les Traits du personnage
-F2               → lire les États actifs
-F3               → lire les Sorts connus
-F4               → lire les Amis & Rivaux
-F5               → lire Chance et Expérience
-R                → relancer les dés (si applicable)
-S                → sauvegarder
-```
+### Raccourcis clavier standard du jeu (NVDA prioritaire)
+
+| Touche | Action |
+|---|---|
+| F1 à F5 | Traits, États, Sorts, Amis et rivaux, Chance et expérience (annonce, focus inchangé) |
+| F8 | Sauvegarder (annoncé) |
+| F9 | Revenir au début du dernier tour |
+| Échap | Retour / annuler |
+| Flèches, Début, Fin | Parcourir les choix (mode formulaire) |
+
+Les touches F sont interceptées même dans un champ texte, pour que F5 ne recharge jamais la page. Les combinaisons avec Alt, Ctrl ou Méta sont ignorées. En mode navigation NVDA, la flèche bas lit le tour complet, puis donne accès aux choix.
 
 ---
 
@@ -142,18 +144,19 @@ S                → sauvegarder
 | `memory/MEMORY.md` | Index mémoire — lire en premier |
 | `termes-reference.md` | Référence complète des traductions FR lore HP |
 | `resources-pdf/` | PDFs source du jeu original |
-| `index.html` | Point d'entrée, structure sémantique + ARIA live regions |
+| `index.html` | Point d'entrée, structure sémantique : `<main>` contient narration (section histoire), actions (nav), outils (nav F1-F5/F8-F9), annonces (alert/status). `<section id="aide">` : aide contextuelle. `<aside>` : fiche personnage cachée (traits/états/sorts/amis/chance). Annonces via `role="alert"` (assertive) et `role="status"` (polite) sans aria-live. |
 | `style.css` | Mise en forme (secondaire pour accessibilité) |
 | `build.js` | Bundler Node.js — transforme modules ES6 en script classique, inline CSS + JS + JSON dans `poudlard-rpg.html` (usage: `node build.js`) |
 | `build.bat` | Script batch Windows — wrapper autour de `build.js`, vérifie Node.js, compile et propose d'ouvrir le résultat (usage: double-cliquer) |
-| `js/main.js` | Point d'entrée JavaScript (module ES6+) — gère l'état global du jeu (`etat` singleton avec `personnage` et `derniereAction`), orchestration des écrans (menu principal, création, reprise, aide), initialisation au démarrage via `DOMContentLoaded`, intègre clavier + sauvegarde, imports `lancerCreation` de `creation.js` et `lancerJeu` de `jeu.js`; `demarrerCreation()` et `reprendrePartie()` appellent `_assureProgressions()` puis `lancerJeu()` pour démarrer/reprendre le jeu |
-| `js/narration.js` | Module central d'annonces — ARIA live regions + TTS optionnel (tous les messages du jeu) |
+| `.claude/launch.json` | Configuration Claude Code — serveur de développement Python `http.server` sur port 8765 (usage: `python -m http.server 8765`) — permet prévisualisation live dans Claude Code |
+| `js/main.js` | Point d'entrée JavaScript (module ES6+) — gère l'état global du jeu (`etat` singleton avec `personnage`), orchestration des écrans (menu principal, création, reprise), initialisation au démarrage via `DOMContentLoaded`, intègre clavier + sauvegarde, imports `lancerCreation` de `creation.js` et `lancerJeu` de `jeu.js`; `demarrerCreation()` et `reprendrePartie()` appellent `_assureProgressions()` puis `lancerJeu()` pour démarrer/reprendre le jeu; `_allerAide()` place le focus sur `#aide` (section fixe d'aide) |
+| `js/narration.js` | Module central d'annonces — gestion des tours (texte groupé par écran narratif) et focus management pour NVDA mode navigation ; annonces isolées via `role="alert"` (dés, erreurs) et `role="status"` (statut) sans aria-live ; `narrer()`, `narrerFrais()`, `alerter()`, `annoncer()`, `statuer()`, `terminerTour()`, `relire()` |
 | `js/personnage.js` | Gestion du personnage joueur — structure de données, calcul de traits effectifs (avec malus d'états), helpers d'application des bonus d'origine & maison |
 | `js/fiche.js` | Lecture et affichage de la fiche de personnage — appelé par les touches F1-F5 (traits, états, sorts, amis/rivaux, chance/expérience), mises à jour DOM |
-| `js/clavier.js` | Raccourcis clavier globaux (Espace, F1-F5, R, S) — enregistré une seule fois au démarrage |
-| `js/actions.js` | Affichage des boutons d'action — construit les boutons avec ARIA labels, raccourcis, et focus management automatique |
+| `js/clavier.js` | Raccourcis clavier globaux (F1-F5, F8, Échap, flèches) et gestion des outils (`zone-outils`) — initialisation via `initClavier(raccourcis)` et `initOutils(raccourcis)` au démarrage, branche touches/boutons aux callbacks du jeu (lireFiche, sauvegarder, afficherAide) |
+| `js/actions.js` | Affichage des actions (boutons et formulaires texte) — `afficherActions(actions)` construit les boutons avec ARIA labels et focus management ; `demanderTexte({ question, exemple, onValider, onAnnuler })` pour saisie texte accessible ; `declencherRetour()` et `deplacerFocusActions(touche)` pour gestion clavier (Échap, flèches) ; format action: `{ label, action, desactive?, retour? }` (retour=true pour Échap) |
 | `js/des.js` | Moteur de dés — jets 2d6 selon les règles PbtA (succès complet 10+, partiel 7-9, échec 6-) |
-| `js/manoeuvres.js` | Les 8 manœuvres de base — définition catalogue + `resoudreManoeuvre(manoeuvre, personnage, onFin)` orchestrant les choix et dépense de Chance, gestion des jets et affichage résultats (10+/7-9/6-) |
+| `js/manoeuvres.js` | Les 11 manœuvres (base + magiques) — définition catalogue (11 objets avec `id`, `nom`, `traits: []`, `options10/79/texte6/questions`, `prealable?`, `bonusRelation?`, `consequenceObligatoire?`) + `resoudreManoeuvre(manoeuvre, personnage, onFin, onAnnuler)` orchestrant : sélection trait si multi-trait, pré-requis (sort/potion), choix bonus (matière/ami/rival), jet 2d6, résultat (10+/7-9/6-), prise d'État, dépense de Chance |
 | `js/sauvegarde.js` | Sauvegarde/chargement via localStorage (clé `poudlard_rpg_v1`) — fournit `sauvegarder()`, `charger()`, `effacer()`, `aUneSauvegarde()` |
 | `js/scenario.js` | Moteur de scénario — charge et orchestre les scènes JSON, gère la navigation, les conditions, les effets, et les variables (`lancerScenario(idScenario, personnage, onFin)`, support des conditions composées avec `&&` et `\|\|`, état interne avec flags et objets) |
 | `contenu/` | Données JSON du jeu (scenarios, règles, sorts, etc.) |
@@ -180,19 +183,19 @@ S                → sauvegarder
 - [x] Architecture définie
 - [x] CLAUDE.md créé
 - [x] Permissions .claude/settings.json configurées
-- [x] `index.html` — structure ARIA complète (live regions, landmarks, fiche personnage)
+- [x] `index.html` — landmarks, zone « Fiche et outils », section d'aide, régions alert/status, fiche personnage
 - [x] `style.css` — focus visible, sr-seul, lien d'évitement
-- [x] `js/narration.js` — ARIA live regions + TTS Web Speech API (fr-FR), relire()
+- [x] `js/narration.js` — gestion des tours, focus management pour NVDA mode navigation, ARIA live regions pour annonces isolées
 - [x] `js/des.js` — lancerDes(trait, nom), d6(), deuxD6Independants()
-- [x] `js/actions.js` — afficherActions(), focus automatique
-- [x] `js/clavier.js` — F1-F5, Espace, R, S
+- [x] `js/actions.js` — afficherActions(), demanderTexte(), Échap, flèches
+- [x] `js/clavier.js` — F1-F5, F8, F9, Échap, flèches ; boutons « Fiche et outils »
 - [x] `js/personnage.js` — creerPersonnageVide(), traitEffectif(), appliquerMaison()
 - [x] `js/fiche.js` — lireFiche(section), mettreAJourFiche()
 - [x] `js/sauvegarde.js` — localStorage
 - [x] `contenu/sorts.json` — ~90 sorts classés par Année 1-7 + Impardonnables
 - [x] `contenu/tables.json` — tables de création (teint, cheveux, maisons, patronus, prénoms…)
 - [x] `js/creation.js` — les 12 étapes de création de personnage (dés, texte libre, tables)
-- [x] `js/manoeuvres.js` — les 8 manœuvres de base avec résultats 10+/7-9/6-, Chance, XP, jet de survie
+- [x] `js/manoeuvres.js` — 11 manœuvres (base + magiques) : multi-trait, pré-requis sort/potion, États optionnels, bonus matière/ami/rival, résultats 10+/7-9/6-, Chance, XP
 - [x] `js/jeu.js` — boucle de jeu : manœuvres, états, relations, progression, fin de session, sélection de scénario
 - [x] `js/main.js` — routing complet : menu → création → jeu (lancerJeu connecté)
 - [x] `js/scenario.js` — moteur de scénario : chargement JSON, navigation de scènes, conditions, effets, fins

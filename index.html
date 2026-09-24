@@ -10,70 +10,81 @@
 
   <a href="#zone-actions" class="lien-evitement">Aller aux actions</a>
 
-  <header role="banner">
+  <header>
     <h1>Poudlard — Jeu de Rôle Solo</h1>
   </header>
 
   <main id="contenu-principal" tabindex="-1">
 
-    <!-- Narration principale : polite, non-interruptive, log cumulatif -->
-    <section aria-labelledby="titre-narration">
+    <!-- Historique découpé en tours. Pas de région live : le focus est placé
+         au début de chaque nouveau tour (voir narration.js). -->
+    <section id="section-histoire" aria-labelledby="titre-narration">
       <h2 id="titre-narration" class="sr-seul">Histoire</h2>
-      <div
-        id="narration"
-        role="log"
-        aria-live="polite"
-        aria-atomic="false"
-        aria-relevant="additions"
-        tabindex="-1"
-      ></div>
+      <div id="narration"></div>
     </section>
 
-    <!-- Résultats de dés et alertes : assertive, interrompt immédiatement -->
-    <div
-      id="alerte"
-      role="alert"
-      aria-live="assertive"
-      aria-atomic="true"
-      class="sr-seul"
-    ></div>
-
-    <!-- Statut bref (XP, Chance…) : polite, non-interruptif -->
-    <div
-      id="statut"
-      role="status"
-      aria-live="polite"
-      aria-atomic="true"
-      class="sr-seul"
-    ></div>
-
-    <!-- Zone d'actions du moment -->
     <nav id="zone-actions" aria-label="Actions disponibles" tabindex="-1">
       <h2 class="sr-seul">Actions</h2>
-      <ul role="list" id="liste-actions"></ul>
+      <ul id="liste-actions"></ul>
     </nav>
+
+    <nav id="zone-outils" aria-label="Fiche et outils">
+      <h2 class="sr-seul">Fiche et outils</h2>
+      <ul>
+        <li><button type="button" data-outil="relire"  aria-keyshortcuts="F9">Relire le dernier tour <span class="raccourci">F9</span></button></li>
+        <li><button type="button" data-outil="traits"  aria-keyshortcuts="F1">Traits <span class="raccourci">F1</span></button></li>
+        <li><button type="button" data-outil="etats"   aria-keyshortcuts="F2">États <span class="raccourci">F2</span></button></li>
+        <li><button type="button" data-outil="sorts"   aria-keyshortcuts="F3">Sorts <span class="raccourci">F3</span></button></li>
+        <li><button type="button" data-outil="amis"    aria-keyshortcuts="F4">Amis et rivaux <span class="raccourci">F4</span></button></li>
+        <li><button type="button" data-outil="chance"  aria-keyshortcuts="F5">Chance et expérience <span class="raccourci">F5</span></button></li>
+        <li><button type="button" data-outil="sauver"  aria-keyshortcuts="F8">Sauvegarder <span class="raccourci">F8</span></button></li>
+        <li><button type="button" data-outil="aide">Aide et raccourcis</button></li>
+      </ul>
+    </nav>
+
+    <!-- Annonces sans déplacement de focus : fiche, sauvegarde, erreurs -->
+    <div id="alerte" role="alert" aria-atomic="true" class="sr-seul"></div>
+    <div id="statut" role="status" aria-atomic="true" class="sr-seul"></div>
 
   </main>
 
-  <!-- Fiche personnage — hors flux, lue par F1-F5 -->
+  <section id="aide" aria-labelledby="titre-aide" tabindex="-1">
+    <h2 id="titre-aide">Aide et raccourcis clavier</h2>
+    <p>Le jeu est prévu pour NVDA en mode navigation. Après chaque choix, le curseur se place au début du nouveau texte. Lisez-le avec la flèche bas : les choix suivent juste après. Appuyez sur Entrée pour activer un choix.</p>
+    <ul>
+      <li>F9 : revenir au début du dernier tour pour le relire.</li>
+      <li>Échap : revenir en arrière ou annuler, quand c'est possible.</li>
+      <li>F1 : vos traits.</li>
+      <li>F2 : vos états actifs.</li>
+      <li>F3 : vos sorts connus.</li>
+      <li>F4 : vos amis et rivaux.</li>
+      <li>F5 : votre chance et votre expérience.</li>
+      <li>F8 : sauvegarder. La partie est aussi sauvegardée après chaque jet.</li>
+      <li>B et Maj+B (commandes de NVDA) : passer d'un bouton à l'autre.</li>
+      <li>En mode formulaire, les flèches haut et bas, Début et Fin parcourent aussi les choix.</li>
+    </ul>
+    <p>Sur un ordinateur portable, il faut parfois maintenir la touche Fn pour les touches F. Tous ces raccourcis existent aussi en boutons, dans la zone « Fiche et outils », juste après les choix.</p>
+  </section>
+
+  <!-- Fiche personnage visuelle. Les touches F1-F5 l'annoncent sans déplacer le focus. -->
   <aside id="fiche-personnage" aria-label="Fiche de personnage" hidden>
-    <section id="section-traits" aria-labelledby="titre-traits" tabindex="-1">
+    <section aria-labelledby="titre-traits">
       <h2 id="titre-traits">Traits</h2>
       <dl id="liste-traits"></dl>
     </section>
-    <section id="section-etats" aria-labelledby="titre-etats" tabindex="-1">
+    <section aria-labelledby="titre-etats">
       <h2 id="titre-etats">États actifs</h2>
       <ul id="liste-etats"></ul>
     </section>
-    <section id="section-sorts" aria-labelledby="titre-sorts" tabindex="-1">
+    <section aria-labelledby="titre-sorts">
       <h2 id="titre-sorts">Sorts connus</h2>
       <ul id="liste-sorts"></ul>
     </section>
-    <section id="section-amis" aria-labelledby="titre-amis" tabindex="-1">
+    <section aria-labelledby="titre-amis">
       <h2 id="titre-amis">Amis et Rivaux</h2>
       <ul id="liste-amis"></ul>
     </section>
-    <section id="section-chance" aria-labelledby="titre-chance" tabindex="-1">
+    <section aria-labelledby="titre-chance">
       <h2 id="titre-chance">Chance et Expérience</h2>
       <dl id="liste-chance"></dl>
     </section>

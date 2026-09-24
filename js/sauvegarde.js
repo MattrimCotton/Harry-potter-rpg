@@ -4,10 +4,12 @@ import { statuer } from './narration.js';
 
 const CLE = 'poudlard_rpg_v1';
 
-export function sauvegarder(etat) {
+// Les sauvegardes automatiques sont silencieuses : une annonce à chaque tour
+// se mélangerait à la lecture du texte par NVDA.
+export function sauvegarder(etat, { annoncer = false } = {}) {
   try {
     localStorage.setItem(CLE, JSON.stringify(etat));
-    statuer('Partie sauvegardée.');
+    if (annoncer) statuer('Partie sauvegardée.');
     return true;
   } catch {
     statuer('Erreur lors de la sauvegarde.');

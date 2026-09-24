@@ -19,30 +19,38 @@ HTML sémantique + CSS + JavaScript vanille (modules ES6), aucune dépendance. C
 ## Architecture (flux)
 
 `main.js` (menu) → `creation.js` (12 étapes) → `jeu.js` (boucle : manœuvres, états, relations, progression, choix de scénario) → `scenario.js` (scènes JSON, conditions `&&`/`||`, effets, fins).
-Tout le texte passe par `narration.js` (régions live + TTS). Les boutons par `actions.js`. Les raccourcis globaux par `clavier.js`. La fiche (F1-F5) par `fiche.js`.
+Tout le texte passe par `narration.js` (tours lus par le focus). Les boutons par `actions.js`. Les raccourcis globaux par `clavier.js`. La fiche (F1-F5) par `fiche.js`.
 
 La table détaillée des fichiers est dans `CLAUDE.md`.
 
 ## État d'avancement (2026-09-24)
 
-Fait : tout ce qui est coché dans `CLAUDE.md` — création complète, 8 manœuvres, états, Chance/XP/progression, moteur de scénario, scénario 1 « Le Compartiment du Fond », build autonome.
+Fait : tout ce qui est coché dans `CLAUDE.md` — création complète, 11 manœuvres, états, Chance/XP/progression, moteur de scénario, scénario 1 « Le Compartiment du Fond », build autonome, interface refaite pour NVDA.
 
 ## Écarts connus avec les règles source
 
-Voir `game-rules.md` pour le détail. En résumé, pas encore implémenté :
-- Manœuvre **Approcher une Créature Magique** (+Loyauté).
-- Manœuvre générique **Jet** (+trait au choix) quand aucune autre ne s'applique.
-- **Duel** fusionné avec « Lancer un Sort » ; les options de duel (10+ / 7-9 / 6-) sont différentes de celles du sort — à vérifier.
-- Bonus **+1 Matière préférée** et **+1 Ami/Rival** pour Aider/Entraver — à vérifier dans `manoeuvres.js`.
-- Quidditch, Points de Maison, Mystères, Menaces : absents.
+Corrigé le 2026-09-24 : les 11 manœuvres suivent le PDF (Créature, Jet libre et Duel ajoutés ; options 10+ et 7-9 réécrites ; sort ou potion inconnu = 1 Chance ; bonus +1 matière préférée et Ami/Rival ; les options « vous prenez un État » font cocher l'État ; Progression remet l'XP à 0).
 
-## Écarts connus en accessibilité
+Restent absents : Quidditch, Points de Maison, Mystères, Menaces. Le jeu en solo n'a pas de Narrateur humain : les Conséquences Graves sont laissées à l'imagination du joueur, sauf dans les scénarios.
 
-Voir `accessibility-specs.md` → section « Dette d'accessibilité ».
+## Décisions de conception (2026-09-24)
+
+- **NVDA d'abord, pas de synthèse vocale intégrée.** Voir `accessibility-specs.md`.
+- Lecture par « tours » avec focus, au lieu de régions live.
+- Raccourcis limités aux touches F et Échap ; tout existe aussi en bouton.
+- Sauvegarde automatique silencieuse.
+- Menu de jeu court ; les manœuvres sont dans un sous-menu.
+
+## Développement
+
+- `node build.js` régénère `poudlard-rpg.html` : à relancer après chaque modification de `js/`, `index.html`, `style.css` ou `contenu/`.
+- Serveur local de test : `python -m http.server 8765` (`.claude/launch.json`), puis `http://localhost:8765/poudlard-rpg.html` ou `index.html` (version modules).
+- Le bundler supprime les `import` et met tous les exports au même niveau : **deux modules ne doivent pas exporter le même nom**.
+- Piège fréquent : une apostrophe dans une chaîne entre apostrophes casse tout le script. Utiliser des guillemets doubles quand le texte contient une apostrophe.
 
 ## Pistes suivantes
 
-1. Combler la dette d'accessibilité (Échap, flèches, réglages TTS, raccourcis à une lettre).
-2. Ajouter les manœuvres manquantes.
-3. Écrire d'autres scénarios (index dans `contenu/scenarios/index.json`).
-4. Tests manuels NVDA + Firefox, puis VoiceOver.
+1. Test réel avec NVDA + Firefox (lecture d'un tour de plusieurs paragraphes).
+2. Regrouper les longues listes de sorts.
+3. Écrire d'autres scénarios (index dans `contenu/scenarios/index.json`), en utilisant les nouvelles manœuvres (`approcher-creature`, `dueller`, `jet`).
+4. Jet de survie dans le moteur de scénario.
